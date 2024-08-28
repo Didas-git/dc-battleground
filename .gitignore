@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+lily-cache/
+db/
+.env.*
+.DS_Store
+.obsidian
+.dccache
