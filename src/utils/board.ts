@@ -4,11 +4,12 @@ import * as Board from "../schemas/board.js";
 
 import type { Embed, Message } from "lilybird";
 
+// https://www.compart.com/en/unicode/block/U+1F800
 export const DIRECTION_MAP: Record<string, string> = {
-    left: "⬅️",
-    up: "⬆️",
-    down: "⬇️",
-    right: "➡️"
+    left: "\u{1F844}", // 🡄
+    up: "\u{1F845}", // 🡅
+    down: "\u{1F847}", // 🡇
+    right: "\u{1F846}" // 🡆
 };
 
 export function makeMovementRow(x: number, y: number): Message.Component.ActionRowStructure {
@@ -19,25 +20,25 @@ export function makeMovementRow(x: number, y: number): Message.Component.ActionR
                 type: ComponentType.Button,
                 custom_id: `arrow-left:${x - 1},${y}`,
                 style: ButtonStyle.Primary,
-                label: "⬅️"
+                label: DIRECTION_MAP.left
             },
             {
                 type: ComponentType.Button,
                 custom_id: `arrow-up:${x},${y + 1}`,
                 style: ButtonStyle.Primary,
-                label: "⬆️"
+                label: DIRECTION_MAP.up
             },
             {
                 type: ComponentType.Button,
                 custom_id: `arrow-down:${x},${y - 1}`,
                 style: ButtonStyle.Primary,
-                label: "⬇️"
+                label: DIRECTION_MAP.down
             },
             {
                 type: ComponentType.Button,
                 custom_id: `arrow-right:${x + 1},${y}`,
                 style: ButtonStyle.Primary,
-                label: "➡️"
+                label: DIRECTION_MAP.right
             }
         ]
     };

@@ -55,12 +55,10 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
         }
     }
 
-    const end = performance.now() - start;
+    const time = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
 
     profile.last_scan = Date.now();
     Player.update(memberId, profile);
-
-    const time = new Date(Date.UTC(0, 0, 0, 0, 0, 0, end));
 
     const embed: Embed.Structure = {
         title: `Found ${chests.length + mobs.length} entities`,
@@ -69,7 +67,7 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
             chests.length > 0 ? chests.join("\n") : "  - None"}\n- Enemies:\n${
             mobs.length > 0 ? mobs.join("\n") : "  - None"}\n- Players:\n${
             players.length > 0 ? players.join("\n") : "  - None"}`,
-        footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds | Scanned ${scanAmount * scanAmount} tiles` }
+        footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds\nScanned ${scanAmount * scanAmount} tiles` }
     };
 
     await interaction.editReply({ embeds: [embed] });
