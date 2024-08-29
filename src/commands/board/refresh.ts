@@ -5,6 +5,7 @@ import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 import { PermissionFlags } from "lilybird";
+import { findClosest } from "../../utils/closest.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -32,7 +33,9 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         do ({ x, y } = Board.generateCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
-        Board.generateChest(entityId, x, y, { rarity: Board.ChestRarity.Basic, contents: [] });
+        const rarity = Board.CHEST_RATIOS_MAP[findClosest(Board.CHEST_RATIOS, Math.random())];
+
+        Board.generateChest(entityId, x, y, { rarity, contents: [] });
     }
 
     const time1 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
