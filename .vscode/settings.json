@@ -3,7 +3,7 @@
         "lilybird"
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
-    "eslint.experimental.useFlatConfig": true,
+    "eslint.useFlatConfig": true,
     "eslint.format.enable": true,
     "eslint.enable": true,
     "[typescript]": {
@@ -11,5 +11,13 @@
     },
     "[typescriptreact]": {
         "editor.defaultFormatter": "vscode.typescript-language-features"
-    }
+    },
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "items.json"
+            ],
+            "url": "/.vscode/items.schema.json",
+        }
+    ]
 }

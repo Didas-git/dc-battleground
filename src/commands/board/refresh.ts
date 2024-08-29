@@ -1,11 +1,11 @@
+import { generateRandomChestData } from "../../utils/board.js";
+import { PermissionFlags } from "lilybird";
 import { randomUUID } from "node:crypto";
 import { db } from "../../db.js";
 
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
-import { PermissionFlags } from "lilybird";
-import { findClosest } from "../../utils/closest.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -30,12 +30,10 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         let x = 0;
         let y = 0;
 
-        do ({ x, y } = Board.generateCoordinates());
+        do ({ x, y } = Board.generateRandomCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
-        const rarity = Board.CHEST_RATIOS_MAP[findClosest(Board.CHEST_RATIOS, Math.random())];
-
-        Board.generateChest(entityId, x, y, { rarity, contents: [] });
+        Board.generateChest(entityId, x, y, generateRandomChestData());
     }
 
     const time1 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
@@ -47,7 +45,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         let x = 0;
         let y = 0;
 
-        do ({ x, y } = Board.generateCoordinates());
+        do ({ x, y } = Board.generateRandomCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
         Board.generateEnemy(entityId, x, y);

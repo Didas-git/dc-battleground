@@ -1,0 +1,9 @@
+[
+    {
+        "id": "basic_node",
+        "type": 0,
+        "rarity": 1,
+        "name": "Node",
+        "description": "A basic material used for weapon analysis"
+    }
+]

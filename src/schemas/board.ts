@@ -22,19 +22,25 @@ export interface ChestData {
     contents: Array<ChestContent>;
 }
 
-export type ChestContent = GoldChestContent;
+export type ChestContent = GoldChestContent | ItemChestContent;
 
 export interface ChestContentBase {
     type: ChestContentType;
-    amount: number;
 }
 
 export interface GoldChestContent extends ChestContentBase {
     type: ChestContentType.Gold;
+    amount: number;
+}
+
+export interface ItemChestContent extends ChestContentBase {
+    type: ChestContentType.Item;
+    item: string;
 }
 
 export const enum ChestContentType {
-    Gold
+    Gold,
+    Item
 }
 
 export const enum ChestRarity {
@@ -83,7 +89,7 @@ export const BOARD_MAPPINGS: Record<number, string> = {
     99: "🟪"
 };
 
-export function generateCoordinates(): BoardData {
+export function generateRandomCoordinates(): BoardData {
     return {
         x: Math.floor(Math.random() * BOARD_LIMITS.POSITIVE.x) * (Math.round(Math.random()) ? 1 : -1),
         y: Math.floor(Math.random() * BOARD_LIMITS.POSITIVE.y) * (Math.round(Math.random()) ? 1 : -1)
@@ -152,7 +158,7 @@ export function scanFromCenter(center: { x: number, y: number }, size: number, p
     return board;
 }
 
-export function scanForEntities(center: { x: number, y: number }, size: number): Array< { type: BoardEntityType } & BoardData> {
+export function scanForEntities(center: { x: number, y: number }, size: number): Array<{ type: BoardEntityType } & BoardData> {
     const fullSize = size * size;
     const entities: ReturnType<typeof scanForEntities> = [];
 

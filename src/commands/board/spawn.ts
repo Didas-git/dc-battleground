@@ -1,3 +1,4 @@
+import { generateRandomChestData } from "../../utils/board.js";
 import { randomUUID } from "node:crypto";
 
 import * as Board from "../../schemas/board.js";
@@ -23,10 +24,10 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         let x = 0;
         let y = 0;
 
-        do ({ x, y } = Board.generateCoordinates());
+        do ({ x, y } = Board.generateRandomCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
-        Board.generateChest(entityId, x, y, { rarity: Board.ChestRarity.Basic, contents: [] });
+        Board.generateChest(entityId, x, y, generateRandomChestData());
         locations.push({ x, y });
     }
 

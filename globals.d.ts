@@ -1,10 +1,10 @@
 declare module "bun" {
     interface Env {
-        TOKEN: string;
-        BOARD_SIZE: string;
-        BOARD_VIEW_SIZE: string;
-        BOARD_SCAN_SIZE: string;
-        CHEST_REFRESH_PERCENTAGE: string;
-        MOB_REFRESH_PERCENTAGE: string;
+        readonly TOKEN: string;
+        readonly BOARD_SIZE: string;
+        readonly BOARD_VIEW_SIZE: string;
+        readonly BOARD_SCAN_SIZE: string;
+        readonly CHEST_REFRESH_PERCENTAGE: string;
+        readonly MOB_REFRESH_PERCENTAGE: string;
     }
 }
