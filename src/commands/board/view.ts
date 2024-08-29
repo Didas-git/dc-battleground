@@ -1,7 +1,9 @@
+import { makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
+
+import * as BoardCache from "../../schemas/board-cache.js";
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
-import type { Embed } from "lilybird";
 
 export async function viewBoard(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -13,20 +15,12 @@ export async function viewBoard(interaction: Interaction<ApplicationCommandData>
         return;
     }
 
-    const board = Board.scanBoardFromCenter(position, Board.BOARD_SIZE, memberId);
+    await interaction.reply({
+        embeds: [makeBoardEmbed(position, memberId)],
+        components: [makeMovementRow(position.x, position.y)]
+    });
 
-    let str = "";
-    for (let i = 0, { length } = board; i < length; i++) {
-        if (i % Board.BOARD_SIZE === 0 && i !== 0) str += "\n";
-        str += Board.BOARD_MAPPINGS[board[i]];
-    }
-
-    const embed: Embed.Structure = {
-        title: "Board",
-        color: 0x0000ff,
-        description: str,
-        footer: { text: `X: ${position.x} | Y: ${position.y}` }
-    };
-
-    await interaction.reply({ embeds: [embed] });
+    BoardCache.del(memberId);
+    const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
+    BoardCache.set(message.id, memberId);
 }

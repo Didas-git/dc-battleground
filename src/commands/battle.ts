@@ -1,8 +1,8 @@
+import { getMember, getMemberName } from "../utils/get-member.js";
 import { calculateDef } from "../utils/calculate-total-def.js";
 import { ApplicationCommandOptionType } from "lilybird";
 import { GuildMember } from "@lilybird/transformers";
 import { $applicationCommand } from "../handler.js";
-import { getMember, getMemberName } from "../utils/get-member.js";
 
 import * as Player from "../schemas/player.js";
 

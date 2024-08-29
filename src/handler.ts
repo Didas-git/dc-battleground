@@ -5,8 +5,7 @@ import type { DefaultTransformers } from "@lilybird/transformers";
 
 export const handler = new Handler<DefaultTransformers, true>({
     cachePath: `${import.meta.dir}/lily-cache/handler`,
-    transformers: defaultTransformers,
-    enableDynamicComponents: true
+    transformers: defaultTransformers
 });
 
 export const $applicationCommand = handler.storeCommand.bind(handler);

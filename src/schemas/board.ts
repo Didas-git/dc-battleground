@@ -74,6 +74,10 @@ export function generateChest(type: BoardEntityType, id: `${string}:${string}`, 
     db.query("INSERT INTO Board (id, type, x, y, data) VALUES ($id, $type, $x, $y, $data)").run({ id, type, x, y, data: JSON.stringify(data) });
 }
 
+export function updatePlayerPosition(id: `${string}:${string}`, x: number, y: number): BoardData | null {
+    return <BoardData>db.query("UPDATE Board SET x = $x, y = $y WHERE id = $id").get({ id, x, y });
+}
+
 export function getPlayerPosition(id: `${string}:${string}`): BoardData | null {
     return <BoardData>db.query("SELECT x, y FROM Board WHERE id = $id").get({ id });
 }

@@ -1,13 +1,53 @@
-import { ApplicationCommandOptionType } from "lilybird";
+import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
+import { ApplicationCommandOptionType, ComponentType } from "lilybird";
 import { $applicationCommand } from "../../handler.js";
-import { viewBoard } from "./view.js";
-import { boardSpawn } from "./spawn.js";
 import { boardReset } from "./refresh.js";
+import { boardSpawn } from "./spawn.js";
+import { viewBoard } from "./view.js";
 import { scanBoard } from "./scan.js";
+
+import * as BoardCache from "../../schemas/board-cache.js";
+import * as Board from "../../schemas/board.js";
 
 $applicationCommand({
     name: "board",
     description: "Board actions",
+    components: [
+        {
+            type: ComponentType.Button,
+            id: "arrows",
+            customMatcher: "custom_id.split(\"-\")[0] === \"arrow\"",
+            handle: async (interaction) => {
+                if (!interaction.inGuild()) return;
+
+                const memberId = `${interaction.guildId}:${interaction.member.user.id}` as const;
+                const cacheEntry = BoardCache.get(interaction.message.id);
+
+                if (cacheEntry === null) {
+                    await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
+                    return;
+                }
+
+                if (cacheEntry.member_id !== memberId) {
+                    await interaction.reply({ content: "You cannot do that!", ephemeral: true });
+                    return;
+                }
+
+                const [arrow, coordinates] = interaction.data.id.split(":");
+                const [,direction] = arrow.split("-");
+                const [cx, cy] = coordinates.split(",");
+                const x = parseInt(cx);
+                const y = parseInt(cy);
+
+                Board.updatePlayerPosition(memberId, x, y);
+
+                await interaction.updateComponents({
+                    embeds: [makeBoardEmbed({ x, y }, memberId, DIRECTION_MAP[direction])],
+                    components: [makeMovementRow(x, y)]
+                });
+            }
+        }
+    ],
     options: [
         {
             type: ApplicationCommandOptionType.SUB_COMMAND,
