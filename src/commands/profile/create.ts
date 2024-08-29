@@ -133,7 +133,7 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         do ({ x, y } = Board.generateCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
-        Board.spawnPlayer(Board.BoardEntityType.Player, `${interaction.guildId}:${interaction.member.user.id}`, x, y);
+        Board.spawnPlayer(`${interaction.guildId}:${interaction.member.user.id}`, x, y);
         Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);
         await interaction.followUp({ content: `Profile created successfully!\nSpawned at: ${x},${y}` });
     } catch (error) {

@@ -27,9 +27,33 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
 
     await interaction.deferReply();
 
+    const scanAmount = parseInt(process.env.BOARD_SCAN_SIZE);
     const start = performance.now();
-    const chests = Board.scanForChests(position, 60);
-    const foundChests = chests.map(({ x, y }) => `- X: ${x} | Y: ${y}`).join("\n");
+    const entities = Board.scanForEntities(position, scanAmount);
+    const chests: Array<string> = [];
+    const mobs: Array<string> = [];
+    const players: Array<string> = [];
+
+    for (let i = 0, { length } = entities; i < length; i++) {
+        const entity = entities[i];
+
+        switch (entity.type) {
+            case Board.BoardEntityType.Chest: {
+                chests.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+                break;
+            }
+            case Board.BoardEntityType.Enemy: {
+                mobs.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+                break;
+            }
+            case Board.BoardEntityType.Player: {
+                if (entity.x === position.x && entity.y === position.y) break;
+                players.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+                break;
+            }
+            default: break;
+        }
+    }
 
     const end = performance.now() - start;
 
@@ -39,10 +63,13 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
     const time = new Date(Date.UTC(0, 0, 0, 0, 0, 0, end));
 
     const embed: Embed.Structure = {
-        title: `Chests Found: ${chests.length}`,
+        title: `Found ${chests.length + mobs.length} entities`,
         color: 0x0000ff,
-        description: foundChests.length > 1 ? foundChests : "None",
-        footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds | Scanned ${60 * 60} tiles` }
+        description: `- Chests:\n${
+            chests.length > 0 ? chests.join("\n") : "  - None"}\n- Enemies:\n${
+            mobs.length > 0 ? mobs.join("\n") : "  - None"}\n- Players:\n${
+            players.length > 0 ? players.join("\n") : "  - None"}`,
+        footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds | Scanned ${scanAmount * scanAmount} tiles` }
     };
 
     await interaction.editReply({ embeds: [embed] });

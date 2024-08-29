@@ -26,7 +26,7 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         do ({ x, y } = Board.generateCoordinates());
         while (Board.getEntityInPosition(x, y) !== null);
 
-        Board.generateChest(Board.BoardEntityType.Chest, entityId, x, y, { rarity: Board.ChestRarity.Basic, contents: [] });
+        Board.generateChest(entityId, x, y, { rarity: Board.ChestRarity.Basic, contents: [] });
         locations.push({ x, y });
     }
 

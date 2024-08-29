@@ -39,7 +39,12 @@ $applicationCommand({
                 const x = parseInt(cx);
                 const y = parseInt(cy);
 
-                Board.updatePlayerPosition(memberId, x, y);
+                const didUpdate = Board.updatePlayerPosition(memberId, x, y);
+
+                if (!didUpdate) {
+                    await interaction.reply({ content: `You cannot move ${direction} as it is out of bounds.` });
+                    return;
+                }
 
                 await interaction.updateComponents({
                     embeds: [makeBoardEmbed({ x, y }, memberId, DIRECTION_MAP[direction])],

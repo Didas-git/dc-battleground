@@ -44,11 +44,11 @@ export function makeMovementRow(x: number, y: number): Message.Component.ActionR
 }
 
 export function makeBoardEmbed(position: Board.BoardData, memberId: string, append: string = ""): Embed.Structure {
-    const board = Board.scanBoardFromCenter(position, Board.BOARD_SIZE, memberId);
+    const board = Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId);
 
     let str = "";
     for (let i = 0, { length } = board; i < length; i++) {
-        if (i % Board.BOARD_SIZE === 0 && i !== 0) str += "\n";
+        if (i % Board.BOARD_VIEW_SIZE === 0 && i !== 0) str += "\n";
         str += Board.BOARD_MAPPINGS[board[i]];
     }
 
