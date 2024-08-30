@@ -16,7 +16,7 @@ $applicationCommand({
         {
             type: ComponentType.Button,
             id: "arrows",
-            customMatcher: "custom_id.split(\"-\")[0] === \"arrow\"",
+            customMatcher: "custom_id.split(\"-\",2)[0] === \"arrow\"",
             handle: async (interaction) => {
                 if (!interaction.inGuild()) return;
 
@@ -33,9 +33,9 @@ $applicationCommand({
                     return;
                 }
 
-                const [arrow, coordinates] = interaction.data.id.split(":");
-                const [,direction] = arrow.split("-");
-                const [cx, cy] = coordinates.split(",");
+                const [arrow, coordinates] = interaction.data.id.split(":", 2);
+                const [,direction] = arrow.split("-", 2);
+                const [cx, cy] = coordinates.split(",", 2);
                 const x = parseInt(cx);
                 const y = parseInt(cy);
 

@@ -42,7 +42,7 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
     if (!interaction.inGuild()) return;
     if (!interaction.data.isSelectMenu()) return;
 
-    const [playerClassS, userId] = interaction.data.values[0].split("-");
+    const [playerClassS, userId] = interaction.data.values[0].split("-", 2);
     const playerClass = <Player.ClassType>+playerClassS;
     if (interaction.member.user.id !== userId) {
         await interaction.reply({ content: "You cannot do that.", ephemeral: true });
