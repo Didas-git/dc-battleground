@@ -1,78 +1,78 @@
 import { Item, ItemRarity, ItemTable, ItemType } from "./item.js";
 
-class InertMetallicDrip extends Item {
+class ReactiveMetallicDrip extends Item {
     public rdsProbability = 1;
     public rdsUnique = false;
     public rdsAlways = false;
     public rdsEnabled = true;
     public rdsValue = {
-        id: "inert_metallic_drip",
+        id: "reactive_metallic_drip",
         type: ItemType.Crafting,
         rarity: ItemRarity.Normal,
-        name: "Inert Metallic Drip",
+        name: "Reactive Metallic Drip",
         description: "A basic material used for weapon breakthrough"
     };
 }
 
-class LentoHelix extends Item {
+class AdagioHelix extends Item {
     public rdsProbability = 1;
     public rdsUnique = false;
     public rdsAlways = false;
     public rdsEnabled = true;
     public rdsValue = {
-        id: "lento_helix",
+        id: "adagio_helix",
         type: ItemType.Crafting,
         rarity: ItemRarity.Normal,
-        name: "Lento Helix",
+        name: "Adagio Helix",
         description: "A basic material used for weapon breakthrough"
     };
 }
 
-class WavewornResidue210 extends Item {
+class WavewornResidue226 extends Item {
     public rdsProbability = 1;
     public rdsUnique = false;
     public rdsAlways = false;
     public rdsEnabled = true;
     public rdsValue = {
-        id: "waveworn_residue_210",
+        id: "waveworn_residue_226",
         type: ItemType.Crafting,
         rarity: ItemRarity.Normal,
-        name: "Waveworn Residue 210",
+        name: "Waveworn Residue 226",
         description: "A basic material used for weapon breakthrough"
     };
 }
 
-class CadenceSeed extends Item {
+class CadenceBud extends Item {
     public rdsProbability = 1;
     public rdsUnique = false;
     public rdsAlways = false;
     public rdsEnabled = true;
     public rdsValue = {
-        id: "cadence_seed",
+        id: "cadence_bud",
         type: ItemType.Crafting,
         rarity: ItemRarity.Normal,
-        name: "Cadence Seed",
+        name: "Cadence Bud",
         description: "A basic material used for weapon breakthrough"
     };
 }
 
-class ImpurePhlogiston extends Item {
+class ExtractedPhlogiston extends Item {
     public rdsProbability = 1;
     public rdsUnique = false;
     public rdsAlways = false;
     public rdsEnabled = true;
     public rdsValue = {
-        id: "impure_phlogiston",
+        id: "extracted_phlogiston",
         type: ItemType.Crafting,
         rarity: ItemRarity.Normal,
-        name: "Impure Phlogiston",
+        name: "Extracted Phlogiston",
         description: "A basic material used for weapon breakthrough"
     };
 }
 
-export const NormalItemTable = new ItemTable()
-    .add(new InertMetallicDrip())
-    .add(new LentoHelix())
-    .add(new WavewornResidue210())
-    .add(new CadenceSeed())
-    .add(new ImpurePhlogiston());
+export const AdvancedItemTable = new ItemTable()
+    .add(new ReactiveMetallicDrip())
+    .add(new AdagioHelix())
+    .add(new WavewornResidue226())
+    .add(new CadenceBud())
+    .add(new ExtractedPhlogiston());

@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
-        "lilybird"
+        "Heterized",
+        "lilybird",
+        "waveworn"
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
     "eslint.useFlatConfig": true,
