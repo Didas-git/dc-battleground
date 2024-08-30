@@ -27,7 +27,7 @@ export interface LootTableValue<T> extends LootTableObject {
 
 export interface LootTableNullValue extends LootTableValue<null> {}
 
-export abstract class LootTable implements LootTableObject {
+export abstract class LootTable<I extends LootTableObject = LootTableObject> implements LootTableObject {
     public abstract onRDSPreResultEvaluation: ((object: LootTableObject) => unknown) | undefined;
 
     public abstract onRDSHit: ((object: LootTableObject) => unknown) | undefined;
@@ -39,25 +39,37 @@ export abstract class LootTable implements LootTableObject {
     public abstract rdsAlways: boolean;
     public abstract rdsEnabled: boolean;
     public abstract rdsCount: number;
-    public rdsContents: Array<LootTableObject> = [];
+    public rdsContents: Array<I> = [];
 
-    public add(entry: LootTableObject, probability?: number): void {
-        if (probability) entry.rdsProbability = probability;
-        this.rdsContents.push(entry);
+    public static clone(base: LootTable): LootTable {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+        return new (<any>base.constructor)();
     }
 
-    public resultsBetween(min: number, max: number): Array<LootTableObject> {
+    public add(entry: I, probability?: number, count?: number): this {
+        if (typeof probability !== "undefined" || typeof count !== "undefined") {
+            if ("rdsContents" in entry) {
+                entry = <never>LootTable.clone(<never>entry);
+                (<LootTable><unknown>entry).rdsCount = count ?? (<LootTable><unknown>entry).rdsCount;
+            }
+            entry.rdsProbability = probability ?? entry.rdsProbability;
+        }
+        this.rdsContents.push(entry);
+        return this;
+    }
+
+    public resultsBetween(min: number, max: number): Array<I> {
         const currentCount = this.rdsCount;
         this.rdsCount = getRandomIntInclusive(min, max);
-        const results = this.rdsResults;
+        const results = this.rdsResults();
         this.rdsCount = currentCount;
-        return results;
+        return <never>results;
     }
 
-    public get rdsResults(): Array<LootTableObject> {
+    public rdsResults(): Array<I> {
         const uniqueDrops = new Set();
-        const rv: Array<LootTableObject> = [];
-        const droppable: Array<LootTableObject> = [];
+        const rv: Array<I> = [];
+        const droppable: Array<I> = [];
         const droppableMap: Array<number> = [];
 
         let alwaysCount = 0;
@@ -94,11 +106,8 @@ export abstract class LootTable implements LootTableObject {
                         if (object.rdsUnique && uniqueDrops.has(object)) continue;
                         if (object.rdsUnique) uniqueDrops.add(object);
 
-                        if ("rdsContents" in object) rv.push(...(<LootTable>object).rdsContents);
-                        else {
-                            rv.push(object);
-                            this.onRDSHit?.(object);
-                        }
+                        rv.push(object);
+                        this.onRDSHit?.(object);
 
                         break;
                     }
@@ -109,6 +118,6 @@ export abstract class LootTable implements LootTableObject {
         if (typeof this.onRDSPostResultEvaluation !== "undefined")
             for (let i = 0, { length } = rv; i < length; i++) this.onRDSPostResultEvaluation(rv[i]);
 
-        return rv;
+        return <never>rv;
     }
 }

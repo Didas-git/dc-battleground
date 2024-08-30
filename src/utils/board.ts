@@ -75,12 +75,17 @@ export function generateRandomChestData(): Board.ChestData {
         }
     ];
 
-    const [min, max] = getExtraContentAmountBasedOnRarity(rarity);
-    const lootTable = mapChestRarityToLootTable(rarity);
+    const extraContent = getExtraContentAmountBasedOnRarity(rarity);
+    const mainTable = mapChestRarityToLootTable(rarity);
+    const lootTables = mainTable.resultsBetween(extraContent, extraContent);
 
-    const loot = lootTable.resultsBetween(min, max);
+    for (let i = 0, { length } = lootTables; i < length; i++) {
+        const loot = lootTables[i].rdsResults();
 
-    for (let i = 0, { length } = loot; i < length; i++) contents.push({ type: Board.ChestContentType.Item, item: loot[i].rdsValue.id });
+        if (loot.length > 1) throw new Error("Unreachable");
+
+        contents.push({ type: Board.ChestContentType.Item, item: loot[0].rdsValue.id });
+    }
 
     return { rarity, contents };
 }
@@ -95,48 +100,12 @@ function getGoldAmountBasedOnRarity(rarity: Board.ChestRarity): number {
     }
 }
 
-function getExtraContentAmountBasedOnRarity(rarity: Board.ChestRarity): [min: number, max: number] {
+function getExtraContentAmountBasedOnRarity(rarity: Board.ChestRarity): number {
     switch (rarity) {
-        case Board.ChestRarity.Cursed: { return [0, 0]; }
-        case Board.ChestRarity.Basic: { return [0, 2]; }
-        case Board.ChestRarity.Normal: { return [1, 4]; }
-        case Board.ChestRarity.Epic: { return [3, 6]; }
-        case Board.ChestRarity.Legendary: { return [5, 10]; }
+        case Board.ChestRarity.Cursed: { return 0; }
+        case Board.ChestRarity.Basic: { return getRandomIntInclusive(0, 2); }
+        case Board.ChestRarity.Normal: { return getRandomIntInclusive(1, 4); }
+        case Board.ChestRarity.Epic: { return getRandomIntInclusive(3, 6); }
+        case Board.ChestRarity.Legendary: { return getRandomIntInclusive(5, 10); }
     }
 }
-
-// function getItemWeightsFromChestRarity(rarity: Board.ChestRarity): Record<number, Item.ItemRarity> {
-//     switch (rarity) {
-//         case Board.ChestRarity.Cursed: {
-//             return {
-//                 0.1: Item.ItemRarity.Normal,
-//                 0.6: Item.ItemRarity.Advanced,
-//                 0.3: Item.ItemRarity.Epic
-//             };
-//         }
-//         case Board.ChestRarity.Basic: {
-//             return { 1: Item.ItemRarity.Normal };
-//         }
-//         case Board.ChestRarity.Normal: {
-//             return {
-//                 0.8: Item.ItemRarity.Normal,
-//                 0.2: Item.ItemRarity.Advanced
-//             };
-//         }
-//         case Board.ChestRarity.Epic: {
-//             return {
-//                 0.1: Item.ItemRarity.Normal,
-//                 0.6: Item.ItemRarity.Advanced,
-//                 0.3: Item.ItemRarity.Epic
-//             };
-//         }
-//         case Board.ChestRarity.Legendary: {
-//             return {
-//                 0.05: Item.ItemRarity.Normal,
-//                 0.16: Item.ItemRarity.Advanced,
-//                 0.65: Item.ItemRarity.Epic,
-//                 0.14: Item.ItemRarity.Legendary
-//             };
-//         }
-//     }
-// }
