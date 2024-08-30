@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+
 import { getRandomIntInclusive } from "./random-generators.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
 import * as Board from "../schemas/board.js";
-import * as Item from "../schemas/item.js";
+import * as Item from "../items/item.js";
 
 import type { Embed, Message } from "lilybird";
 
@@ -67,8 +67,6 @@ export function makeBoardEmbed(position: Board.BoardData, memberId: string, appe
 
 export function generateRandomChestData(): Board.ChestData {
     const rarity = Board.CHEST_RATIOS_MAP[findClosest(Board.CHEST_RATIOS, Math.random())];
-    const possibleRarities = getItemWeightsFromChestRarity(rarity);
-    const itemRatios = Object.keys(possibleRarities).map((el) => +el);
 
     const contents: Board.ChestData["contents"] = [
         {
@@ -77,17 +75,12 @@ export function generateRandomChestData(): Board.ChestData {
         }
     ];
 
-    const extraContent = getExtraContentAmountBasedOnRarity(rarity);
+    const [min, max] = getExtraContentAmountBasedOnRarity(rarity);
+    const lootTable = Item.mapChestRarityToLootTable(rarity);
 
-    for (let i = 0, len = extraContent; i < len; i++) {
-        const itemRarity = possibleRarities[findClosest(itemRatios, Math.random())];
-        const availableItems = Item.getItemsByRarity(itemRarity);
-        const item = availableItems[getRandomIntInclusive(0, availableItems.length)];
+    const loot = lootTable.resultsBetween(min, max);
 
-        if (typeof item === "undefined") continue;
-
-        contents.push({ type: Board.ChestContentType.Item, item });
-    }
+    for (let i = 0, { length } = loot; i < length; i++) contents.push({ type: Board.ChestContentType.Item, item: loot[i].rdsValue.id });
 
     return { rarity, contents };
 }
@@ -102,48 +95,48 @@ function getGoldAmountBasedOnRarity(rarity: Board.ChestRarity): number {
     }
 }
 
-function getExtraContentAmountBasedOnRarity(rarity: Board.ChestRarity): number {
+function getExtraContentAmountBasedOnRarity(rarity: Board.ChestRarity): [min: number, max: number] {
     switch (rarity) {
-        case Board.ChestRarity.Cursed: { return 0; }
-        case Board.ChestRarity.Basic: { return getRandomIntInclusive(0, 2); }
-        case Board.ChestRarity.Normal: { return getRandomIntInclusive(1, 4); }
-        case Board.ChestRarity.Epic: { return getRandomIntInclusive(3, 6); }
-        case Board.ChestRarity.Legendary: { return getRandomIntInclusive(5, 10); }
+        case Board.ChestRarity.Cursed: { return [0, 0]; }
+        case Board.ChestRarity.Basic: { return [0, 2]; }
+        case Board.ChestRarity.Normal: { return [1, 4]; }
+        case Board.ChestRarity.Epic: { return [3, 6]; }
+        case Board.ChestRarity.Legendary: { return [5, 10]; }
     }
 }
 
-function getItemWeightsFromChestRarity(rarity: Board.ChestRarity): Record<number, Item.ItemRarity> {
-    switch (rarity) {
-        case Board.ChestRarity.Cursed: {
-            return {
-                0.1: Item.ItemRarity.Normal,
-                0.6: Item.ItemRarity.Advanced,
-                0.3: Item.ItemRarity.Epic
-            };
-        }
-        case Board.ChestRarity.Basic: {
-            return { 1: Item.ItemRarity.Normal };
-        }
-        case Board.ChestRarity.Normal: {
-            return {
-                0.8: Item.ItemRarity.Normal,
-                0.2: Item.ItemRarity.Advanced
-            };
-        }
-        case Board.ChestRarity.Epic: {
-            return {
-                0.1: Item.ItemRarity.Normal,
-                0.6: Item.ItemRarity.Advanced,
-                0.3: Item.ItemRarity.Epic
-            };
-        }
-        case Board.ChestRarity.Legendary: {
-            return {
-                0.05: Item.ItemRarity.Normal,
-                0.16: Item.ItemRarity.Advanced,
-                0.65: Item.ItemRarity.Epic,
-                0.14: Item.ItemRarity.Legendary
-            };
-        }
-    }
-}
+// function getItemWeightsFromChestRarity(rarity: Board.ChestRarity): Record<number, Item.ItemRarity> {
+//     switch (rarity) {
+//         case Board.ChestRarity.Cursed: {
+//             return {
+//                 0.1: Item.ItemRarity.Normal,
+//                 0.6: Item.ItemRarity.Advanced,
+//                 0.3: Item.ItemRarity.Epic
+//             };
+//         }
+//         case Board.ChestRarity.Basic: {
+//             return { 1: Item.ItemRarity.Normal };
+//         }
+//         case Board.ChestRarity.Normal: {
+//             return {
+//                 0.8: Item.ItemRarity.Normal,
+//                 0.2: Item.ItemRarity.Advanced
+//             };
+//         }
+//         case Board.ChestRarity.Epic: {
+//             return {
+//                 0.1: Item.ItemRarity.Normal,
+//                 0.6: Item.ItemRarity.Advanced,
+//                 0.3: Item.ItemRarity.Epic
+//             };
+//         }
+//         case Board.ChestRarity.Legendary: {
+//             return {
+//                 0.05: Item.ItemRarity.Normal,
+//                 0.16: Item.ItemRarity.Advanced,
+//                 0.65: Item.ItemRarity.Epic,
+//                 0.14: Item.ItemRarity.Legendary
+//             };
+//         }
+//     }
+// }

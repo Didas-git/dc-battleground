@@ -275,7 +275,7 @@ export default tsEslint.config({
             {
                 "selector": "classProperty",
                 "format": [
-                    "strictCamelCase"
+                    "camelCase"
                 ],
                 "leadingUnderscore": "allow",
                 "trailingUnderscore": "allow"
