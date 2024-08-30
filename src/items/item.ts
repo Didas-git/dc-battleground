@@ -48,6 +48,7 @@ export abstract class Item implements LootTableValue<ItemStructure> {
 export interface ItemTable {
     resultsBetween: (min: number, max: number) => Array<Item>;
     get rdsResults(): Array<Item>;
+    rdsContents: Array<Item>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging

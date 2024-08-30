@@ -1,10 +1,10 @@
 
 import { getRandomIntInclusive } from "./random-generators.js";
+import { mapChestRarityToLootTable } from "../items/item.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
 import * as Board from "../schemas/board.js";
-import * as Item from "../items/item.js";
 
 import type { Embed, Message } from "lilybird";
 
@@ -76,7 +76,7 @@ export function generateRandomChestData(): Board.ChestData {
     ];
 
     const [min, max] = getExtraContentAmountBasedOnRarity(rarity);
-    const lootTable = Item.mapChestRarityToLootTable(rarity);
+    const lootTable = mapChestRarityToLootTable(rarity);
 
     const loot = lootTable.resultsBetween(min, max);
 
