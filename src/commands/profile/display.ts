@@ -38,6 +38,8 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         classes.total += 1;
     }
 
+    const inventory = Player.Inventory.getContents(targetDbId);
+
     await interaction.reply({
         embeds: [
             {
@@ -60,12 +62,17 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
                         name: "Coins",
                         inline: true,
                         value: [
-                            `- Server: \`${Player.getCoins(targetDbId)}\``,
-                            `- Global: \`${Player.getCoinsInAllGuilds(targetId).reduce((a, b) => a + b, 0)}\``
+                            `- Server: \`${Player.Inventory.getCoins(targetDbId)}\``,
+                            `- Global: \`${Player.Inventory.getCoinsInAllGuilds(targetId).reduce((a, b) => a + b, 0)}\``
                         ].join("\n")
                     },
                     {
+                        name: "Items",
+                        value: inventory.length > 0 ? inventory.map((i) => `- ${i.id} (${i.amount})`).join("\n") : "None"
+                    },
+                    {
                         name: "Status",
+                        inline: true,
                         value: [
                             `- HP: \`${profile.hp.current}/${profile.hp.max}\``,
                             `- ATK: \`${profile.atk}\``,

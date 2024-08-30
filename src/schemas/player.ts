@@ -1,5 +1,9 @@
 import { db } from "../db.js";
 
+import * as Inv from "./inventory.js";
+
+export const Inventory = Inv;
+
 export interface PlayerData {
     class: ClassType;
     hp: { current: number, max: number };
@@ -82,10 +86,11 @@ export const CLASS_MAPPINGS = {
     [ClassType.Warrior]: "Warrior"
 };
 
-db.run("CREATE TABLE IF NOT EXISTS Players ( id TEXT PRIMARY KEY, data TEXT NOT NULL, coins INTEGER NOT NULL )");
+db.run("CREATE TABLE IF NOT EXISTS Players ( id TEXT PRIMARY KEY, data TEXT NOT NULL )");
 
 export function create(id: `${string}:${string}`, data: PlayerData): void {
-    db.query("INSERT INTO Players (id, data, coins) VALUES ($id, $data, 0)").run({ id, data: JSON.stringify(data) });
+    db.query("INSERT INTO Players (id, data) VALUES ($id, $data)").run({ id, data: JSON.stringify(data) });
+    Inventory.create(id);
 }
 
 export function getData(id: `${string}:${string}`): PlayerData | null {
@@ -94,35 +99,15 @@ export function getData(id: `${string}:${string}`): PlayerData | null {
     return JSON.parse(data.data) as PlayerData;
 }
 
-export function getCoins(id: `${string}:${string}`): number {
-    return (<{ coins: number }>db.query("SELECT coins FROM Players WHERE id = $id").get({ id })).coins;
-}
-
 export function update(id: `${string}:${string}`, data: PlayerData): void {
     db.query("UPDATE Players SET data = $data WHERE id = $id").run({ id, data: JSON.stringify(data) });
 }
 
-export function addCoins(id: `${string}:${string}`, coins: number): void {
-    db.query("UPDATE Players SET coins = coins + $coins WHERE id = $id").run({ id, coins });
-}
-
-export function removeCoins(id: `${string}:${string}`, coins: number): void {
-    db.query("UPDATE Players SET coins = coins - $coins WHERE id = $id").run({ id, coins });
-}
-
 export function getDataInAllGuilds(id: string): Array<PlayerData> | null {
-    const data = <Array<{ data: string }>>db.query(`SELECT data FROM Players WHERE id LIKE '%${id}'`).all();
+    const data = <Array<{ data: string }>>db.query(`SELECT data FROM Players WHERE id LIKE '%:${id}'`).all();
     if (data.length === 0) return null;
 
     for (let i = 0, { length } = data; i < length; i++) data[i] = <never>JSON.parse(data[i].data);
 
     return data as unknown as Array<PlayerData>;
-}
-
-export function getCoinsInAllGuilds(id: string): Array<number> {
-    const data = <Array<{ coins: number }>>db.query(`SELECT coins FROM Players WHERE id LIKE '%${id}'`).all();
-
-    for (let i = 0, { length } = data; i < length; i++) data[i] = <never>data[i].coins;
-
-    return data as unknown as Array<number>;
 }

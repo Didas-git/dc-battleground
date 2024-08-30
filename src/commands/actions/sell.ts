@@ -9,7 +9,7 @@ export async function actionSell(interaction: Interaction<ApplicationCommandData
 
     // const player = Player.getData(memberId);
 
-    Player.addCoins(memberId, 5);
+    Player.Inventory.addCoins(memberId, 5);
 
     await interaction.reply({
         content: "Added 5 coins to your account!"
