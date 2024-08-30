@@ -42,8 +42,10 @@ export abstract class LootTable<I extends LootTableObject = LootTableObject> imp
     public rdsContents: Array<I> = [];
 
     public static clone(base: LootTable): LootTable {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return new (<any>base.constructor)();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+        const n: LootTable = new (<any>base.constructor)();
+        n.rdsContents = [...base.rdsContents];
+        return n;
     }
 
     public add(entry: I, probability?: number, count?: number): this {

@@ -1,11 +1,6 @@
 import { LootTable } from "../utils/loot-table.js";
-import { ChestRarity } from "../schemas/board.js";
-import { NormalItemTable } from "./normal.js";
 
 import type { LootTableValue } from "../utils/loot-table.js";
-import { AdvancedItemTable } from "./advanced.js";
-import { EpicItemTable } from "./epic.js";
-import { LegendaryItemTable } from "./legendary.js";
 
 export type ItemStructure = CraftingItem | ConsumableItem;
 
@@ -58,41 +53,3 @@ export class ItemTable extends LootTable<Item> {
     public rdsCount = 0;
 }
 
-class ChestTable extends LootTable<ItemTable> {
-    public onRDSPreResultEvaluation = undefined;
-    public onRDSHit = undefined;
-    public onRDSPostResultEvaluation = undefined;
-    public rdsProbability = 0;
-    public rdsUnique = false;
-    public rdsAlways = false;
-    public rdsEnabled = true;
-    public rdsCount = 1;
-}
-
-const BasicChestTable = new ChestTable()
-    .add(NormalItemTable, 1, 1);
-
-const NormalChestTable = new ChestTable()
-    .add(NormalItemTable, 0.8, 1)
-    .add(AdvancedItemTable, 0.2, 1);
-
-const EpicChestTable = new ChestTable()
-    .add(NormalItemTable, 0.1, 1)
-    .add(AdvancedItemTable, 0.6, 1)
-    .add(EpicItemTable, 0.3, 1);
-
-const LegendaryChestTable = new ChestTable()
-    .add(NormalItemTable, 0.05, 1)
-    .add(AdvancedItemTable, 0.16, 1)
-    .add(EpicItemTable, 0.65, 1)
-    .add(LegendaryItemTable, 0.14, 1);
-
-export function mapChestRarityToLootTable(rarity: ChestRarity): ChestTable {
-    switch (rarity) {
-        case ChestRarity.Cursed: { throw new Error("Not implemented yet: ChestRarity.Cursed case"); }
-        case ChestRarity.Basic: { return BasicChestTable; }
-        case ChestRarity.Normal: { return NormalChestTable; }
-        case ChestRarity.Epic: { return EpicChestTable; }
-        case ChestRarity.Legendary: { return LegendaryChestTable; }
-    }
-}

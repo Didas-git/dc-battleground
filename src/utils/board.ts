@@ -1,6 +1,6 @@
 
 import { getRandomIntInclusive } from "./random-generators.js";
-import { mapChestRarityToLootTable } from "../items/item.js";
+import { mapChestRarityToLootTable } from "../items/chests.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
