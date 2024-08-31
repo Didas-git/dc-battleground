@@ -1,9 +1,9 @@
 export function calculateDef(def: number, armor: number): number {
-    const calculated_def = armorToDef(armor) * def;
-    const final_def = Math.round((calculated_def + Number.EPSILON) * 100) / 100;
-    if (final_def < 0.01) return 0;
-    if (final_def > 0.85) return 0.85;
-    return final_def;
+    const calculatedDef = armorToDef(armor) * def;
+    const finalDef = Math.round((calculatedDef + Number.EPSILON) * 100) / 100;
+    if (finalDef < 0.01) return 0;
+    if (finalDef > 0.85) return 0.85;
+    return finalDef;
 }
 
 export function armorToDef(armor: number): number {

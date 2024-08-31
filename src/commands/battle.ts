@@ -41,9 +41,9 @@ $applicationCommand({
             return;
         }
 
-        const should_crit = Math.random() >= 1 - player1.crit_rate;
+        const shouldCrit = Math.random() >= 1 - player1.crit_rate;
 
-        const calculatedDmg = player1.atk * (should_crit ? player1.crit_damage : 1);
+        const calculatedDmg = player1.atk * (shouldCrit ? player1.crit_damage : 1);
         const finalDmg = calculatedDmg - (calculatedDmg * calculateDef(player2.def, player2.armor));
 
         player2.hp.current -= finalDmg;
