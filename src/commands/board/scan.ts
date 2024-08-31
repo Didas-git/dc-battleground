@@ -7,7 +7,7 @@ import type { Embed } from "lilybird";
 export async function scanBoard(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
 
-    const memberId = `${interaction.guildId}:${interaction.member.user.id}` as const;
+    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
     const profile = Player.getData(memberId);
     if (profile === null) {
         await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });

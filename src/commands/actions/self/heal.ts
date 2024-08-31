@@ -8,7 +8,7 @@ export async function actionSelfHeal(interaction: Interaction<ApplicationCommand
     const extraHeal = interaction.data.getInteger("amount") ?? 0;
     const baseHealing = 5;
 
-    const memberId = `${interaction.guildId}:${interaction.member.user.id}` as const;
+    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
     const player = Player.getData(memberId);
     if (player === null) {
         await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });

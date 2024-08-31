@@ -49,6 +49,11 @@ export interface PlayerData {
     last_scan: number;
 }
 
+export interface PlayerXP {
+    xp: number;
+    level: number;
+}
+
 export interface Effect {
     /// This is the time in seconds.
     /// If its set to 0 (default for majority) it means its not taking effect.
@@ -86,28 +91,40 @@ export const CLASS_MAPPINGS = {
     [ClassType.Warrior]: "Warrior"
 };
 
-db.run("CREATE TABLE IF NOT EXISTS Players ( id TEXT PRIMARY KEY, data TEXT NOT NULL )");
+db.run("CREATE TABLE IF NOT EXISTS Players ( id TEXT PRIMARY KEY, level INTEGER NOT NULL, xp INTEGER NOT NULL, data TEXT NOT NULL )");
 
-export function create(id: `${string}:${string}`, data: PlayerData): void {
-    db.query("INSERT INTO Players (id, data) VALUES ($id, $data)").run({ id, data: JSON.stringify(data) });
-    Inventory.create(id);
+export function create(memberId: string, data: PlayerData): void {
+    db.query("INSERT INTO Players (id, data, level, xp) VALUES ($id, $data, 0, 0)").run({ id: memberId, data: JSON.stringify(data) });
+    Inventory.create(memberId);
 }
 
-export function getData(id: `${string}:${string}`): PlayerData | null {
-    const data = <{ data: string } | null>db.query("SELECT data FROM Players WHERE id = $id").get({ id });
+export function getData(memberId: string): PlayerData | null {
+    const data = <{ data: string } | null>db.query("SELECT data FROM Players WHERE id = $id").get({ id: memberId });
     if (data === null) return null;
     return JSON.parse(data.data) as PlayerData;
 }
 
-export function update(id: `${string}:${string}`, data: PlayerData): void {
-    db.query("UPDATE Players SET data = $data WHERE id = $id").run({ id, data: JSON.stringify(data) });
+export function update(memberId: string, data: PlayerData): void {
+    db.query("UPDATE Players SET data = $data WHERE id = $id").run({ id: memberId, data: JSON.stringify(data) });
 }
 
-export function getDataInAllGuilds(id: string): Array<PlayerData> | null {
-    const data = <Array<{ data: string }>>db.query(`SELECT data FROM Players WHERE id LIKE '%:${id}'`).all();
+export function getDataInAllGuilds(userId: string): Array<PlayerData> | null {
+    const data = <Array<{ data: string }>>db.query(`SELECT data FROM Players WHERE id LIKE '%:${userId}'`).all();
     if (data.length === 0) return null;
 
     for (let i = 0, { length } = data; i < length; i++) data[i] = <never>JSON.parse(data[i].data);
 
     return data as unknown as Array<PlayerData>;
+}
+
+export function updateLevel(memberId: string, playerXp: PlayerXP, xpAmount: number): PlayerXP {
+    // TODO: Leveling formula
+    const { level, xp } = playerXp;
+
+    db.query("UPDATE Players SET level = $level, xp = $xp WHERE id = $id").run({ id: memberId, level, xp });
+    return { level, xp };
+}
+
+export function getLevel(id: string): PlayerXP {
+    return <PlayerXP>db.query("SELECT level, xp FROM Players WHERE id = $id").get({ id });
 }

@@ -12,7 +12,7 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
     const targetId = interaction.data.getUser("target") ?? interaction.member.user.id;
     const member = await getMember(interaction, targetId);
 
-    const targetDbId = `${interaction.guildId}:${targetId}` as const;
+    const targetDbId = `${interaction.guildId}:${targetId}`;
 
     const targetMember = new GuildMember(interaction.client, member);
     const profile = Player.getData(targetDbId);

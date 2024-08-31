@@ -19,7 +19,7 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
     const locations: Array<Board.BoardData> = [];
 
     for (let i = 0; i < quantity; i++) {
-        const entityId = `${interaction.guildId}:${randomUUID()}` as const;
+        const entityId = `${interaction.guildId}:${randomUUID()}`;
 
         let x = 0;
         let y = 0;

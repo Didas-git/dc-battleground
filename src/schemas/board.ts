@@ -98,19 +98,19 @@ export function generateRandomCoordinates(): BoardData {
 
 db.run("CREATE TABLE IF NOT EXISTS Board ( id TEXT PRIMARY KEY, type INTEGER NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, data TEXT )");
 
-export function spawnPlayer(id: `${string}:${string}`, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id, type: BoardEntityType.Player, x, y });
+export function spawnPlayer(memberId: string, x: number, y: number): void {
+    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id: memberId, type: BoardEntityType.Player, x, y });
 }
 
-export function generateChest(id: `${string}:${string}`, x: number, y: number, data: ChestData): void {
-    db.query("INSERT INTO Board (id, type, x, y, data) VALUES ($id, $type, $x, $y, $data)").run({ id, type: BoardEntityType.Chest, x, y, data: JSON.stringify(data) });
+export function generateChest(chestId: string, x: number, y: number, data: ChestData): void {
+    db.query("INSERT INTO Board (id, type, x, y, data) VALUES ($id, $type, $x, $y, $data)").run({ id: chestId, type: BoardEntityType.Chest, x, y, data: JSON.stringify(data) });
 }
 
-export function generateEnemy(id: `${string}:${string}`, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id, type: BoardEntityType.Enemy, x, y });
+export function generateEnemy(enemyId: string, x: number, y: number): void {
+    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id: enemyId, type: BoardEntityType.Enemy, x, y });
 }
 
-export function updatePlayerPosition(id: `${string}:${string}`, x: number, y: number): boolean {
+export function updatePlayerPosition(memberId: string, x: number, y: number): boolean {
     if (
         x > BOARD_LIMITS.POSITIVE.x
         || x < BOARD_LIMITS.NEGATIVE.x
@@ -118,12 +118,12 @@ export function updatePlayerPosition(id: `${string}:${string}`, x: number, y: nu
         || y < BOARD_LIMITS.NEGATIVE.y
     ) return false;
 
-    db.query("UPDATE Board SET x = $x, y = $y WHERE id = $id").run({ id, x, y });
+    db.query("UPDATE Board SET x = $x, y = $y WHERE id = $id").run({ id: memberId, x, y });
     return true;
 }
 
-export function getPlayerPosition(id: `${string}:${string}`): BoardData | null {
-    return <BoardData>db.query("SELECT x, y FROM Board WHERE id = $id").get({ id });
+export function getPlayerPosition(memberId: string): BoardData | null {
+    return <BoardData>db.query("SELECT x, y FROM Board WHERE id = $id").get({ id: memberId });
 }
 
 export function getEntityInPosition(x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } | null {

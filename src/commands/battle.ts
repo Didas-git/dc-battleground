@@ -27,7 +27,7 @@ $applicationCommand({
         }
         const targetMember = new GuildMember(interaction.client, await getMember(interaction, targetId));
 
-        const targetDbId = `${interaction.guildId}:${targetMember.user.id}` as const;
+        const targetDbId = `${interaction.guildId}:${targetMember.user.id}`;
 
         const player1 = Player.getData(targetDbId);
         if (player1 === null) {

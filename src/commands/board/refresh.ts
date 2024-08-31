@@ -25,7 +25,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
     let start = performance.now();
 
     for (let i = 0; i < chestQuantity; i++) {
-        const entityId = `${interaction.guildId}:${randomUUID()}` as const;
+        const entityId = `${interaction.guildId}:${randomUUID()}`;
 
         let x = 0;
         let y = 0;
@@ -40,7 +40,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
     start = performance.now();
 
     for (let i = 0; i < mobQuantity; i++) {
-        const entityId = `${interaction.guildId}:${randomUUID()}` as const;
+        const entityId = `${interaction.guildId}:${randomUUID()}`;
 
         let x = 0;
         let y = 0;

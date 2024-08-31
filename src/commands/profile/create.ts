@@ -8,7 +8,7 @@ import type { ApplicationCommandData, Interaction, Message, MessageComponentData
 export async function profileCreate(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
 
-    const memberId = `${interaction.guildId}:${interaction.member.user.id}` as const;
+    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
 
     if (Player.getData(memberId) !== null) {
         await interaction.reply({ content: "You already have a profile.", ephemeral: true });

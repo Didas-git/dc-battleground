@@ -20,7 +20,7 @@ $applicationCommand({
             handle: async (interaction) => {
                 if (!interaction.inGuild()) return;
 
-                const memberId = `${interaction.guildId}:${interaction.member.user.id}` as const;
+                const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
                 const cacheEntry = BoardCache.get(interaction.message.id);
 
                 if (cacheEntry === null) {
