@@ -48,8 +48,10 @@ export function makeMovementRow(x: number, y: number): Message.Component.ActionR
     };
 }
 
-export function makeBoardEmbed(position: Board.BoardData, memberId: string, append: string = ""): Embed.Structure {
-    const board = Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId);
+export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
+    const board = typeof moveDirection === "undefined"
+        ? Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId)
+        : await Board.scanFromCenterAndUpdateViews(position, Board.BOARD_VIEW_SIZE, memberId);
 
     let str = "";
     for (let i = 0, { length } = board; i < length; i++) {
@@ -61,7 +63,7 @@ export function makeBoardEmbed(position: Board.BoardData, memberId: string, appe
         title: "Board",
         color: 0x0000ff,
         description: str,
-        footer: { text: `X: ${position.x} | Y: ${position.y} ${append}` }
+        footer: { text: `X: ${position.x} | Y: ${position.y} ${moveDirection ?? ""}` }
     };
 }
 

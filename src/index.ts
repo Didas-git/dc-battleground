@@ -10,7 +10,7 @@ const { interactionCreate, ...trimmed } = defaultTransformers;
 // eslint-disable-next-line no-void
 void interactionCreate;
 
-await createClient({
+export const client = await createClient({
     token: process.env.TOKEN,
     intents: [
         Intents.GUILDS,
@@ -20,9 +20,9 @@ await createClient({
         delegate: CachingDelegationType.DEFAULT,
         enabled: { guild: true }
     },
-    setup: async (client) => {
-        console.log(`Logged in as ${client.user.username} (${client.user.id})`);
-        await handler.loadGlobalCommands(client);
+    setup: async (c) => {
+        console.log(`Logged in as ${c.user.username} (${c.user.id})`);
+        await handler.loadGlobalCommands(c);
     },
     transformers: trimmed,
     listeners: handler.getListenersObject()

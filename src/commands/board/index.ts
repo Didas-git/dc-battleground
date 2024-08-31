@@ -21,7 +21,8 @@ $applicationCommand({
                 if (!interaction.inGuild()) return;
 
                 const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
-                const cacheEntry = BoardCache.get(interaction.message.id);
+                const cacheId = `${interaction.channelId}:${interaction.message.id}`;
+                const cacheEntry = BoardCache.get(cacheId);
 
                 if (cacheEntry === null) {
                     await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
@@ -46,8 +47,12 @@ $applicationCommand({
                     return;
                 }
 
-                await interaction.updateComponents({
-                    embeds: [makeBoardEmbed({ x, y }, memberId, DIRECTION_MAP[direction])],
+                await interaction.deferComponentReply();
+
+                BoardCache.update(cacheId);
+
+                await interaction.editReply({
+                    embeds: [await makeBoardEmbed({ x, y }, memberId, DIRECTION_MAP[direction])],
                     components: [makeMovementRow(x, y)]
                 });
             }

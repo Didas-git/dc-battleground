@@ -16,11 +16,12 @@ export async function viewBoard(interaction: Interaction<ApplicationCommandData>
     }
 
     await interaction.reply({
-        embeds: [makeBoardEmbed(position, memberId)],
+        embeds: [await makeBoardEmbed(position, memberId)],
         components: [makeMovementRow(position.x, position.y)]
     });
 
     BoardCache.del(memberId);
     const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
-    BoardCache.set(message.id, memberId);
+    const cacheId = `${interaction.channelId}:${message.id}`;
+    BoardCache.set(cacheId, memberId);
 }
