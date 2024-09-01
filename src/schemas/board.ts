@@ -141,32 +141,7 @@ export function getEntityInPosition(x: number, y: number): { id: string, type: B
     return <never>data;
 }
 
-export function scanFromCenter(center: { x: number, y: number }, size: number, playerId?: string): Array<number> {
-    const fullSize = size * size;
-    const board: Array<number> = [];
-
-    const initialX = center.x - Math.floor(size / 2);
-    const initialY = center.y + Math.ceil(size / 2);
-
-    for (let i = 0, x = initialX, y = initialY; i < fullSize; i += 1) {
-        if (i % size === 0) {
-            x = initialX;
-            y -= 1;
-        }
-
-        const entity = getEntityInPosition(x, y);
-        if (entity === null) board.push(0);
-        else if (entity.type === BoardEntityType.Player && entity.id !== playerId) board.push(99);
-        else if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
-        else board.push(entity.type);
-
-        x += 1;
-    }
-
-    return board;
-}
-
-export async function scanFromCenterAndUpdateViews(center: { x: number, y: number }, size: number, playerId?: string): Promise<Array<number>> {
+export async function scanFromCenter(center: { x: number, y: number }, size: number, playerId?: string, updateViews?: boolean): Promise<Array<number>> {
     const fullSize = size * size;
     const board: Array<number> = [];
 
@@ -183,21 +158,25 @@ export async function scanFromCenterAndUpdateViews(center: { x: number, y: numbe
         if (entity === null) board.push(0);
         else if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
         else if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
-            const cacheEntry = BoardCache.getMember(entity.id);
-            if (cacheEntry === null) {
-                board.push(99);
-                continue;
+            if (updateViews) {
+                const cacheEntry = BoardCache.getMember(entity.id);
+                if (cacheEntry === null) {
+                    board.push(99);
+                    continue;
+                }
+
+                if (Date.now() - cacheEntry.added_at < 300000 /* 5 min */) {
+                    const [channelId, messageId] = cacheEntry.id.split(":", 2);
+                    // eslint-disable-next-line no-await-in-loop
+                    await client.rest.editMessage(channelId, messageId, {
+                        // eslint-disable-next-line no-await-in-loop
+                        embeds: [await makeBoardEmbed({ x, y }, entity.id)],
+                        components: [makeMovementRow(x, y)]
+                    });
+                }
             }
 
-            if (Date.now() - cacheEntry.added_at < 300000 /* 5 min */) {
-                const [channelId, messageId] = cacheEntry.id.split(":", 2);
-                // eslint-disable-next-line no-await-in-loop
-                await client.rest.editMessage(channelId, messageId, {
-                    // eslint-disable-next-line no-await-in-loop
-                    embeds: [await makeBoardEmbed({ x, y }, entity.id)],
-                    components: [makeMovementRow(x, y)]
-                });
-            }
+            board.push(99);
         } else board.push(entity.type);
 
         x += 1;

@@ -49,9 +49,7 @@ export function makeMovementRow(x: number, y: number): Message.Component.ActionR
 }
 
 export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
-    const board = typeof moveDirection === "undefined"
-        ? Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId)
-        : await Board.scanFromCenterAndUpdateViews(position, Board.BOARD_VIEW_SIZE, memberId);
+    const board = await Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId, typeof moveDirection !== "undefined");
 
     let str = "";
     for (let i = 0, { length } = board; i < length; i++) {
