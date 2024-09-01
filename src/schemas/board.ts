@@ -1,21 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { getRandomIntInclusive } from "../utils/random-generators.js";
+import { makeBoardEmbed, makeMovementRow } from "../utils/board.js";
+import { client } from "../index.js";
 import { db } from "../db.js";
+
 import assert from "node:assert";
 
 import * as BoardCache from "./board-cache.js";
-import { client } from "../index.js";
-import { makeBoardEmbed, makeMovementRow } from "../utils/board.js";
 
 export const BOARD_VIEW_SIZE = parseInt(process.env.BOARD_VIEW_SIZE);
 
+const [boardX, boardY] = <[string, string | undefined]>process.env.BOARD_SIZE.split("x", 2);
+
 export const BOARD_LIMITS = {
     POSITIVE: {
-        x: parseInt(process.env.BOARD_SIZE),
-        y: parseInt(process.env.BOARD_SIZE)
+        x: parseInt(boardX),
+        y: parseInt(boardY ?? boardX)
     },
     NEGATIVE: {
-        x: parseInt(`-${process.env.BOARD_SIZE}`),
-        y: parseInt(`-${process.env.BOARD_SIZE}`)
+        x: parseInt(`-${boardX}`),
+        y: parseInt(`-${boardY ?? boardX}`)
     }
 };
 
@@ -95,8 +99,8 @@ export const BOARD_MAPPINGS: Record<number, string> = {
 
 export function generateRandomCoordinates(): BoardData {
     return {
-        x: Math.floor(Math.random() * BOARD_LIMITS.POSITIVE.x) * (Math.round(Math.random()) ? 1 : -1),
-        y: Math.floor(Math.random() * BOARD_LIMITS.POSITIVE.y) * (Math.round(Math.random()) ? 1 : -1)
+        x: getRandomIntInclusive(0, BOARD_LIMITS.POSITIVE.x) * (Math.round(Math.random()) ? 1 : -1),
+        y: getRandomIntInclusive(0, BOARD_LIMITS.POSITIVE.y) * (Math.round(Math.random()) ? 1 : -1)
     };
 }
 
