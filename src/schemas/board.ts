@@ -174,6 +174,8 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
     const initialX = center.x - Math.floor(size / 2);
     const initialY = center.y + Math.ceil(size / 2);
 
+    const viewsToUpdate: Array<Promise<void>> = [];
+
     for (let i = 0, x = initialX, y = initialY; i < fullSize; i += 1) {
         if (i % size === 0) {
             x = initialX;
@@ -193,12 +195,8 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
 
                 if (Date.now() - cacheEntry.added_at < 300000 /* 5 min */) {
                     const [channelId, messageId] = cacheEntry.id.split(":", 2);
-                    // eslint-disable-next-line no-await-in-loop
-                    await client.rest.editMessage(channelId, messageId, {
-                        // eslint-disable-next-line no-await-in-loop
-                        embeds: [await makeBoardEmbed({ layer: center.layer, x, y }, entity.id)],
-                        components: [makeMovementRow(center.layer, x, y)]
-                    });
+
+                    viewsToUpdate.push(updateView(entity.id, channelId, messageId, { layer: center.layer, x, y }));
                 }
             }
 
@@ -208,7 +206,16 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
         x += 1;
     }
 
+    if (updateViews) await Promise.all(viewsToUpdate);
+
     return board;
+}
+
+async function updateView(entityId: string, channelId: string, messageId: string, position: BoardData): Promise<void> {
+    await client.rest.editMessage(channelId, messageId, {
+        embeds: [await makeBoardEmbed({ layer: position.layer, x: position.x, y: position.y }, entityId)],
+        components: [makeMovementRow(position.layer, position.x, position.y)]
+    });
 }
 
 export function scanForEntities(center: BoardData, size: number): Array<{ type: BoardEntityType } & Omit<BoardData, "layer">> {
