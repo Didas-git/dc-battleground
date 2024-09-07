@@ -134,7 +134,7 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         let y = 0;
 
         do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
-        while (Board.getEntityInPosition(1, x, y) !== null);
+        while (Board.getEntityInPosition(1, x, y).type !== Board.BoardEntityType.Empty);
 
         Board.spawnPlayer(`${interaction.guildId}:${interaction.member.user.id}`, x, y);
         Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);

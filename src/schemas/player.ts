@@ -117,7 +117,7 @@ export function getDataInAllGuilds(userId: string): Array<PlayerData> | null {
     return data as unknown as Array<PlayerData>;
 }
 
-export function updateLevel(memberId: string, playerXp: PlayerXP, xpAmount: number): PlayerXP {
+export function updateLevel(memberId: string, playerXp: PlayerXP, incrementType: number): PlayerXP {
     // TODO: Leveling formula
     const { level, xp } = playerXp;
 

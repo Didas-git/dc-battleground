@@ -30,7 +30,7 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         let y = 0;
 
         do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
-        while (Board.getEntityInPosition(layer, x, y) !== null);
+        while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
 
         Board.generateChest(entityId, layer, x, y, generateRandomChestData());
         locations.push({ layer, x, y });

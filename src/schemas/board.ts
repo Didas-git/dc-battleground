@@ -155,16 +155,20 @@ export function getPlayerPosition(memberId: string): BoardData | null {
     return <BoardData>db.query("SELECT layer, x, y FROM Board WHERE id = $id").get({ id: memberId });
 }
 
-export function getEntityInPosition(layer: number, x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } | null {
+export function getEntityInPosition(layer: number, x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } {
     const data = <{ id: string, type: BoardEntityType, data: null | string } | null>db.query("SELECT id, type, data FROM Board WHERE layer = $layer AND x = $x AND y = $y").get({
         layer,
         x,
         y
     });
 
-    if (data === null) return null;
+    if (data === null) return { id: "", type: BoardEntityType.Empty, data: null };
     if (data.data !== null) data.data = <never>JSON.parse(data.data);
     return <never>data;
+}
+
+export function deleteEntityInPosition(layer: number, x: number, y: number): void {
+    db.query("DELETE FROM Board WHERE layer = $layer AND x = $x AND y = $y").run({ layer, x, y });
 }
 
 export async function scanFromCenter(center: BoardData, size: number, playerId?: string, updateViews?: boolean): Promise<Array<number>> {
@@ -183,8 +187,7 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
         }
 
         const entity = getEntityInPosition(center.layer, x, y);
-        if (entity === null) board.push(0);
-        else if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
+        if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
         else if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
             if (updateViews) {
                 const cacheEntry = BoardCache.getMember(entity.id);
@@ -232,8 +235,7 @@ export function scanForEntities(center: BoardData, size: number): Array<{ type: 
         }
 
         const entity = getEntityInPosition(center.layer, x, y);
-        if (entity !== null)
-            entities.push({ type: entity.type, x, y });
+        if (entity.type !== BoardEntityType.Empty) entities.push({ type: entity.type, x, y });
 
         x += 1;
     }

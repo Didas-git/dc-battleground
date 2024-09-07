@@ -53,12 +53,13 @@ export function getCoinsInAllGuilds(userId: string): Array<number> {
 export function getContents(memberId: string): InventoryStructure["items"] {
     const data = (<{ items: string }>db.query("SELECT items FROM Inventory WHERE id = $id").get({ id: memberId }));
 
-    data.items = <never>JSON.parse(data.items);
-    return <never>data;
+    return <never>JSON.parse(data.items);
 }
 
 export function updateContents(memberId: string, items: InventoryStructure["items"]): void {
-    db.query("UPDATE Inventory SET items = $items WHERE id = $id").run({ id: memberId, items: JSON.stringify(items) });
+    //! TODO: Improve how contents get merged so they are actually merged instead of having duplicates
+    const currentContent = getContents(memberId);
+    db.query("UPDATE Inventory SET items = $items WHERE id = $id").run({ id: memberId, items: JSON.stringify([...currentContent, ...items]) });
 }
 
 export function getContentsInAllGuilds(userId: string): Array<InventoryStructure["items"]> {

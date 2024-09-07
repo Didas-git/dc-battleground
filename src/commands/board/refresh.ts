@@ -47,7 +47,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         const entityId = `${interaction.guildId}:${randomUUID()}`;
 
         do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layer, x, y) !== null);
+        while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
 
         Board.generateChest(entityId, layer, x, y, generateRandomChestData());
     }
@@ -59,7 +59,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         const entityId = `${interaction.guildId}:${randomUUID()}`;
 
         do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layer, x, y) !== null);
+        while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
 
         Board.generateEnemy(entityId, layer, x, y);
     }
