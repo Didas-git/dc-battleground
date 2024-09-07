@@ -4,6 +4,7 @@ import { mapChestRarityToLootTable } from "../items/chests.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
+import * as BoardLayer from "../schemas/board-layer.js";
 import * as Board from "../schemas/board.js";
 
 import type { Embed, Message } from "lilybird";
@@ -16,31 +17,31 @@ export const DIRECTION_MAP: Record<string, string> = {
     right: "\u{1F846}" // 🡆
 };
 
-export function makeMovementRow(x: number, y: number): Message.Component.ActionRowStructure {
+export function makeMovementRow(layer: number, x: number, y: number): Message.Component.ActionRowStructure {
     return {
         type: ComponentType.ActionRow,
         components: [
             {
                 type: ComponentType.Button,
-                custom_id: `arrow-left:${x - 1},${y}`,
+                custom_id: `arrow-left:${layer},${x - 1},${y}`,
                 style: ButtonStyle.Primary,
                 label: DIRECTION_MAP.left
             },
             {
                 type: ComponentType.Button,
-                custom_id: `arrow-up:${x},${y + 1}`,
+                custom_id: `arrow-up:${layer},${x},${y + 1}`,
                 style: ButtonStyle.Primary,
                 label: DIRECTION_MAP.up
             },
             {
                 type: ComponentType.Button,
-                custom_id: `arrow-down:${x},${y - 1}`,
+                custom_id: `arrow-down:${layer},${x},${y - 1}`,
                 style: ButtonStyle.Primary,
                 label: DIRECTION_MAP.down
             },
             {
                 type: ComponentType.Button,
-                custom_id: `arrow-right:${x + 1},${y}`,
+                custom_id: `arrow-right:${layer},${x + 1},${y}`,
                 style: ButtonStyle.Primary,
                 label: DIRECTION_MAP.right
             }
@@ -50,6 +51,7 @@ export function makeMovementRow(x: number, y: number): Message.Component.ActionR
 
 export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
     const board = await Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId, typeof moveDirection !== "undefined");
+    const { name } = BoardLayer.getBoardLayerInfo(position.layer);
 
     let str = "";
     for (let i = 0, { length } = board; i < length; i++) {
@@ -61,7 +63,7 @@ export async function makeBoardEmbed(position: Board.BoardData, memberId: string
         title: "Board",
         color: 0x0000ff,
         description: str,
-        footer: { text: `X: ${position.x} | Y: ${position.y} ${moveDirection ?? ""}` }
+        footer: { text: `[${position.layer}]${name}: X: ${position.x} | Y: ${position.y} ${moveDirection ?? ""}` }
     };
 }
 

@@ -1,0 +1,28 @@
+{
+    "type": "object",
+    "required": [
+        "floors"
+    ],
+    "properties": {
+        "floors": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "size"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "string",
+                        "pattern": "^(\\d+x?\\d+|\\d)$"
+                    }
+                }
+            }
+        }
+    }
+}

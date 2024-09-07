@@ -1,0 +1,12 @@
+{
+    "floors": [
+        {
+            "name": "Base",
+            "size": "9x9"
+        },
+        {
+            "name": "Greenwoods",
+            "size": "300"
+        }
+    ]
+}

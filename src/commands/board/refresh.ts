@@ -3,6 +3,7 @@ import { PermissionFlags } from "lilybird";
 import { randomUUID } from "node:crypto";
 import { db } from "../../db.js";
 
+import * as BoardLayer from "../../schemas/board-layer.js";
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
@@ -17,23 +18,38 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
 
     await interaction.deferReply();
 
-    db.query("DELETE FROM Board WHERE type = $type1 OR type = $type2 ").run({ type1: Board.BoardEntityType.Chest, type2: Board.BoardEntityType.Enemy });
+    const layer = interaction.data.getInteger("layer") ?? -1;
+    if (layer <= 0) throw new Error("Not yet implemented");
 
-    const chestQuantity = Math.round(parseFloat(process.env.CHEST_REFRESH_PERCENTAGE) * Board.BOARD_CALCULATED_SIZE);
-    const mobQuantity = Math.round(parseFloat(process.env.MOB_REFRESH_PERCENTAGE) * Board.BOARD_CALCULATED_SIZE);
+    db.query("DELETE FROM Board WHERE layer = $layer AND (type = $type1 OR type = $type2 OR type = $type3)").run({
+        layer,
+        type1: Board.BoardEntityType.Chest,
+        type2: Board.BoardEntityType.Enemy,
+        type3: Board.BoardEntityType.LayerEntrance
+    });
+
+    const layerInfo = BoardLayer.getBoardLayerInfo(layer);
+    const layerSize = BoardLayer.calculateLayerSize(layerInfo);
+    const chestQuantity = Math.round(parseFloat(process.env.CHEST_REFRESH_PERCENTAGE) * layerSize);
+    const mobQuantity = Math.round(parseFloat(process.env.MOB_REFRESH_PERCENTAGE) * layerSize);
+
+    let x = 0;
+    let y = 0;
+
+    if (!layerInfo.isLastLayer) {
+        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
+        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y);
+    }
 
     let start = performance.now();
 
     for (let i = 0; i < chestQuantity; i++) {
         const entityId = `${interaction.guildId}:${randomUUID()}`;
 
-        let x = 0;
-        let y = 0;
+        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
+        while (Board.getEntityInPosition(layer, x, y) !== null);
 
-        do ({ x, y } = Board.generateRandomCoordinates());
-        while (Board.getEntityInPosition(x, y) !== null);
-
-        Board.generateChest(entityId, x, y, generateRandomChestData());
+        Board.generateChest(entityId, layer, x, y, generateRandomChestData());
     }
 
     const time1 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
@@ -42,13 +58,10 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
     for (let i = 0; i < mobQuantity; i++) {
         const entityId = `${interaction.guildId}:${randomUUID()}`;
 
-        let x = 0;
-        let y = 0;
+        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
+        while (Board.getEntityInPosition(layer, x, y) !== null);
 
-        do ({ x, y } = Board.generateRandomCoordinates());
-        while (Board.getEntityInPosition(x, y) !== null);
-
-        Board.generateEnemy(entityId, x, y);
+        Board.generateEnemy(entityId, layer, x, y);
     }
 
     const time2 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));

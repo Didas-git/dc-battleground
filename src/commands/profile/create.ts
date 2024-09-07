@@ -1,5 +1,6 @@
 import { ComponentType } from "lilybird";
 
+import * as BoardLayer from "../../schemas/board-layer.js";
 import * as Player from "../../schemas/player.js";
 import * as Board from "../../schemas/board.js";
 
@@ -127,11 +128,13 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
     });
 
     try {
+        const layerLimits = BoardLayer.getBoardLayerInfo(1);
+
         let x = 0;
         let y = 0;
 
-        do ({ x, y } = Board.generateRandomCoordinates());
-        while (Board.getEntityInPosition(x, y) !== null);
+        do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
+        while (Board.getEntityInPosition(1, x, y) !== null);
 
         Board.spawnPlayer(`${interaction.guildId}:${interaction.member.user.id}`, x, y);
         Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);

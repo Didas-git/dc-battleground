@@ -1,9 +1,10 @@
+import { CachingDelegationType, Intents, createClient } from "lilybird";
 import { defaultTransformers } from "@lilybird/transformers";
 import { handler } from "./handler.js";
-import { CachingDelegationType, Intents, createClient } from "lilybird";
+
+import { floors } from "../config.json";
 
 import "./commands.js";
-import { BOARD_CALCULATED_SIZE, BOARD_LIMITS } from "./schemas/board.js";
 
 // await handler.scanDir(`${import.meta.dir}/listeners`);
 
@@ -24,7 +25,8 @@ export const client = await createClient({
     setup: async (c) => {
         console.log(`Logged in as ${c.user.username} (${c.user.id})`);
         await handler.loadGlobalCommands(c);
-        console.log(`Current Board size: ${BOARD_CALCULATED_SIZE} (${BOARD_LIMITS.POSITIVE.x}x${BOARD_LIMITS.POSITIVE.y})`);
+        console.log("The following floors are available:");
+        console.table(floors);
     },
     transformers: trimmed,
     listeners: handler.getListenersObject()

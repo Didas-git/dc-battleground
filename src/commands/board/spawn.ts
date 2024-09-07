@@ -1,6 +1,7 @@
 import { generateRandomChestData } from "../../utils/board.js";
 import { randomUUID } from "node:crypto";
 
+import * as BoardLayer from "../../schemas/board-layer.js";
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
@@ -15,6 +16,10 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
 
     await interaction.deferReply();
 
+    const layer = interaction.data.getInteger("layer") ?? -1;
+    if (layer <= 0) throw new Error("Not yet implemented");
+
+    const layerLimits = BoardLayer.getBoardLayerInfo(layer);
     const quantity = interaction.data.getInteger("quantity", true);
     const locations: Array<Board.BoardData> = [];
 
@@ -24,11 +29,11 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         let x = 0;
         let y = 0;
 
-        do ({ x, y } = Board.generateRandomCoordinates());
-        while (Board.getEntityInPosition(x, y) !== null);
+        do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
+        while (Board.getEntityInPosition(layer, x, y) !== null);
 
-        Board.generateChest(entityId, x, y, generateRandomChestData());
-        locations.push({ x, y });
+        Board.generateChest(entityId, layer, x, y, generateRandomChestData());
+        locations.push({ layer, x, y });
     }
 
     await interaction.editReply({

@@ -17,7 +17,7 @@ export async function viewBoard(interaction: Interaction<ApplicationCommandData>
 
     await interaction.reply({
         embeds: [await makeBoardEmbed(position, memberId)],
-        components: [makeMovementRow(position.x, position.y)]
+        components: [makeMovementRow(position.layer, position.x, position.y)]
     });
 
     BoardCache.del(memberId);

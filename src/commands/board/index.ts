@@ -36,9 +36,10 @@ $applicationCommand({
 
                 const [arrow, coordinates] = interaction.data.id.split(":", 2);
                 const [,direction] = arrow.split("-", 2);
-                const [cx, cy] = coordinates.split(",", 2);
+                const [l, cx, cy] = coordinates.split(",", 3);
                 const x = parseInt(cx);
                 const y = parseInt(cy);
+                const layer = parseInt(l);
 
                 const didUpdate = Board.updatePlayerPosition(memberId, x, y);
 
@@ -52,8 +53,8 @@ $applicationCommand({
                 BoardCache.update(cacheId);
 
                 await interaction.editReply({
-                    embeds: [await makeBoardEmbed({ x, y }, memberId, DIRECTION_MAP[direction])],
-                    components: [makeMovementRow(x, y)]
+                    embeds: [await makeBoardEmbed({ layer, x, y }, memberId, DIRECTION_MAP[direction])],
+                    components: [makeMovementRow(layer, x, y)]
                 });
             }
         }
@@ -63,6 +64,13 @@ $applicationCommand({
             type: ApplicationCommandOptionType.SUB_COMMAND,
             name: "refresh",
             description: "Refresh chest locations.",
+            options: [
+                {
+                    type: ApplicationCommandOptionType.INTEGER,
+                    name: "layer",
+                    description: "The layer to reset. Pass -1 to reset all. Default: -1"
+                }
+            ],
             handle: boardReset
         },
         {
@@ -89,6 +97,12 @@ $applicationCommand({
                     min_value: 1,
                     max_value: 30,
                     required: true
+                },
+                {
+                    type: ApplicationCommandOptionType.INTEGER,
+                    name: "layer",
+                    description: "The layer to reset. Pass -1 to reset all. Default: -1",
+                    min_value: 1
                 }
             ],
             handle: boardSpawn

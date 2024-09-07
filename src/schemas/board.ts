@@ -10,21 +10,6 @@ import * as BoardCache from "./board-cache.js";
 
 export const BOARD_VIEW_SIZE = parseInt(process.env.BOARD_VIEW_SIZE);
 
-const [boardX, boardY] = <[string, string | undefined]>process.env.BOARD_SIZE.split("x", 2);
-
-export const BOARD_LIMITS = {
-    POSITIVE: {
-        x: parseInt(boardX),
-        y: parseInt(boardY ?? boardX)
-    },
-    NEGATIVE: {
-        x: parseInt(`-${boardX}`),
-        y: parseInt(`-${boardY ?? boardX}`)
-    }
-};
-
-export const BOARD_CALCULATED_SIZE = (BOARD_LIMITS.POSITIVE.x - BOARD_LIMITS.NEGATIVE.x) * (BOARD_LIMITS.POSITIVE.y - BOARD_LIMITS.NEGATIVE.y);
-
 export interface ChestData {
     rarity: ChestRarity;
     contents: Array<ChestContent>;
@@ -76,6 +61,7 @@ try {
 }
 
 export interface BoardData {
+    layer: number;
     x: number;
     y: number;
 }
@@ -84,7 +70,8 @@ export const enum BoardEntityType {
     Empty,
     Player,
     Enemy,
-    Chest
+    Chest,
+    LayerEntrance
 }
 
 export const BOARD_MAPPINGS: Record<number, string> = {
@@ -92,56 +79,95 @@ export const BOARD_MAPPINGS: Record<number, string> = {
     [BoardEntityType.Player]: "🟩",
     [BoardEntityType.Enemy]: "🟥",
     [BoardEntityType.Chest]: "🟦",
+    [BoardEntityType.LayerEntrance]: "🔳",
 
     88: "🟨",
     99: "🟪"
 };
 
-export function generateRandomCoordinates(): BoardData {
+export function generateRandomCoordinates(x: number, y: number): Omit<BoardData, "layer"> {
     return {
-        x: getRandomIntInclusive(0, BOARD_LIMITS.POSITIVE.x) * (Math.round(Math.random()) ? 1 : -1),
-        y: getRandomIntInclusive(0, BOARD_LIMITS.POSITIVE.y) * (Math.round(Math.random()) ? 1 : -1)
+        x: getRandomIntInclusive(0, x) * (Math.round(Math.random()) ? 1 : -1),
+        y: getRandomIntInclusive(0, y) * (Math.round(Math.random()) ? 1 : -1)
     };
 }
 
-db.run("CREATE TABLE IF NOT EXISTS Board ( id TEXT PRIMARY KEY, type INTEGER NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, data TEXT )");
+db.run("CREATE TABLE IF NOT EXISTS Board ( id TEXT PRIMARY KEY, type INTEGER NOT NULL, layer INTEGER NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, data TEXT )");
 
 export function spawnPlayer(memberId: string, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id: memberId, type: BoardEntityType.Player, x, y });
+    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, 1, $x, $y)").run({
+        id: memberId,
+        type: BoardEntityType.Player,
+        x,
+        y
+    });
 }
 
-export function generateChest(chestId: string, x: number, y: number, data: ChestData): void {
-    db.query("INSERT INTO Board (id, type, x, y, data) VALUES ($id, $type, $x, $y, $data)").run({ id: chestId, type: BoardEntityType.Chest, x, y, data: JSON.stringify(data) });
+export function generateChest(chestId: string, layer: number, x: number, y: number, data: ChestData): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y, data) VALUES ($id, $type, $layer, $x, $y, $data)").run({
+        id: chestId,
+        type: BoardEntityType.Chest,
+        layer,
+        x,
+        y,
+        data: JSON.stringify(data)
+    });
 }
 
-export function generateEnemy(enemyId: string, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, x, y) VALUES ($id, $type, $x, $y)").run({ id: enemyId, type: BoardEntityType.Enemy, x, y });
+export function generateEnemy(enemyId: string, layer: number, x: number, y: number): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, $layer, $x, $y)").run({
+        id: enemyId,
+        type: BoardEntityType.Enemy,
+        layer,
+        x,
+        y
+    });
+}
+
+export function insertLayerEntrance(layerId: string, layer: number, x: number, y: number): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, $layer, $x, $y)").run({
+        id: layerId,
+        type: BoardEntityType.LayerEntrance,
+        layer,
+        x,
+        y
+    });
 }
 
 export function updatePlayerPosition(memberId: string, x: number, y: number): boolean {
-    if (
-        x > BOARD_LIMITS.POSITIVE.x
-        || x < BOARD_LIMITS.NEGATIVE.x
-        || y > BOARD_LIMITS.POSITIVE.y
-        || y < BOARD_LIMITS.NEGATIVE.y
-    ) return false;
+    // if (
+    //     x > BOARD_LIMITS.POSITIVE.x
+    //     || x < BOARD_LIMITS.NEGATIVE.x
+    //     || y > BOARD_LIMITS.POSITIVE.y
+    //     || y < BOARD_LIMITS.NEGATIVE.y
+    // ) return false;
 
     db.query("UPDATE Board SET x = $x, y = $y WHERE id = $id").run({ id: memberId, x, y });
     return true;
 }
 
-export function getPlayerPosition(memberId: string): BoardData | null {
-    return <BoardData>db.query("SELECT x, y FROM Board WHERE id = $id").get({ id: memberId });
+export function changePlayerLayer(memberId: string, layer: number): boolean {
+    db.query("UPDATE Board SET layer = $layer WHERE id = $id").run({ id: memberId, layer });
+    return true;
 }
 
-export function getEntityInPosition(x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } | null {
-    const data = <{ id: string, type: BoardEntityType, data: null | string } | null>db.query("SELECT id, type, data FROM Board WHERE x = $x AND y = $y").get({ x, y });
+export function getPlayerPosition(memberId: string): BoardData | null {
+    return <BoardData>db.query("SELECT layer, x, y FROM Board WHERE id = $id").get({ id: memberId });
+}
+
+export function getEntityInPosition(layer: number, x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } | null {
+    const data = <{ id: string, type: BoardEntityType, data: null | string } | null>db.query("SELECT id, type, data FROM Board WHERE layer = $layer AND x = $x AND y = $y").get({
+        layer,
+        x,
+        y
+    });
+
     if (data === null) return null;
     if (data.data !== null) data.data = <never>JSON.parse(data.data);
     return <never>data;
 }
 
-export async function scanFromCenter(center: { x: number, y: number }, size: number, playerId?: string, updateViews?: boolean): Promise<Array<number>> {
+export async function scanFromCenter(center: BoardData, size: number, playerId?: string, updateViews?: boolean): Promise<Array<number>> {
     const fullSize = size * size;
     const board: Array<number> = [];
 
@@ -154,7 +180,7 @@ export async function scanFromCenter(center: { x: number, y: number }, size: num
             y -= 1;
         }
 
-        const entity = getEntityInPosition(x, y);
+        const entity = getEntityInPosition(center.layer, x, y);
         if (entity === null) board.push(0);
         else if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
         else if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
@@ -170,8 +196,8 @@ export async function scanFromCenter(center: { x: number, y: number }, size: num
                     // eslint-disable-next-line no-await-in-loop
                     await client.rest.editMessage(channelId, messageId, {
                         // eslint-disable-next-line no-await-in-loop
-                        embeds: [await makeBoardEmbed({ x, y }, entity.id)],
-                        components: [makeMovementRow(x, y)]
+                        embeds: [await makeBoardEmbed({ layer: center.layer, x, y }, entity.id)],
+                        components: [makeMovementRow(center.layer, x, y)]
                     });
                 }
             }
@@ -185,7 +211,7 @@ export async function scanFromCenter(center: { x: number, y: number }, size: num
     return board;
 }
 
-export function scanForEntities(center: { x: number, y: number }, size: number): Array<{ type: BoardEntityType } & BoardData> {
+export function scanForEntities(center: BoardData, size: number): Array<{ type: BoardEntityType } & Omit<BoardData, "layer">> {
     const fullSize = size * size;
     const entities: ReturnType<typeof scanForEntities> = [];
 
@@ -198,7 +224,7 @@ export function scanForEntities(center: { x: number, y: number }, size: number):
             y -= 1;
         }
 
-        const entity = getEntityInPosition(x, y);
+        const entity = getEntityInPosition(center.layer, x, y);
         if (entity !== null)
             entities.push({ type: entity.type, x, y });
 

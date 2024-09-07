@@ -7,3 +7,5 @@ db/
 .DS_Store
 .obsidian
 .dccache
+
+*.jsonc
