@@ -1,5 +1,6 @@
 import { ApplicationCommandOptionType, ComponentType } from "lilybird";
 import { handleChestCollision } from "./collisions/chest.js";
+import { handleLayerCollision } from "./collisions/layer.js";
 import { $applicationCommand } from "../../handler.js";
 import { boardReset } from "./refresh.js";
 import { handleMoving } from "./move.js";
@@ -19,9 +20,15 @@ $applicationCommand({
         },
         {
             type: ComponentType.Button,
-            id: "chests",
-            customMatcher: "custom_id.split(\"-\",2)[0] === \"c\"",
+            id: "chest",
+            customMatcher: "custom_id.split(\"-\",2)[0] === \"ce\"",
             handle: handleChestCollision
+        },
+        {
+            type: ComponentType.Button,
+            id: "portal",
+            customMatcher: "custom_id.split(\"-\",2)[0] === \"pot\"",
+            handle: handleLayerCollision
         }
     ],
     options: [

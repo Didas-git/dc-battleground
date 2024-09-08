@@ -66,12 +66,37 @@ export interface BoardData {
     y: number;
 }
 
+export interface LayerData {
+    to: 1 | -1;
+}
+
 export const enum BoardEntityType {
     Empty,
     Player,
     Enemy,
     Chest,
     LayerEntrance
+}
+
+export type BoardEntity = ChestEntity | LayerEntity | { type: BoardEntityType.Empty } | OtherEntities;
+
+export interface BaseBoardEntity {
+    id: string;
+    type: BoardEntityType;
+}
+
+export interface ChestEntity extends BaseBoardEntity {
+    type: BoardEntityType.Chest;
+    data: ChestData;
+}
+
+export interface LayerEntity extends BaseBoardEntity {
+    type: BoardEntityType.LayerEntrance;
+    data: LayerData;
+}
+
+export interface OtherEntities extends BaseBoardEntity {
+    type: BoardEntityType.Player | BoardEntityType.Enemy;
 }
 
 export const BOARD_MAPPINGS: Record<number, string> = {
@@ -124,13 +149,14 @@ export function generateEnemy(enemyId: string, layer: number, x: number, y: numb
     });
 }
 
-export function insertLayerEntrance(layerId: string, layer: number, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, $layer, $x, $y)").run({
+export function insertLayerEntrance(layerId: string, layer: number, x: number, y: number, data: LayerData): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y, data) VALUES ($id, $type, $layer, $x, $y, $data)").run({
         id: layerId,
         type: BoardEntityType.LayerEntrance,
         layer,
         x,
-        y
+        y,
+        data: JSON.stringify(data)
     });
 }
 
@@ -155,15 +181,22 @@ export function getPlayerPosition(memberId: string): BoardData | null {
     return <BoardData>db.query("SELECT layer, x, y FROM Board WHERE id = $id").get({ id: memberId });
 }
 
-export function getEntityInPosition(layer: number, x: number, y: number): { id: string, type: BoardEntityType, data: null | ChestData } {
-    const data = <{ id: string, type: BoardEntityType, data: null | string } | null>db.query("SELECT id, type, data FROM Board WHERE layer = $layer AND x = $x AND y = $y").get({
+export function getPortalPosition(guildId: string, layer: number, direction: "back" | "forward"): BoardData {
+    return <BoardData>db.query(`SELECT layer, x, y FROM Board WHERE layer = $layer AND id LIKE '${guildId}:%' AND data = $to`).get({
+        layer,
+        to: JSON.stringify(direction === "back" ? { to: -1 } : { to: 1 })
+    });
+}
+
+export function getEntityInPosition(layer: number, x: number, y: number): BoardEntity {
+    const data = <{ data: string } | null>db.query("SELECT id, type, data FROM Board WHERE layer = $layer AND x = $x AND y = $y").get({
         layer,
         x,
         y
     });
 
-    if (data === null) return { id: "", type: BoardEntityType.Empty, data: null };
-    if (data.data !== null) data.data = <never>JSON.parse(data.data);
+    if (data === null) return { type: BoardEntityType.Empty };
+    if (typeof data.data === "string") data.data = <never>JSON.parse(<never>data.data);
     return <never>data;
 }
 
@@ -187,7 +220,7 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
         }
 
         const entity = getEntityInPosition(center.layer, x, y);
-        if (entity.type === BoardEntityType.Chest && entity.data?.rarity === ChestRarity.Legendary) board.push(88);
+        if (entity.type === BoardEntityType.Chest && entity.data.rarity === ChestRarity.Legendary) board.push(88);
         else if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
             if (updateViews) {
                 const cacheEntry = BoardCache.getMember(entity.id);

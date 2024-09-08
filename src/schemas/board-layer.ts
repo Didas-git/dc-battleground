@@ -8,10 +8,21 @@ export interface BoardLayer {
     name: string;
     x: number;
     y: number;
-    isLastLayer: boolean;
+    previous: number | null;
+    next: number | null;
 }
 
-db.run("CREATE TABLE IF NOT EXISTS BoardLayer ( layer INTEGER PRIMARY KEY, name TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, is_last_layer BOOLEAN NOT NULL )");
+db.run(`
+CREATE TABLE IF NOT EXISTS BoardLayer (
+    layer INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    previous INTEGER,
+    next INTEGER,
+    FOREIGN KEY(previous) REFERENCES BoardLayer(layer)
+    FOREIGN KEY(next) REFERENCES BoardLayer(layer)
+)`);
 
 const query = db.query("SELECT layer FROM BoardLayer WHERE layer = $layer");
 for (let i = 0; ; i++) {
@@ -26,17 +37,25 @@ for (let i = 0; ; i++) {
     const x = parseInt(cx);
     const y = parseInt(cy ?? cx);
 
-    createBoardLayer(i, layer.name, x, y, typeof floors[i + 1] === "undefined");
+    const previousLayer = i - 1 <= 0 ? null : i - 1;
+    const nextLayer = i + 1 === 1 ? null : typeof floors[i + 1] === "undefined" ? null : i + 1;
+
+    createBoardLayer(i, layer.name, x, y, previousLayer, nextLayer);
 }
 
-export function getBoardLayerInfo(layer: number): BoardLayer {
-    const l = <BoardLayer>db.query("SELECT name, x, y, is_last_layer as isLastLayer FROM BoardLayer WHERE layer = $layer").get({ layer });
-    l.isLastLayer = !!l.isLastLayer;
-    return l;
+export function getBoardLayerInfo(layer: number): BoardLayer | null {
+    return <BoardLayer | null>db.query("SELECT name, x, y, previous, next FROM BoardLayer WHERE layer = $layer").get({ layer });
 }
 
-export function createBoardLayer(layer: number, name: string, x: number, y: number, isLastLayer: boolean): void {
-    db.query("INSERT INTO BoardLayer (layer, name, x, y, is_last_layer) VALUES ($layer, $name, $x, $y, $isLastLayer)").run({ layer, name, x, y, isLastLayer });
+export function createBoardLayer(layer: number, name: string, x: number, y: number, previousLayer: number | null, nextLayer: number | null): void {
+    db.query("INSERT INTO BoardLayer (layer, name, x, y, previous, next) VALUES ($layer, $name, $x, $y, $previousLayer, $nextLayer)").run({
+        layer,
+        name,
+        x,
+        y,
+        previousLayer,
+        nextLayer
+    });
 }
 
 export function calculateLayerSize(coordinates: BoardLayer): number {

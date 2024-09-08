@@ -14,12 +14,24 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         return;
     }
 
+    const layer = interaction.data.getInteger("layer") ?? -1;
+
+    if (layer === -1)
+        await interaction.reply({ content: "Resetting all layers at once is not yet implemented", ephemeral: true });
+    else if (layer === 0) {
+        await interaction.reply({ content: "Layer 0 cannot be reset!", ephemeral: true });
+        return;
+    }
+
     await interaction.deferReply();
 
-    const layer = interaction.data.getInteger("layer") ?? -1;
-    if (layer <= 0) throw new Error("Not yet implemented");
-
     const layerLimits = BoardLayer.getBoardLayerInfo(layer);
+
+    if (layerLimits === null) {
+        await interaction.editReply({ content: `Layer ${layer} does not exist.` });
+        return;
+    }
+
     const quantity = interaction.data.getInteger("quantity", true);
     const locations: Array<Board.BoardData> = [];
 

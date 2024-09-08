@@ -51,7 +51,8 @@ export function makeMovementRow(layer: number, x: number, y: number): Message.Co
 
 export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
     const board = await Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId, typeof moveDirection !== "undefined");
-    const { name } = BoardLayer.getBoardLayerInfo(position.layer);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { name } = BoardLayer.getBoardLayerInfo(position.layer)!;
 
     let str = "";
     for (let i = 0, { length } = board; i < length; i++) {

@@ -16,10 +16,16 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         return;
     }
 
-    await interaction.deferReply();
-
     const layer = interaction.data.getInteger("layer") ?? -1;
-    if (layer <= 0) throw new Error("Not yet implemented");
+
+    if (layer === -1)
+        await interaction.reply({ content: "Resetting all layers at once is not yet implemented", ephemeral: true });
+    else if (layer === 0) {
+        await interaction.reply({ content: "Layer 0 cannot be reset!", ephemeral: true });
+        return;
+    }
+
+    await interaction.deferReply();
 
     db.query("DELETE FROM Board WHERE layer = $layer AND (type = $type1 OR type = $type2 OR type = $type3)").run({
         layer,
@@ -29,6 +35,12 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
     });
 
     const layerInfo = BoardLayer.getBoardLayerInfo(layer);
+
+    if (layerInfo === null) {
+        await interaction.editReply({ content: `Layer ${layer} does not exist.` });
+        return;
+    }
+
     const layerSize = BoardLayer.calculateLayerSize(layerInfo);
     const chestQuantity = Math.round(parseFloat(process.env.CHEST_REFRESH_PERCENTAGE) * layerSize);
     const mobQuantity = Math.round(parseFloat(process.env.MOB_REFRESH_PERCENTAGE) * layerSize);
@@ -36,9 +48,14 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
     let x = 0;
     let y = 0;
 
-    if (!layerInfo.isLastLayer) {
+    if (layerInfo.previous !== null) {
         ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y);
+        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y, { to: -1 });
+    }
+
+    if (layerInfo.next !== null) {
+        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
+        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y, { to: 1 });
     }
 
     let start = performance.now();
@@ -70,7 +87,7 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         embeds: [
             {
                 color: 0xff00ef,
-                title: "Board reset!",
+                title: `Layer ${layer} (${layerInfo.name}) reset!`,
                 description: `There are ${chestQuantity} new chests!\nThere are ${mobQuantity} new enemies!`,
                 footer: { text: `Chests Took ${time1.getUTCSeconds()}.${time1.getUTCMilliseconds()} seconds.\nMobs Took ${time2.getUTCSeconds()}.${time2.getUTCMilliseconds()} seconds.` }
             }

@@ -8,6 +8,7 @@ import type { Interaction, Message, MessageComponentData } from "@lilybird/trans
 
 export async function handleChestCollision(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
     if (!interaction.inGuild()) return;
+
     const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
     const [chests, coordinates] = interaction.data.id.split(":", 2);
     const [,messageId, direction] = chests.split("-", 3);
@@ -17,7 +18,7 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
     const y = parseInt(cy);
 
     const chest = Board.getEntityInPosition(layer, x, y);
-    if (chest.data === null) {
+    if (chest.type !== Board.BoardEntityType.Chest) {
         await interaction.reply({
             content: "Something went wrong",
             ephemeral: true

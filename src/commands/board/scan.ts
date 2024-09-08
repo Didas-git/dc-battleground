@@ -33,6 +33,7 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
     const chests: Array<string> = [];
     const mobs: Array<string> = [];
     const players: Array<string> = [];
+    const moveSpots: Array<string> = [];
 
     for (let i = 0, { length } = entities; i < length; i++) {
         const entity = entities[i];
@@ -51,6 +52,10 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
                 players.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
                 break;
             }
+            case Board.BoardEntityType.LayerEntrance: {
+                moveSpots.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+                break;
+            }
             default: break;
         }
     }
@@ -66,7 +71,8 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
         description: `- Chests:\n${
             chests.length > 0 ? chests.join("\n") : "  - None"}\n- Enemies:\n${
             mobs.length > 0 ? mobs.join("\n") : "  - None"}\n- Players:\n${
-            players.length > 0 ? players.join("\n") : "  - None"}`,
+            players.length > 0 ? players.join("\n") : "  - None"}\n- Portals:\n${
+            moveSpots.length > 0 ? moveSpots.join("\n") : "  - None"}`,
         footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds\nScanned ${scanAmount * scanAmount} tiles` }
     };
 

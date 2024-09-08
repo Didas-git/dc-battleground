@@ -2,6 +2,7 @@ import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../utils/boar
 import { ButtonStyle, ComponentType } from "lilybird";
 
 import * as BoardCache from "../../schemas/board-cache.js";
+import * as BoardLayer from "../../schemas/board-layer.js";
 import * as Board from "../../schemas/board.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
@@ -70,7 +71,7 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                         components: [
                             {
                                 type: ComponentType.Button,
-                                custom_id: `c-${interaction.message.id}-${direction}:${layer},${x},${y}`,
+                                custom_id: `ce-${interaction.message.id}-${direction}:${layer},${x},${y}`,
                                 style: ButtonStyle.Success,
                                 label: "Yes"
                             }
@@ -81,7 +82,25 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
             break;
         }
         case Board.BoardEntityType.LayerEntrance: {
-            // TODO: Handle entering a new layer
+            const nextLayer = layer + entity.data.to;
+            const layerToMove = BoardLayer.getBoardLayerInfo(nextLayer);
+            await interaction.reply({
+                content: `Do you want to move to [${nextLayer}]${layerToMove?.name}?`,
+                ephemeral: true,
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            {
+                                type: ComponentType.Button,
+                                custom_id: `pot-${interaction.message.id}:${layer},${x},${y}`,
+                                style: ButtonStyle.Success,
+                                label: "Yes"
+                            }
+                        ]
+                    }
+                ]
+            });
             break;
         }
     }

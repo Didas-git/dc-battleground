@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS Inventory (
     coins INTEGER NOT NULL,
     items TEXT NOT NULL,
     FOREIGN KEY(id) REFERENCES Players(id)
-)
-`);
+)`);
 
 export function create(memberId: string): void {
     db.query("INSERT INTO Inventory (id, coins, items) VALUES ($id, 0, '[]')").run({ id: memberId });

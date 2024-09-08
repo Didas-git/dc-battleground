@@ -128,7 +128,8 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
     });
 
     try {
-        const layerLimits = BoardLayer.getBoardLayerInfo(1);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const layerLimits = BoardLayer.getBoardLayerInfo(1)!;
 
         let x = 0;
         let y = 0;
