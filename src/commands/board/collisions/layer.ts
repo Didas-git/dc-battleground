@@ -62,13 +62,15 @@ export async function handleLayerCollision(interaction: Interaction<MessageCompo
     Board.updatePlayerPosition(memberId, newX, newY);
 
     BoardCache.update(cacheId);
-    await interaction.client.rest.editMessage(interaction.channelId, messageId, {
-        embeds: [await makeBoardEmbed({ layer: newLayer, x: newX, y: newY }, memberId, "")],
-        components: [makeMovementRow(newLayer, newX, newY)]
-    });
 
-    await interaction.editReply({
-        content: `Entered [${newLayer}]${newLayerInfo.name} at ${newX},${newY}`,
-        components: []
-    });
+    await Promise.all([
+        interaction.client.rest.editMessage(interaction.channelId, messageId, {
+            embeds: [await makeBoardEmbed({ layer: newLayer, x: newX, y: newY }, memberId, "")],
+            components: [makeMovementRow(newLayer, newX, newY)]
+        }),
+        interaction.editReply({
+            content: `Entered [${newLayer}]${newLayerInfo.name} at ${newX},${newY}`,
+            components: []
+        })
+    ]);
 }

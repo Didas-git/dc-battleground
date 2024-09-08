@@ -51,13 +51,14 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
     Board.updatePlayerPosition(memberId, x, y);
     BoardCache.update(cacheId);
 
-    await interaction.client.rest.editMessage(interaction.channelId, messageId, {
-        embeds: [await makeBoardEmbed({ layer, x, y }, memberId, DIRECTION_MAP[direction])],
-        components: [makeMovementRow(layer, x, y)]
-    });
-
-    await interaction.editReply({
-        content: `Added ${JSON.stringify(contents)} to your inventory`,
-        components: []
-    });
+    await Promise.all([
+        interaction.client.rest.editMessage(interaction.channelId, messageId, {
+            embeds: [await makeBoardEmbed({ layer, x, y }, memberId, DIRECTION_MAP[direction])],
+            components: [makeMovementRow(layer, x, y)]
+        }),
+        interaction.editReply({
+            content: `Added ${JSON.stringify(contents)} to your inventory`,
+            components: []
+        })
+    ]);
 }
