@@ -3,6 +3,7 @@ import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../../utils/b
 import * as BoardCache from "../../../schemas/board-cache.js";
 import * as Player from "../../../schemas/player.js";
 import * as Board from "../../../schemas/board.js";
+import * as Item from "../../../schemas/item.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
 
@@ -39,17 +40,32 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
         return;
     }
 
-    const contents = chest.data.contents.map((el) => ({
-        id: el.type === Board.ChestContentType.Gold ? "gold" : el.item,
-        amount: el.type === Board.ChestContentType.Gold ? el.amount : 1
-    }));
+    let coins = 0;
+    const contents: Player.InventoryStructure["items"] = {};
+    for (let i = 0, data = chest.data.contents, { length } = data; i < length; i++) {
+        const item = data[i];
+        switch (item.type) {
+            case Board.ChestContentType.Coins: {
+                coins += item.amount;
+                break;
+            }
+            case Board.ChestContentType.Item: {
+                if (typeof contents[item.item] === "undefined") contents[item.item] = 1;
+                else contents[item.item] += 1;
+                break;
+            }
+        }
+    }
 
     await interaction.deferComponentReply();
 
+    Player.Inventory.addCoins(memberId, coins);
     Player.Inventory.updateContents(memberId, contents);
     Board.deleteEntityInPosition(layer, x, y);
     Board.updatePlayerPosition(memberId, x, y);
     BoardCache.update(cacheId);
+
+    const contentsArray = Object.entries(contents);
 
     await Promise.all([
         interaction.client.rest.editMessage(interaction.channelId, messageId, {
@@ -57,7 +73,21 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
             components: [makeMovementRow(layer, x, y)]
         }),
         interaction.editReply({
-            content: `Added ${JSON.stringify(contents)} to your inventory`,
+            content: null,
+            embeds: [
+                {
+                    color: 0x00ff00,
+                    title: `Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`,
+                    description: `- Coins: ${coins}\n- Items:\n${contentsArray.length > 0
+                        ? contentsArray.map((i) => {
+                            const [id, amount] = i;
+                            const item = Item.getItemMeta(id);
+
+                            return `  - ${item.name}: ${amount}`;
+                        }).join("\n")
+                        : "  - None"}`
+                }
+            ],
             components: []
         })
     ]);

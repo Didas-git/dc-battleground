@@ -1,9 +1,6 @@
 import { db } from "../db.js";
 
-export interface InventoryStructure {
-    coins: number;
-    items: Array<{ id: string, amount: number }>;
-}
+import type { InventoryStructure } from "./player.js";
 
 db.run(`
 CREATE TABLE IF NOT EXISTS Inventory (
@@ -14,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Inventory (
 )`);
 
 export function create(memberId: string): void {
-    db.query("INSERT INTO Inventory (id, coins, items) VALUES ($id, 0, '[]')").run({ id: memberId });
+    db.query("INSERT INTO Inventory (id, coins, items) VALUES ($id, 0, '{}')").run({ id: memberId });
 }
 
 export function get(memberId: string): InventoryStructure {
@@ -56,9 +53,15 @@ export function getContents(memberId: string): InventoryStructure["items"] {
 }
 
 export function updateContents(memberId: string, items: InventoryStructure["items"]): void {
-    //! TODO: Improve how contents get merged so they are actually merged instead of having duplicates
     const currentContent = getContents(memberId);
-    db.query("UPDATE Inventory SET items = $items WHERE id = $id").run({ id: memberId, items: JSON.stringify([...currentContent, ...items]) });
+
+    for (let i = 0, contents = Object.entries(items), { length } = contents; i < length; i++) {
+        const [key, value] = contents[i];
+        if (typeof currentContent[key] === "undefined") currentContent[key] = 0;
+        currentContent[key] += value;
+    }
+
+    db.query("UPDATE Inventory SET items = $items WHERE id = $id").run({ id: memberId, items: JSON.stringify(currentContent) });
 }
 
 export function getContentsInAllGuilds(userId: string): Array<InventoryStructure["items"]> {

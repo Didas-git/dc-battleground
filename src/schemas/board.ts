@@ -15,14 +15,14 @@ export interface ChestData {
     contents: Array<ChestContent>;
 }
 
-export type ChestContent = GoldChestContent | ItemChestContent;
+export type ChestContent = CoinsChestContent | ItemChestContent;
 
 export interface ChestContentBase {
     type: ChestContentType;
 }
 
-export interface GoldChestContent extends ChestContentBase {
-    type: ChestContentType.Gold;
+export interface CoinsChestContent extends ChestContentBase {
+    type: ChestContentType.Coins;
     amount: number;
 }
 
@@ -32,7 +32,7 @@ export interface ItemChestContent extends ChestContentBase {
 }
 
 export const enum ChestContentType {
-    Gold,
+    Coins,
     Item
 }
 
@@ -98,6 +98,14 @@ export interface LayerEntity extends BaseBoardEntity {
 export interface OtherEntities extends BaseBoardEntity {
     type: BoardEntityType.Player | BoardEntityType.Enemy;
 }
+
+export const CHEST_RARITY_MAPPINGS: Record<ChestRarity, string> = {
+    [ChestRarity.Cursed]: "Cursed",
+    [ChestRarity.Basic]: "Basic",
+    [ChestRarity.Normal]: "Normal",
+    [ChestRarity.Epic]: "Epic",
+    [ChestRarity.Legendary]: "Legendary"
+};
 
 export const BOARD_MAPPINGS: Record<number, string> = {
     [BoardEntityType.Empty]: "⬛",

@@ -73,8 +73,8 @@ export function generateRandomChestData(): Board.ChestData {
 
     const contents: Board.ChestData["contents"] = [
         {
-            type: Board.ChestContentType.Gold,
-            amount: getGoldAmountBasedOnRarity(rarity)
+            type: Board.ChestContentType.Coins,
+            amount: getCoinAmountBasedOnRarity(rarity)
         }
     ];
 
@@ -93,7 +93,7 @@ export function generateRandomChestData(): Board.ChestData {
     return { rarity, contents };
 }
 
-function getGoldAmountBasedOnRarity(rarity: Board.ChestRarity): number {
+function getCoinAmountBasedOnRarity(rarity: Board.ChestRarity): number {
     switch (rarity) {
         case Board.ChestRarity.Cursed: { return 0; }
         case Board.ChestRarity.Basic: { return getRandomIntInclusive(0, 30); }

@@ -26,7 +26,8 @@ $applicationCommand({
                         {
                             type: ApplicationCommandOptionType.INTEGER,
                             name: "amount",
-                            description: "The amount to heal for."
+                            description: "The amount to heal for.",
+                            min_value: 0
                         }
                     ],
                     handle: actionSelfHeal

@@ -3,6 +3,7 @@ import { calculateDef } from "../../utils/calculate-total-def.js";
 import { GuildMember } from "@lilybird/transformers";
 
 import * as Player from "../../schemas/player.js";
+import * as Item from "../../schemas/item.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 
@@ -38,7 +39,7 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         classes.total += 1;
     }
 
-    const inventory = Player.Inventory.getContents(targetDbId);
+    const inventory = Object.entries(Player.Inventory.getContents(targetDbId));
 
     await interaction.reply({
         embeds: [
@@ -68,7 +69,14 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
                     },
                     {
                         name: "Items",
-                        value: inventory.length > 0 ? inventory.map((i) => `- ${i.id} (${i.amount})`).join("\n") : "None"
+                        value: inventory.length > 0
+                            ? inventory.map((i) => {
+                                const [id, amount] = i;
+                                const item = Item.getItemMeta(id);
+
+                                return `- ${item.name}: ${amount}`;
+                            }).join("\n")
+                            : "None"
                     },
                     {
                         name: "Status",

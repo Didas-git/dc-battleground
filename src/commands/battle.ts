@@ -53,7 +53,9 @@ $applicationCommand({
         const p1Name = getMemberName(interaction.member);
         const p2Name = getMemberName(targetMember);
 
-        await interaction.reply(`\`${p1Name}\` dealt \`${finalDmg}\` (pre def: \`${calculatedDmg}\`) damage to \`${p2Name}\`.`);
+        await interaction.reply(`\`${p1Name}\` dealt \`${finalDmg}\` (pre def: \`${calculatedDmg}\`) damage to \`${p2Name}\`.`, {
+            allowed_mentions: { parse: [] }
+        });
     }
 });
 

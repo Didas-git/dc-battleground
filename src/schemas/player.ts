@@ -4,6 +4,11 @@ import * as Inv from "./inventory.js";
 
 export const Inventory = Inv;
 
+export interface InventoryStructure {
+    coins: number;
+    items: Record<string, number>;
+}
+
 export interface PlayerData {
     class: ClassType;
     hp: { current: number, max: number };
