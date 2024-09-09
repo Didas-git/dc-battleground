@@ -1,4 +1,4 @@
-import { makeBoardEmbed, makeMovementRow } from "../../../utils/board.js";
+import { ButtonStyle, ComponentType } from "lilybird";
 
 import * as BoardCache from "../../../schemas/board-cache.js";
 import * as BoardLayer from "../../../schemas/board-layer.js";
@@ -10,8 +10,7 @@ export async function handleLayerCollision(interaction: Interaction<MessageCompo
     if (!interaction.inGuild()) return;
 
     const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
-    const [chests, coordinates] = interaction.data.id.split(":", 2);
-    const [,messageId] = chests.split("-", 2);
+    const [, coordinates] = interaction.data.id.split(":", 2);
     const [l, cx, cy] = coordinates.split(",", 3);
     const layer = parseInt(l);
     const x = parseInt(cx);
@@ -26,7 +25,7 @@ export async function handleLayerCollision(interaction: Interaction<MessageCompo
         return;
     }
 
-    const cacheId = `${interaction.channelId}:${messageId}`;
+    const cacheId = `${interaction.channelId}:${interaction.message.id}`;
     const cacheEntry = BoardCache.get(cacheId);
 
     if (cacheEntry === null) {
@@ -63,14 +62,20 @@ export async function handleLayerCollision(interaction: Interaction<MessageCompo
 
     BoardCache.update(cacheId);
 
-    await Promise.all([
-        interaction.client.rest.editMessage(interaction.channelId, messageId, {
-            embeds: [await makeBoardEmbed({ layer: newLayer, x: newX, y: newY }, memberId, "")],
-            components: [makeMovementRow(newLayer, newX, newY)]
-        }),
-        interaction.editReply({
-            content: `Entered [${newLayer}]${newLayerInfo.name} at ${newX},${newY}`,
-            components: []
-        })
-    ]);
+    await interaction.editReply({
+        embeds: [ { color: 0xffa03b, description: `Entered [${newLayer}]${newLayerInfo.name} at ${newX},${newY}` } ],
+        components: [
+            {
+                type: ComponentType.ActionRow,
+                components: [
+                    {
+                        type: ComponentType.Button,
+                        custom_id: "con- ",
+                        style: ButtonStyle.Primary,
+                        label: "Continue"
+                    }
+                ]
+            }
+        ]
+    });
 }

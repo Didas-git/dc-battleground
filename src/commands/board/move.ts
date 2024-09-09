@@ -55,10 +55,68 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
         }
         case Board.BoardEntityType.Player: {
             // TODO: Option to battle the player
+            const player = Board.getPlayerPosition(memberId);
+
+            if (player === null) {
+                await interaction.reply({
+                    content: "Something went wrong",
+                    ephemeral: true
+                });
+                return;
+            }
+
+            await interaction.updateComponents({
+                embeds: [
+                    await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
+                    { color: 0xff0000, description: "Player collisions are not yet implemented" }
+                ],
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            {
+                                type: ComponentType.Button,
+                                custom_id: "back",
+                                style: ButtonStyle.Danger,
+                                label: "Go Back"
+                            }
+                        ]
+                    }
+                ]
+            });
             break;
         }
         case Board.BoardEntityType.Enemy: {
             // TODO: Handle enemy collision (battle,purification)
+            const player = Board.getPlayerPosition(memberId);
+
+            if (player === null) {
+                await interaction.reply({
+                    content: "Something went wrong",
+                    ephemeral: true
+                });
+                return;
+            }
+
+            await interaction.updateComponents({
+                embeds: [
+                    await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
+                    { color: 0xff0000, description: "Enemy collisions are not yet implemented" }
+                ],
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            {
+                                type: ComponentType.Button,
+                                custom_id: "back",
+                                style: ButtonStyle.Danger,
+                                label: "Go Back"
+                            }
+                        ]
+                    }
+                ]
+            });
             break;
         }
         case Board.BoardEntityType.Chest: {
@@ -83,13 +141,13 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                         components: [
                             {
                                 type: ComponentType.Button,
-                                custom_id: `co-${interaction.message.id}-${direction}:${layer},${x},${y}`,
+                                custom_id: `co-${direction}:${layer},${x},${y}`,
                                 style: ButtonStyle.Success,
-                                label: "Open Chest"
+                                label: "Open"
                             },
                             {
                                 type: ComponentType.Button,
-                                custom_id: `cb-${interaction.message.id}`,
+                                custom_id: "back",
                                 style: ButtonStyle.Danger,
                                 label: "Go Back"
                             }
@@ -102,18 +160,36 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
         case Board.BoardEntityType.LayerEntrance: {
             const nextLayer = layer + entity.data.to;
             const layerToMove = BoardLayer.getBoardLayerInfo(nextLayer);
-            await interaction.reply({
-                content: `Do you want to move to [${nextLayer}]${layerToMove?.name}?`,
-                ephemeral: true,
+            const player = Board.getPlayerPosition(memberId);
+
+            if (player === null) {
+                await interaction.reply({
+                    content: "Something went wrong",
+                    ephemeral: true
+                });
+                return;
+            }
+
+            await interaction.updateComponents({
+                embeds: [
+                    await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
+                    { color: 0xee7dff, description: `Do you want to move to [${nextLayer}]${layerToMove?.name}?` }
+                ],
                 components: [
                     {
                         type: ComponentType.ActionRow,
                         components: [
                             {
                                 type: ComponentType.Button,
-                                custom_id: `pot-${interaction.message.id}:${layer},${x},${y}`,
+                                custom_id: `pot:${layer},${x},${y}`,
                                 style: ButtonStyle.Success,
                                 label: "Yes"
+                            },
+                            {
+                                type: ComponentType.Button,
+                                custom_id: "back",
+                                style: ButtonStyle.Danger,
+                                label: "Go Back"
                             }
                         ]
                     }

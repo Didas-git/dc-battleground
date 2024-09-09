@@ -1,5 +1,6 @@
+import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
 import { ApplicationCommandOptionType, ComponentType } from "lilybird";
-import { handleChestCollision, handleChestContinue, handleChestGoBack } from "./collisions/chest.js";
+import { handleChestCollision } from "./collisions/chest.js";
 import { handleLayerCollision } from "./collisions/layer.js";
 import { $applicationCommand } from "../../handler.js";
 import { boardReset } from "./refresh.js";
@@ -7,6 +8,9 @@ import { handleMoving } from "./move.js";
 import { boardSpawn } from "./spawn.js";
 import { viewBoard } from "./view.js";
 import { scanBoard } from "./scan.js";
+
+import * as BoardCache from "../../schemas/board-cache.js";
+import * as Board from "../../schemas/board.js";
 
 $applicationCommand({
     name: "board",
@@ -26,21 +30,86 @@ $applicationCommand({
         },
         {
             type: ComponentType.Button,
-            id: "chest-back",
-            customMatcher: "custom_id.split(\"-\",2)[0] === \"cb\"",
-            handle: handleChestGoBack
-        },
-        {
-            type: ComponentType.Button,
-            id: "chest-continue",
-            customMatcher: "custom_id.split(\"-\",2)[0] === \"ct\"",
-            handle: handleChestContinue
-        },
-        {
-            type: ComponentType.Button,
             id: "portal",
-            customMatcher: "custom_id.split(\"-\",2)[0] === \"pot\"",
+            customMatcher: "custom_id.split(\":\",2)[0] === \"pot\"",
             handle: handleLayerCollision
+        },
+        {
+            type: ComponentType.Button,
+            id: "back",
+            handle: async (interaction) => {
+                if (!interaction.inGuild()) return;
+
+                const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
+                const cacheId = `${interaction.channelId}:${interaction.message.id}`;
+                const cacheEntry = BoardCache.get(cacheId);
+
+                if (cacheEntry === null) {
+                    await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
+                    return;
+                }
+
+                if (cacheEntry.member_id !== memberId) {
+                    await interaction.reply({ content: "You cannot do that!", ephemeral: true });
+                    return;
+                }
+
+                const player = Board.getPlayerPosition(memberId);
+
+                if (player === null) {
+                    await interaction.reply({
+                        content: "Something went wrong",
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                await interaction.updateComponents({
+                    embeds: [await makeBoardEmbed(player, memberId)],
+                    components: [makeMovementRow(player.layer, player.x, player.y)]
+                });
+            }
+        },
+        {
+            type: ComponentType.Button,
+            id: "continue",
+            customMatcher: "custom_id.split(\"-\",2)[0] === \"con\"",
+            handle: async (interaction) => {
+                if (!interaction.inGuild()) return;
+
+                const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
+                const [, direction] = interaction.data.id.split("-", 2);
+
+                const cacheId = `${interaction.channelId}:${interaction.message.id}`;
+                const cacheEntry = BoardCache.get(cacheId);
+
+                if (cacheEntry === null) {
+                    await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
+                    return;
+                }
+
+                if (cacheEntry.member_id !== memberId) {
+                    await interaction.reply({ content: "You cannot do that!", ephemeral: true });
+                    return;
+                }
+
+                const player = Board.getPlayerPosition(memberId);
+
+                if (player === null) {
+                    await interaction.reply({
+                        content: "Something went wrong",
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                await interaction.deferComponentReply();
+
+                await interaction.editReply({
+                    embeds: [await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction])],
+                    components: [makeMovementRow(player.layer, player.x, player.y)]
+                });
+            }
         }
     ],
     options: [
