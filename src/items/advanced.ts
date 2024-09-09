@@ -8,7 +8,7 @@ class ReactiveMetallicDrip extends Item {
     public rdsValue = {
         id: "reactive_metallic_drip",
         type: ItemType.Crafting,
-        rarity: ItemRarity.Normal,
+        rarity: ItemRarity.Advanced,
         name: "Reactive Metallic Drip",
         description: "A basic material used for weapon breakthrough"
     };
@@ -22,7 +22,7 @@ class AdagioHelix extends Item {
     public rdsValue = {
         id: "adagio_helix",
         type: ItemType.Crafting,
-        rarity: ItemRarity.Normal,
+        rarity: ItemRarity.Advanced,
         name: "Adagio Helix",
         description: "A basic material used for weapon breakthrough"
     };
@@ -36,7 +36,7 @@ class WavewornResidue226 extends Item {
     public rdsValue = {
         id: "waveworn_residue_226",
         type: ItemType.Crafting,
-        rarity: ItemRarity.Normal,
+        rarity: ItemRarity.Advanced,
         name: "Waveworn Residue 226",
         description: "A basic material used for weapon breakthrough"
     };
@@ -50,7 +50,7 @@ class CadenceBud extends Item {
     public rdsValue = {
         id: "cadence_bud",
         type: ItemType.Crafting,
-        rarity: ItemRarity.Normal,
+        rarity: ItemRarity.Advanced,
         name: "Cadence Bud",
         description: "A basic material used for weapon breakthrough"
     };
@@ -64,7 +64,7 @@ class ExtractedPhlogiston extends Item {
     public rdsValue = {
         id: "extracted_phlogiston",
         type: ItemType.Crafting,
-        rarity: ItemRarity.Normal,
+        rarity: ItemRarity.Advanced,
         name: "Extracted Phlogiston",
         description: "A basic material used for weapon breakthrough"
     };
