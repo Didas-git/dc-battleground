@@ -1,10 +1,11 @@
+import { ButtonStyle, ComponentType } from "lilybird";
+
 import * as BoardCache from "../../../schemas/board-cache.js";
 import * as Player from "../../../schemas/player.js";
 import * as Board from "../../../schemas/board.js";
 import * as Item from "../../../schemas/item.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
-import { ButtonStyle, ComponentType } from "lilybird";
 
 export async function handleChestCollision(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
     if (!interaction.inGuild()) return;

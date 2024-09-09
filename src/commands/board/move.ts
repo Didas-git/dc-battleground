@@ -1,4 +1,5 @@
 import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
+import { BACK_BUTTON } from "../../utils/components.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 
 import * as BoardCache from "../../schemas/board-cache.js";
@@ -73,14 +74,7 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                 components: [
                     {
                         type: ComponentType.ActionRow,
-                        components: [
-                            {
-                                type: ComponentType.Button,
-                                custom_id: "back",
-                                style: ButtonStyle.Danger,
-                                label: "Go Back"
-                            }
-                        ]
+                        components: [BACK_BUTTON]
                     }
                 ]
             });
@@ -106,14 +100,7 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                 components: [
                     {
                         type: ComponentType.ActionRow,
-                        components: [
-                            {
-                                type: ComponentType.Button,
-                                custom_id: "back",
-                                style: ButtonStyle.Danger,
-                                label: "Go Back"
-                            }
-                        ]
+                        components: [BACK_BUTTON]
                     }
                 ]
             });
@@ -145,12 +132,7 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                                 style: ButtonStyle.Success,
                                 label: "Open"
                             },
-                            {
-                                type: ComponentType.Button,
-                                custom_id: "back",
-                                style: ButtonStyle.Danger,
-                                label: "Go Back"
-                            }
+                            BACK_BUTTON
                         ]
                     }
                 ]
@@ -185,12 +167,7 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
                                 style: ButtonStyle.Success,
                                 label: "Yes"
                             },
-                            {
-                                type: ComponentType.Button,
-                                custom_id: "back",
-                                style: ButtonStyle.Danger,
-                                label: "Go Back"
-                            }
+                            BACK_BUTTON
                         ]
                     }
                 ]
