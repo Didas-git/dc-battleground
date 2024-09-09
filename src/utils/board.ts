@@ -17,36 +17,52 @@ export const DIRECTION_MAP: Record<string, string> = {
     right: "\u{1F846}" // 🡆
 };
 
-export function makeMovementRow(layer: number, x: number, y: number): Message.Component.ActionRowStructure {
-    return {
-        type: ComponentType.ActionRow,
-        components: [
-            {
-                type: ComponentType.Button,
-                custom_id: `arrow-left:${layer},${x - 1},${y}`,
-                style: ButtonStyle.Primary,
-                label: DIRECTION_MAP.left
-            },
-            {
-                type: ComponentType.Button,
-                custom_id: `arrow-up:${layer},${x},${y + 1}`,
-                style: ButtonStyle.Primary,
-                label: DIRECTION_MAP.up
-            },
-            {
-                type: ComponentType.Button,
-                custom_id: `arrow-down:${layer},${x},${y - 1}`,
-                style: ButtonStyle.Primary,
-                label: DIRECTION_MAP.down
-            },
-            {
-                type: ComponentType.Button,
-                custom_id: `arrow-right:${layer},${x + 1},${y}`,
-                style: ButtonStyle.Primary,
-                label: DIRECTION_MAP.right
-            }
-        ]
-    };
+export const MOVEMENT_ROW: Message.Component.ActionRowStructure = {
+    type: ComponentType.ActionRow,
+    components: [
+        {
+            type: ComponentType.Button,
+            custom_id: "arrow-left",
+            style: ButtonStyle.Primary,
+            label: DIRECTION_MAP.left
+        },
+        {
+            type: ComponentType.Button,
+            custom_id: "arrow-up",
+            style: ButtonStyle.Primary,
+            label: DIRECTION_MAP.up
+        },
+        {
+            type: ComponentType.Button,
+            custom_id: "arrow-down",
+            style: ButtonStyle.Primary,
+            label: DIRECTION_MAP.down
+        },
+        {
+            type: ComponentType.Button,
+            custom_id: "arrow-right",
+            style: ButtonStyle.Primary,
+            label: DIRECTION_MAP.right
+        }
+    ]
+};
+
+export function calculateCoordinates(x: number, y: number, direction: string): { x: number, y: number } {
+    switch (direction) {
+        case "left": {
+            return { x: x - 1, y };
+        }
+        case "up": {
+            return { x, y: y + 1 };
+        }
+        case "down": {
+            return { x, y: y - 1 };
+        }
+        case "right": {
+            return { x: x + 1, y };
+        }
+        default: return { x, y };
+    }
 }
 
 export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {

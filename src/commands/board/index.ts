@@ -1,4 +1,4 @@
-import { DIRECTION_MAP, makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
+import { DIRECTION_MAP, makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.js";
 import { ApplicationCommandOptionType, ComponentType } from "lilybird";
 import { handleChestCollision } from "./collisions/chest.js";
 import { handleLayerCollision } from "./collisions/layer.js";
@@ -66,7 +66,7 @@ $applicationCommand({
 
                 await interaction.updateComponents({
                     embeds: [await makeBoardEmbed(player, memberId)],
-                    components: [makeMovementRow(player.layer, player.x, player.y)]
+                    components: [MOVEMENT_ROW]
                 });
             }
         },
@@ -107,7 +107,7 @@ $applicationCommand({
 
                 await interaction.editReply({
                     embeds: [await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction])],
-                    components: [makeMovementRow(player.layer, player.x, player.y)]
+                    components: [MOVEMENT_ROW]
                 });
             }
         }

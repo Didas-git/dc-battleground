@@ -1,4 +1,4 @@
-import { makeBoardEmbed, makeMovementRow } from "../../utils/board.js";
+import { makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.js";
 
 import * as BoardCache from "../../schemas/board-cache.js";
 import * as Board from "../../schemas/board.js";
@@ -17,7 +17,7 @@ export async function viewBoard(interaction: Interaction<ApplicationCommandData>
 
     await interaction.reply({
         embeds: [await makeBoardEmbed(position, memberId)],
-        components: [makeMovementRow(position.layer, position.x, position.y)]
+        components: [MOVEMENT_ROW]
     });
 
     BoardCache.del(memberId);

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { getRandomIntInclusive } from "../utils/random-generators.js";
-import { makeBoardEmbed, makeMovementRow } from "../utils/board.js";
+import { makeBoardEmbed, MOVEMENT_ROW } from "../utils/board.js";
 import { client } from "../index.js";
 import { db } from "../db.js";
 
@@ -258,7 +258,7 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
 async function updateView(entityId: string, channelId: string, messageId: string, position: BoardData): Promise<void> {
     await client.rest.editMessage(channelId, messageId, {
         embeds: [await makeBoardEmbed({ layer: position.layer, x: position.x, y: position.y }, entityId)],
-        components: [makeMovementRow(position.layer, position.x, position.y)]
+        components: [MOVEMENT_ROW]
     });
 }
 
