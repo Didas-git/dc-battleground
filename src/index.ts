@@ -14,10 +14,7 @@ void interactionCreate;
 
 export const client = await createClient({
     token: process.env.TOKEN,
-    intents: [
-        Intents.GUILDS,
-        Intents.GUILD_MEMBERS
-    ],
+    intents: [Intents.GUILDS],
     caching: {
         delegate: CachingDelegationType.DEFAULT,
         enabled: { guild: true }

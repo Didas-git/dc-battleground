@@ -55,6 +55,13 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
             break;
         }
         case Board.BoardEntityType.Player: {
+            if (entity.id === memberId) {
+                await interaction.reply({
+                    content: `<@${interaction.member.user.id}> Slow down you are going to fast.\nWait for the coordinates to change before hitting the move button again to avoid seeing this message.`,
+                    ephemeral: true
+                });
+                break;
+            }
             // TODO: Option to battle the player
             const player = Board.getPlayerPosition(memberId);
 
