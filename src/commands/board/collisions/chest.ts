@@ -6,6 +6,7 @@ import * as Board from "../../../schemas/board.js";
 import * as Item from "../../../schemas/item.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
+import { ButtonStyle, ComponentType } from "lilybird";
 
 export async function handleChestCollision(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -67,28 +68,105 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
 
     const contentsArray = Object.entries(contents);
 
-    await Promise.all([
-        interaction.client.rest.editMessage(interaction.channelId, messageId, {
-            embeds: [await makeBoardEmbed({ layer, x, y }, memberId, DIRECTION_MAP[direction])],
-            components: [makeMovementRow(layer, x, y)]
-        }),
-        interaction.editReply({
-            content: null,
-            embeds: [
-                {
-                    color: 0x00ff00,
-                    title: `Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`,
-                    description: `- Coins: ${coins}\n- Items:\n${contentsArray.length > 0
-                        ? contentsArray.map((i) => {
-                            const [id, amount] = i;
-                            const item = Item.getItemMeta(id);
+    await interaction.editReply({
+        embeds: [
+            {
+                color: 0x00ff00,
+                title: `Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`,
+                description: `- Coins: ${coins}\n- Items:\n${contentsArray.length > 0
+                    ? contentsArray.map((i) => {
+                        const [id, amount] = i;
+                        const item = Item.getItemMeta(id);
 
-                            return `  - ${item.name}: ${amount}`;
-                        }).join("\n")
-                        : "  - None"}`
-                }
-            ],
-            components: []
-        })
-    ]);
+                        return `  - ${item.name}: ${amount}`;
+                    }).join("\n")
+                    : "  - None"}`
+            }
+        ],
+        components: [
+            {
+                type: ComponentType.ActionRow,
+                components: [
+                    {
+                        type: ComponentType.Button,
+                        custom_id: `ct-${interaction.message.id}-${direction}`,
+                        style: ButtonStyle.Primary,
+                        label: "Continue"
+                    }
+                ]
+            }
+        ]
+    });
+}
+
+export async function handleChestGoBack(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
+    if (!interaction.inGuild()) return;
+
+    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
+    const [,messageId] = interaction.data.id.split("-", 2);
+
+    const cacheId = `${interaction.channelId}:${messageId}`;
+    const cacheEntry = BoardCache.get(cacheId);
+
+    if (cacheEntry === null) {
+        await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
+        return;
+    }
+
+    if (cacheEntry.member_id !== memberId) {
+        await interaction.reply({ content: "You cannot do that!", ephemeral: true });
+        return;
+    }
+
+    const player = Board.getPlayerPosition(memberId);
+
+    if (player === null) {
+        await interaction.reply({
+            content: "Something went wrong",
+            ephemeral: true
+        });
+        return;
+    }
+
+    await interaction.updateComponents({
+        embeds: [await makeBoardEmbed(player, memberId)],
+        components: [makeMovementRow(player.layer, player.x, player.y)]
+    });
+}
+
+export async function handleChestContinue(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
+    if (!interaction.inGuild()) return;
+
+    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
+    const [,messageId, direction] = interaction.data.id.split("-", 3);
+
+    const cacheId = `${interaction.channelId}:${messageId}`;
+    const cacheEntry = BoardCache.get(cacheId);
+
+    if (cacheEntry === null) {
+        await interaction.reply({ content: "This table has been invalidated!", ephemeral: true });
+        return;
+    }
+
+    if (cacheEntry.member_id !== memberId) {
+        await interaction.reply({ content: "You cannot do that!", ephemeral: true });
+        return;
+    }
+
+    const player = Board.getPlayerPosition(memberId);
+
+    if (player === null) {
+        await interaction.reply({
+            content: "Something went wrong",
+            ephemeral: true
+        });
+        return;
+    }
+
+    await interaction.deferComponentReply();
+
+    await interaction.editReply({
+        embeds: [await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction])],
+        components: [makeMovementRow(player.layer, player.x, player.y)]
+    });
 }

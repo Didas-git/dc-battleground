@@ -62,18 +62,36 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
             break;
         }
         case Board.BoardEntityType.Chest: {
-            await interaction.reply({
-                content: "Do you want to open the chest?",
-                ephemeral: true,
+            const player = Board.getPlayerPosition(memberId);
+
+            if (player === null) {
+                await interaction.reply({
+                    content: "Something went wrong",
+                    ephemeral: true
+                });
+                return;
+            }
+
+            await interaction.updateComponents({
+                embeds: [
+                    await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
+                    { color: 0x00f0ff, description: "Do you want to open the chest?" }
+                ],
                 components: [
                     {
                         type: ComponentType.ActionRow,
                         components: [
                             {
                                 type: ComponentType.Button,
-                                custom_id: `ce-${interaction.message.id}-${direction}:${layer},${x},${y}`,
+                                custom_id: `co-${interaction.message.id}-${direction}:${layer},${x},${y}`,
                                 style: ButtonStyle.Success,
-                                label: "Yes"
+                                label: "Open Chest"
+                            },
+                            {
+                                type: ComponentType.Button,
+                                custom_id: `cb-${interaction.message.id}`,
+                                style: ButtonStyle.Danger,
+                                label: "Go Back"
                             }
                         ]
                     }
