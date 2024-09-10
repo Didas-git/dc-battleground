@@ -22,16 +22,16 @@
     "build": "rm -rf dist && tsc && cp .npmignore dist/"
   },
   "dependencies": {
-    "@lilybird/handlers": "^0.6.0-beta.20",
-    "@lilybird/transformers": "^0.4.1",
-    "lilybird": "^0.7.3"
+    "@lilybird/handlers": "^0.6.0",
+    "@lilybird/transformers": "^0.4.2",
+    "lilybird": "^0.8.0"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.7.2",
-    "bun-types": "^1.1.26",
-    "eslint": "^9.9.1",
+    "@stylistic/eslint-plugin": "^2.8.0",
+    "bun-types": "^1.1.27",
+    "eslint": "^9.10.0",
     "eslint-plugin-jsdoc": "^50.2.2",
-    "typescript": "^5.5.4",
-    "typescript-eslint": "^8.3.0"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.5.0"
   }
 }
