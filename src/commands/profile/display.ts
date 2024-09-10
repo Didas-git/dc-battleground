@@ -11,7 +11,20 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
     if (!interaction.inGuild()) return;
 
     const targetId = interaction.data.getUser("target") ?? interaction.member.user.id;
-    const member = await getMember(interaction, targetId);
+
+    let member: Awaited<ReturnType<typeof getMember>>;
+
+    try {
+        member = await getMember(interaction, targetId);
+    } catch (err) {
+        if (err instanceof Error && err.message === "Unknown Member") {
+            await interaction.reply({
+                content: "The following member is not in the server.",
+                ephemeral: true
+            });
+        }
+        return;
+    }
 
     const targetDbId = `${interaction.guildId}:${targetId}`;
 
@@ -137,4 +150,3 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         ]
     });
 }
-

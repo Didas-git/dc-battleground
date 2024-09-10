@@ -14,10 +14,10 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
         return;
     }
 
-    if (!(Date.now() - profile.last_scan >= 43200000)) {
-        await interaction.reply({ content: "You cant do this yet.", ephemeral: true });
-        return;
-    }
+    // if (!(Date.now() - profile.last_scan >= 43200000)) {
+    //     await interaction.reply({ content: "You cant do this yet.", ephemeral: true });
+    //     return;
+    // }
 
     const position = Board.getPlayerPosition(memberId);
     if (position === null) {
