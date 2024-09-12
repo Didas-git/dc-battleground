@@ -17,9 +17,10 @@
   "scripts": {
     "check": "eslint .",
     "dev": "bun src/index.ts",
+    "gen": "bun src/utils/loot-tables/generate.ts",
     "dev-fresh": "rm -rf db/ && bun src/index.ts",
-    "start": "bun dist/index.js",
-    "build": "rm -rf dist && tsc && cp .npmignore dist/"
+    "start": "bun dist/src/index.js",
+    "build": "rm -rf dist && bun run gen && tsc && cp .npmignore dist/"
   },
   "dependencies": {
     "@lilybird/handlers": "^0.6.0",

@@ -2,7 +2,7 @@ import { CachingDelegationType, Intents, createClient } from "lilybird";
 import { defaultTransformers } from "@lilybird/transformers";
 import { handler } from "./handler.js";
 
-import { floors } from "../config.json";
+import { floors } from "../config.json" with { type: "json" };
 
 import "./commands.js";
 

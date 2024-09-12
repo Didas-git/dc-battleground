@@ -3,7 +3,7 @@
         "outDir": "dist",
         "baseUrl": ".",
         "target": "ESNext",
-        "module": "Node16",
+        "module": "NodeNext",
         "moduleResolution": "Node16",
         "strict": true,
         "allowUnreachableCode": false,

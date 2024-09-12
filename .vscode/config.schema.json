@@ -1,7 +1,9 @@
 {
     "type": "object",
     "required": [
-        "floors"
+        "floors",
+        "items",
+        "loot_tables"
     ],
     "properties": {
         "floors": {
@@ -9,6 +11,7 @@
             "minItems": 2,
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": [
                     "name",
                     "size"
@@ -20,6 +23,78 @@
                     "size": {
                         "type": "string",
                         "pattern": "^(\\d+x?\\d+|\\d)$"
+                    }
+                }
+            }
+        },
+        "items": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[A-Za-z_$0-9]*$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        },
+                        "rarity": {
+                            "enum": [
+                                0,
+                                1,
+                                2,
+                                3,
+                                4
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "loot_tables": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[$][A-Za-z_]*$": {
+                    "type": "array",
+                    "minLength": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "type": {
+                                "enum": [
+                                    0,
+                                    1
+                                ]
+                            },
+                            "id": {
+                                "type": "string"
+                            },
+                            "unique": {
+                                "type": "boolean"
+                            },
+                            "always": {
+                                "type": "boolean"
+                            },
+                            "probability": {
+                                "type": "number"
+                            },
+                            "enabled": {
+                                "type": "boolean"
+                            }
+                        }
                     }
                 }
             }

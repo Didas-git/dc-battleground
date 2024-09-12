@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { join } from "node:path";
 
-const DB_PATH = join(import.meta.dir, "../db/main.db");
+const DB_PATH = join(import.meta.dir, import.meta.filename.at(-2) === "t" ? "../db/main.db" : "../../db/main.db");
 
 // new Database cant create folders for some reason
 if (!await Bun.file(DB_PATH).exists()) await Bun.write(DB_PATH, " ");

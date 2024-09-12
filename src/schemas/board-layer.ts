@@ -5,6 +5,7 @@ import { floors } from "../../config.json";
 assert(floors.length >= 2, "At least 2 floors must exist (Base & layer 1).");
 
 export interface BoardLayer {
+    layer: number;
     name: string;
     x: number;
     y: number;
@@ -44,7 +45,7 @@ for (let i = 0; ; i++) {
 }
 
 export function getBoardLayerInfo(layer: number): BoardLayer | null {
-    return <BoardLayer | null>db.query("SELECT name, x, y, previous, next FROM BoardLayer WHERE layer = $layer").get({ layer });
+    return <BoardLayer | null>db.query("SELECT layer, name, x, y, previous, next FROM BoardLayer WHERE layer = $layer").get({ layer });
 }
 
 export function createBoardLayer(layer: number, name: string, x: number, y: number, previousLayer: number | null, nextLayer: number | null): void {

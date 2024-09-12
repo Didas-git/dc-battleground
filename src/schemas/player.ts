@@ -122,13 +122,13 @@ export function getDataInAllGuilds(userId: string): Array<PlayerData> | null {
     return data as unknown as Array<PlayerData>;
 }
 
-export function updateLevel(memberId: string, playerXp: PlayerXP, incrementType: number): PlayerXP {
-    // TODO: Leveling formula
-    const { level, xp } = playerXp;
+// export function updateLevel(memberId: string, playerXp: PlayerXP, incrementType: number): PlayerXP {
+//     // TODO: Leveling formula
+//     const { level, xp } = playerXp;
 
-    db.query("UPDATE Players SET level = $level, xp = $xp WHERE id = $id").run({ id: memberId, level, xp });
-    return { level, xp };
-}
+//     db.query("UPDATE Players SET level = $level, xp = $xp WHERE id = $id").run({ id: memberId, level, xp });
+//     return { level, xp };
+// }
 
 export function getLevel(id: string): PlayerXP {
     return <PlayerXP>db.query("SELECT level, xp FROM Players WHERE id = $id").get({ id });

@@ -1,6 +1,5 @@
 
 import { getRandomIntInclusive } from "./random-generators.js";
-import { mapChestRarityToLootTable } from "../items/chests.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
@@ -8,6 +7,10 @@ import * as BoardLayer from "../schemas/board-layer.js";
 import * as Board from "../schemas/board.js";
 
 import type { Embed, Message } from "lilybird";
+import type { LootTable } from "./loot-tables/loot-table.js";
+import { BasicChestTable, EpicChestTable, LegendaryChestTable, NormalChestTable } from "./loot-tables/generated-tables.js";
+import type { LootTableContent } from "./loot-tables/types.js";
+import { ValueType } from "./loot-tables/types.js";
 
 // https://www.compart.com/en/unicode/block/U+1F800
 export const DIRECTION_MAP: Record<string, string> = {
@@ -96,17 +99,22 @@ export function generateRandomChestData(): Board.ChestData {
 
     const extraContent = getExtraContentAmountBasedOnRarity(rarity);
     const mainTable = mapChestRarityToLootTable(rarity);
-    const lootTables = mainTable.resultsBetween(extraContent, extraContent);
+    const lootTables = mainTable.getResults(extraContent);
 
     for (let i = 0, { length } = lootTables; i < length; i++) {
-        const loot = lootTables[i].rdsResults();
+        const lootTable = lootTables[i];
 
-        if (loot.length > 1) throw new Error("Unreachable");
-
-        contents.push({ type: Board.ChestContentType.Item, item: loot[0].rdsValue.id });
+        contents.push({ type: Board.ChestContentType.Item, item: iterateUntilValue(lootTable) });
     }
 
     return { rarity, contents };
+}
+
+function iterateUntilValue(loot: LootTableContent): string {
+    switch (loot.type) {
+        case ValueType.Table: { return iterateUntilValue(loot.value.getResults(1)[0]); }
+        case ValueType.Item: { return loot.value; }
+    }
 }
 
 function getCoinAmountBasedOnRarity(rarity: Board.ChestRarity): number {
@@ -126,5 +134,16 @@ function getExtraContentAmountBasedOnRarity(rarity: Board.ChestRarity): number {
         case Board.ChestRarity.Normal: { return getRandomIntInclusive(1, 4); }
         case Board.ChestRarity.Epic: { return getRandomIntInclusive(3, 6); }
         case Board.ChestRarity.Legendary: { return getRandomIntInclusive(5, 10); }
+    }
+}
+
+export function mapChestRarityToLootTable(rarity: Board.ChestRarity): LootTable {
+    switch (rarity) {
+        // TODO: Make cursed loot table for cursed drops and chests
+        case Board.ChestRarity.Cursed: { return new BasicChestTable(); }
+        case Board.ChestRarity.Basic: { return new BasicChestTable(); }
+        case Board.ChestRarity.Normal: { return new NormalChestTable(); }
+        case Board.ChestRarity.Epic: { return new EpicChestTable(); }
+        case Board.ChestRarity.Legendary: { return new LegendaryChestTable(); }
     }
 }

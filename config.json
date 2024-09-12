@@ -16,5 +16,385 @@
             "name": "Aitark",
             "size": "300"
         }
-    ]
+    ],
+    "items": {
+        "inert_metallic_drip": {
+            "type": 0,
+            "rarity": 1,
+            "name": "Inert Metallic Drip",
+            "description": "A basic material used for weapon breakthrough"
+        },
+        "lento_helix": {
+            "type": 0,
+            "rarity": 1,
+            "name": "Lento Helix",
+            "description": "A basic material used for weapon breakthrough"
+        },
+        "waveworn_residue_210": {
+            "type": 0,
+            "rarity": 1,
+            "name": "Waveworn Residue 210",
+            "description": "A basic material used for weapon breakthrough"
+        },
+        "cadence_seed": {
+            "type": 0,
+            "rarity": 1,
+            "name": "Cadence Seed",
+            "description": "A basic material used for weapon breakthrough"
+        },
+        "impure_phlogiston": {
+            "type": 0,
+            "rarity": 1,
+            "name": "Impure Phlogiston",
+            "description": "A basic material used for weapon breakthrough"
+        },
+        "reactive_metallic_drip": {
+            "type": 0,
+            "rarity": 2,
+            "name": "Reactive Metallic Drip",
+            "description": "An advanced material used for weapon breakthrough"
+        },
+        "adagio_helix": {
+            "type": 0,
+            "rarity": 2,
+            "name": "Adagio Helix",
+            "description": "An advanced material used for weapon breakthrough"
+        },
+        "waveworn_residue_226": {
+            "type": 0,
+            "rarity": 2,
+            "name": "Waveworn Residue 226",
+            "description": "An advanced material used for weapon breakthrough"
+        },
+        "cadence_bud": {
+            "type": 0,
+            "rarity": 2,
+            "name": "Cadence Bud",
+            "description": "An advanced material used for weapon breakthrough"
+        },
+        "extracted_phlogiston": {
+            "type": 0,
+            "rarity": 2,
+            "name": "Extracted Phlogiston",
+            "description": "An advanced material used for weapon breakthrough"
+        },
+        "polarized_metallic_drip": {
+            "type": 0,
+            "rarity": 3,
+            "name": "Polarized Metallic Drip",
+            "description": "An epic material used for weapon breakthrough"
+        },
+        "andante_helix": {
+            "type": 0,
+            "rarity": 3,
+            "name": "Andante Helix",
+            "description": "An epic material used for weapon breakthrough"
+        },
+        "waveworn_residue_235": {
+            "type": 0,
+            "rarity": 3,
+            "name": "Waveworn Residue 235",
+            "description": "An epic material used for weapon breakthrough"
+        },
+        "cadence_leaf": {
+            "type": 0,
+            "rarity": 3,
+            "name": "Cadence Leaf",
+            "description": "An epic material used for weapon breakthrough"
+        },
+        "refined_phlogiston": {
+            "type": 0,
+            "rarity": 3,
+            "name": "Refined Phlogiston",
+            "description": "An epic material used for weapon breakthrough"
+        },
+        "heterized_metallic_drip": {
+            "type": 0,
+            "rarity": 4,
+            "name": "Heterized Metallic Drip",
+            "description": "A legendary material used for weapon breakthrough"
+        },
+        "presto_helix": {
+            "type": 0,
+            "rarity": 4,
+            "name": "Presto Helix",
+            "description": "A legendary material used for weapon breakthrough"
+        },
+        "waveworn_residue_239": {
+            "type": 0,
+            "rarity": 4,
+            "name": "Waveworn Residue 239",
+            "description": "A legendary material used for weapon breakthrough"
+        },
+        "cadence_blossom": {
+            "type": 0,
+            "rarity": 4,
+            "name": "Cadence Blossom",
+            "description": "A legendary material used for weapon breakthrough"
+        },
+        "flawless_phlogiston": {
+            "type": 0,
+            "rarity": 4,
+            "name": "Flawless Phlogiston",
+            "description": "A legendary material used for weapon breakthrough"
+        }
+    },
+    "loot_tables": {
+        "$normal_loot_table": [
+            {
+                "type": 1,
+                "id": "inert_metallic_drip",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "lento_helix",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "waveworn_residue_210",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "cadence_seed",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "impure_phlogiston",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$advanced_loot_table": [
+            {
+                "type": 1,
+                "id": "reactive_metallic_drip",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "adagio_helix",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "waveworn_residue_226",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "cadence_bud",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "extracted_phlogiston",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$epic_loot_table": [
+            {
+                "type": 1,
+                "id": "polarized_metallic_drip",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "andante_helix",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "waveworn_residue_235",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "cadence_leaf",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "refined_phlogiston",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$legendary_loot_table": [
+            {
+                "type": 1,
+                "id": "heterized_metallic_drip",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "presto_helix",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "waveworn_residue_239",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "cadence_blossom",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            },
+            {
+                "type": 1,
+                "id": "flawless_phlogiston",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$basic_chest_table": [
+            {
+                "type": 0,
+                "id": "$normal_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$normal_chest_table": [
+            {
+                "type": 0,
+                "id": "$normal_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.8,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$advanced_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.2,
+                "enabled": true
+            }
+        ],
+        "$epic_chest_table": [
+            {
+                "type": 0,
+                "id": "$normal_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.1,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$advanced_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.6,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$epic_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.3,
+                "enabled": true
+            }
+        ],
+        "$legendary_chest_table": [
+            {
+                "type": 0,
+                "id": "$normal_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.05,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$advanced_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.16,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$epic_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.65,
+                "enabled": true
+            },
+            {
+                "type": 0,
+                "id": "$legendary_loot_table",
+                "unique": false,
+                "always": false,
+                "probability": 0.14,
+                "enabled": true
+            }
+        ]
+    }
 }
