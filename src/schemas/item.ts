@@ -21,6 +21,7 @@ export const enum ItemRarity {
 }
 
 db.run("CREATE TABLE IF NOT EXISTS Items ( id TEXT PRIMARY KEY, type INTEGER NOT NULL, rarity INTEGER NOT NULL, name TEXT NOT NULL, description TEXT NOT NULL )");
+
 export function addItem(id: string, item: Item): void {
     db.query("INSERT OR REPLACE INTO Items (id, type, rarity, name, description) VALUES ($id, $type, $rarity, $name, $description)").run({
         id,

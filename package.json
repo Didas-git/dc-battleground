@@ -17,10 +17,11 @@
   "scripts": {
     "check": "eslint .",
     "dev": "bun src/index.ts",
-    "gen": "bun src/utils/loot-tables/generate.ts",
+    "gen": "bun src/utils/loot-tables/generate.ts && bun src/utils/level/populate.ts",
     "dev-fresh": "rm -rf db/ && bun src/index.ts",
     "start": "bun dist/src/index.js",
-    "build": "rm -rf dist && bun run gen && tsc && cp .npmignore dist/"
+    "build": "rm -rf dist && bun run gen && tsc && cp .npmignore dist/ && cp src/utils/level/index.html dist/src/utils/level/index.html",
+    "view-graph": "bun run build && bun dist/src/utils/level/visualize-graph.js"
   },
   "dependencies": {
     "@lilybird/handlers": "^0.6.0",
