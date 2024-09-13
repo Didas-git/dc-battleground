@@ -1,12 +1,9 @@
-import { generateRandomChestData } from "../../utils/board.js";
 import { PermissionFlags } from "lilybird";
-import { randomUUID } from "node:crypto";
-import { db } from "../../db.js";
 
 import * as BoardLayer from "../../schemas/board-layer.js";
-import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
+import { offloadRefresh } from "../../utils/workers/index.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -25,15 +22,6 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         return;
     }
 
-    await interaction.deferReply();
-
-    db.query("DELETE FROM Board WHERE layer = $layer AND (type = $type1 OR type = $type2 OR type = $type3)").run({
-        layer,
-        type1: Board.BoardEntityType.Chest,
-        type2: Board.BoardEntityType.Enemy,
-        type3: Board.BoardEntityType.LayerEntrance
-    });
-
     const layerInfo = BoardLayer.getBoardLayerInfo(layer);
 
     if (layerInfo === null) {
@@ -41,56 +29,18 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         return;
     }
 
-    const layerSize = BoardLayer.calculateLayerSize(layerInfo);
-    const chestQuantity = Math.round(parseFloat(process.env.CHEST_REFRESH_PERCENTAGE) * layerSize);
-    const mobQuantity = Math.round(parseFloat(process.env.MOB_REFRESH_PERCENTAGE) * layerSize);
+    await interaction.deferReply();
 
-    let x = 0;
-    let y = 0;
-
-    if (layerInfo.previous !== null) {
-        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y, { to: -1 });
-    }
-
-    if (layerInfo.next !== null) {
-        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        Board.insertLayerEntrance(`${interaction.guildId}:${randomUUID()}`, layer, x, y, { to: 1 });
-    }
-
-    let start = performance.now();
-
-    for (let i = 0; i < chestQuantity; i++) {
-        const entityId = `${interaction.guildId}:${randomUUID()}`;
-
-        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
-
-        Board.generateChest(entityId, layer, x, y, generateRandomChestData());
-    }
-
-    const time1 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
-    start = performance.now();
-
-    for (let i = 0; i < mobQuantity; i++) {
-        const entityId = `${interaction.guildId}:${randomUUID()}`;
-
-        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
-
-        Board.generateEnemy(entityId, layer, x, y);
-    }
-
-    const time2 = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
-
-    await interaction.editReply({
-        embeds: [
-            {
-                color: 0xff00ef,
-                title: `Layer ${layer} (${layerInfo.name}) reset!`,
-                description: `There are ${chestQuantity} new chests!\nThere are ${mobQuantity} new enemies!`,
-                footer: { text: `Chests Took ${time1.getUTCSeconds()}.${time1.getUTCMilliseconds()} seconds.\nMobs Took ${time2.getUTCSeconds()}.${time2.getUTCMilliseconds()} seconds.` }
-            }
-        ]
+    offloadRefresh({ guildId: interaction.guildId, layer: layerInfo }, async (data) => {
+        await interaction.editReply({
+            embeds: [
+                {
+                    color: 0xff00ef,
+                    title: `Layer ${layer} (${layerInfo.name}) reset!`,
+                    description: `There are ${data.quantity.chests} new chests!\nThere are ${data.quantity.mobs} new enemies!`,
+                    footer: { text: `Chests Took ${data.time.chests} seconds.\nMobs Took ${data.time.mobs} seconds.` }
+                }
+            ]
+        });
     });
 }
