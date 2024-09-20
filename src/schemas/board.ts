@@ -60,6 +60,10 @@ try {
     throw new Error(`Your chest ratios are off by ${1 - CHEST_RATIOS.reduce((a, b) => a + b, 0)}`, { cause: err });
 }
 
+export interface EnemyData {
+    id: string;
+}
+
 export interface BoardData {
     layer: number;
     x: number;
@@ -93,6 +97,11 @@ export interface ChestEntity extends BaseBoardEntity {
 export interface LayerEntity extends BaseBoardEntity {
     type: BoardEntityType.LayerEntrance;
     data: LayerData;
+}
+
+export interface EnemyEntity extends BaseBoardEntity {
+    type: BoardEntityType.Enemy;
+    data: EnemyData;
 }
 
 export interface OtherEntities extends BaseBoardEntity {
@@ -147,13 +156,14 @@ export function generateChest(chestId: string, layer: number, x: number, y: numb
     });
 }
 
-export function generateEnemy(enemyId: string, layer: number, x: number, y: number): void {
-    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, $layer, $x, $y)").run({
+export function generateEnemy(enemyId: string, layer: number, x: number, y: number, id: string): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y, data) VALUES ($id, $type, $layer, $x, $y, $data)").run({
         id: enemyId,
         type: BoardEntityType.Enemy,
         layer,
         x,
-        y
+        y,
+        data: JSON.stringify({ id })
     });
 }
 

@@ -1,7 +1,9 @@
 {
     "type": "object",
+    "additionalProperties": false,
     "required": [
         "floors",
+        "enemies",
         "items",
         "loot_tables"
     ],
@@ -27,7 +29,7 @@
                 }
             }
         },
-        "items": {
+        "enemies": {
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
@@ -35,20 +37,53 @@
                 "^[A-Za-z_$0-9]*$": {
                     "type": "object",
                     "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "description",
+                        "loot_table"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "loot_table": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "items": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[A-Za-z_$0-9]*$": {
+                    "type": "object",
+                    "required": [
+                        "type",
+                        "rarity",
+                        "name",
+                        "description"
+                    ],
                     "properties": {
                         "type": {
                             "enum": [
-                                0,
-                                1
+                                "equipment",
+                                "crafting",
+                                "consumable"
                             ]
                         },
                         "rarity": {
                             "enum": [
-                                0,
-                                1,
-                                2,
-                                3,
-                                4
+                                "cursed",
+                                "normal",
+                                "advanced",
+                                "epic",
+                                "legendary"
                             ]
                         },
                         "name": {
@@ -56,6 +91,54 @@
                         },
                         "description": {
                             "type": "string"
+                        }
+                    },
+                    "anyOf": [
+                        {
+                            "properties": {}
+                        }
+                    ],
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "equipment"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "meta"
+                        ],
+                        "properties": {
+                            "meta": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "type",
+                                    "inner_type",
+                                    "sub_type"
+                                ],
+                                "properties": {
+                                    "type": {
+                                        "enum": [
+                                            "armor",
+                                            "weapon"
+                                        ]
+                                    },
+                                    "inner_type": {
+                                        "enum": [
+                                            "sword",
+                                            "bow"
+                                        ]
+                                    },
+                                    "sub_type": {
+                                        "enum": [
+                                            "normal",
+                                            "magic"
+                                        ]
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -72,11 +155,18 @@
                     "items": {
                         "type": "object",
                         "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "unique",
+                            "always",
+                            "probability",
+                            "enabled"
+                        ],
                         "properties": {
                             "type": {
                                 "enum": [
-                                    0,
-                                    1
+                                    "item",
+                                    "table"
                                 ]
                             },
                             "id": {
