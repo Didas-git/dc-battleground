@@ -38,11 +38,17 @@
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
+                        "class",
                         "name",
                         "description",
                         "loot_table"
                     ],
                     "properties": {
+                        "class": {
+                            "enum": [
+                                "undead"
+                            ]
+                        },
                         "name": {
                             "type": "string"
                         },

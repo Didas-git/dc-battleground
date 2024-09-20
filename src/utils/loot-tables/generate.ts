@@ -1,16 +1,17 @@
 import { ValueType } from "./types.js";
 import { join } from "node:path";
 
+import * as Enemy from "../../schemas/enemy.js";
 import * as Item from "../../schemas/item.js";
 
 import { items, loot_tables, enemies } from "../../../config.json";
 
-import type { LootTableJSON, ItemJSON } from "./types.js";
+import type { LootTableJSON, ItemJSON, EnemyJSON } from "./types.js";
 
 interface Config {
     items: Record<string, ItemJSON>;
     loot_tables: Record<string, Array<LootTableJSON>>;
-    enemies: Record<string, { name: string, description: string, loot_table: string }>;
+    enemies: Record<string, EnemyJSON>;
 }
 
 function mapItemType(type: ItemJSON["type"]): Item.ItemType {
@@ -60,6 +61,12 @@ function mapItemMeta(meta: ItemJSON["meta"] | undefined): Item.EquipmentData | n
     return {
         type: (firstByte << 16) | (secondByte << 8) | thirdByte
     };
+}
+
+function mapEnemyClass(eClass: EnemyJSON["class"]): Enemy.EnemyClass {
+    switch (eClass) {
+        case "undead": return Enemy.EnemyClass.Undead;
+    }
 }
 
 function parseItemsAndTables(config: Config): Array<string> {
@@ -128,6 +135,12 @@ function parseItemsAndTables(config: Config): Array<string> {
     for (let i = 0, entries = Object.entries(config.enemies), { length } = entries; i < length; i++) {
         const [id, enemy] = entries[i];
 
+        Enemy.addEnemy(id, {
+            class: mapEnemyClass(enemy.class),
+            name: enemy.name,
+            description: enemy.description
+        });
+
         fn.push(
             `        case "${id}": {`,
             `            return ${enemy.loot_table.slice(1).split("_").map((p) => p[0].toUpperCase() + p.slice(1)).join("")};`,
@@ -149,4 +162,4 @@ function parseItemsAndTables(config: Config): Array<string> {
 const arr = parseItemsAndTables(<never>{ items, loot_tables, enemies });
 
 await Bun.write(join(import.meta.dir, "generated-tables.ts"), `${arr.join("\n\n")}\n`);
-console.log("Finished generating Items and Loot Tables.");
+console.log("Finished generating Items, Enemies and Loot Tables.");

@@ -34,3 +34,10 @@ export interface ItemJSON {
         sub_type: "normal" | "magic"
     };
 }
+
+export interface EnemyJSON {
+    class: "undead";
+    name: string;
+    description: string;
+    loot_table: string;
+}

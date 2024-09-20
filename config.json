@@ -19,9 +19,16 @@
     ],
     "enemies": {
         "goblin": {
+            "class": "undead",
             "name": "Raider Goblin",
             "description": "A normal enemy found all across Greenwoods",
             "loot_table": "$goblin_table"
+        },
+        "skeleton": {
+            "class": "undead",
+            "name": "Skeleton",
+            "description": "A normal enemy found all across Greenwoods",
+            "loot_table": "$skeleton_table"
         }
     },
     "items": {
@@ -150,6 +157,12 @@
             "rarity": "normal",
             "name": "Goblin Core",
             "description": "The central core of a goblin."
+        },
+        "human_bone": {
+            "type": "crafting",
+            "rarity": "normal",
+            "name": "Human Bone",
+            "description": "Just a bone."
         },
         "diamond_sword": {
             "type": "equipment",
@@ -424,6 +437,16 @@
             {
                 "type": "item",
                 "id": "goblin_core",
+                "unique": false,
+                "always": true,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$skeleton_table": [
+            {
+                "type": "item",
+                "id": "human_bone",
                 "unique": false,
                 "always": true,
                 "probability": 1,

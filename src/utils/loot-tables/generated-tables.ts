@@ -293,10 +293,26 @@ export class GoblinTable extends LootTable {
     ];
 }
 
+export class SkeletonTable extends LootTable {
+    public override contents = [
+        {
+            type: 0,
+            value: "human_bone",
+            unique: false,
+            always: true,
+            probability: 1,
+            enabled: true
+        }
+    ];
+}
+
 export function mapEnemyToLootTable(enemy: { id: string }): new () => LootTable {
     switch (enemy.id) {
         case "goblin": {
             return GoblinTable;
+        }
+        case "skeleton": {
+            return SkeletonTable;
         }
         default: throw new Error("This enemy does not have a loot table associated with it.");
     }
