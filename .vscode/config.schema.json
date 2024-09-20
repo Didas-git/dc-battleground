@@ -155,7 +155,6 @@
                     "minLength": 1,
                     "items": {
                         "type": "object",
-                        "additionalProperties": false,
                         "required": [
                             "id",
                             "unique",
@@ -185,6 +184,23 @@
                             },
                             "enabled": {
                                 "type": "boolean"
+                            }
+                        },
+                        "if": {
+                            "properties": {
+                                "always": {
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "allow_extra"
+                            ],
+                            "properties": {
+                                "allow_extra": {
+                                    "type": "boolean"
+                                }
                             }
                         }
                     }
