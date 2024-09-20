@@ -306,6 +306,27 @@ export class SkeletonTable extends LootTable {
     ];
 }
 
+export class GreenwoodsEnemyPool extends LootTable {
+    public override contents = [
+        {
+            type: 2,
+            value: "#goblin",
+            unique: false,
+            always: false,
+            probability: 3,
+            enabled: true
+        },
+        {
+            type: 2,
+            value: "#skeleton",
+            unique: false,
+            always: false,
+            probability: 1,
+            enabled: true
+        }
+    ];
+}
+
 export function mapEnemyToLootTable(enemy: { id: string }): new () => LootTable {
     switch (enemy.id) {
         case "goblin": {

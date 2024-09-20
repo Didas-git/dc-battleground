@@ -18,13 +18,13 @@
         }
     ],
     "enemies": {
-        "goblin": {
+        "#goblin": {
             "class": "undead",
             "name": "Raider Goblin",
             "description": "A normal enemy found all across Greenwoods",
             "loot_table": "$goblin_table"
         },
-        "skeleton": {
+        "#skeleton": {
             "class": "undead",
             "name": "Skeleton",
             "description": "A normal enemy found all across Greenwoods",
@@ -449,6 +449,24 @@
                 "id": "human_bone",
                 "unique": false,
                 "always": true,
+                "probability": 1,
+                "enabled": true
+            }
+        ],
+        "$greenwoods_enemy_pool": [
+            {
+                "type": "enemy",
+                "id": "#goblin",
+                "unique": false,
+                "always": false,
+                "probability": 3,
+                "enabled": true
+            },
+            {
+                "type": "enemy",
+                "id": "#skeleton",
+                "unique": false,
+                "always": false,
                 "probability": 1,
                 "enabled": true
             }

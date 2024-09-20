@@ -34,7 +34,7 @@
             "minProperties": 1,
             "additionalProperties": false,
             "patternProperties": {
-                "^[A-Za-z_$0-9]*$": {
+                "^#[A-Za-z_$0-9]*$": {
                     "type": "object",
                     "additionalProperties": false,
                     "required": [
@@ -167,7 +167,8 @@
                             "type": {
                                 "enum": [
                                     "item",
-                                    "table"
+                                    "table",
+                                    "enemy"
                                 ]
                             },
                             "id": {

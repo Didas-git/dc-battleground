@@ -120,6 +120,17 @@ function parseItemsAndTables(config: Config): Array<string> {
         }`);
                     break;
                 }
+                case "enemy": {
+                    tableContents.push(`${j > 0 ? "\n" : ""}        {
+            type: ${ValueType.Enemy},
+            value: "${item.id.slice(1)}",
+            unique: ${item.unique},
+            always: ${item.always},
+            probability: ${item.probability},
+            enabled: ${item.enabled}
+        }`);
+                    break;
+                }
             }
         }
 
@@ -133,7 +144,8 @@ function parseItemsAndTables(config: Config): Array<string> {
         "    switch (enemy.id) {"
     ];
     for (let i = 0, entries = Object.entries(config.enemies), { length } = entries; i < length; i++) {
-        const [id, enemy] = entries[i];
+        const [idWithPrefix, enemy] = entries[i];
+        const id = idWithPrefix.slice(1);
 
         Enemy.addEnemy(id, {
             class: mapEnemyClass(enemy.class),
