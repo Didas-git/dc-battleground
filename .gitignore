@@ -8,4 +8,6 @@ db/
 .obsidian
 .dccache
 
+generated-tables.ts
+
 *.jsonc
