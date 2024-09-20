@@ -93,11 +93,6 @@
                             "type": "string"
                         }
                     },
-                    "anyOf": [
-                        {
-                            "properties": {}
-                        }
-                    ],
                     "if": {
                         "properties": {
                             "type": {
