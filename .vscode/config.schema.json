@@ -25,6 +25,11 @@
                     "size": {
                         "type": "string",
                         "pattern": "^(\\d+x?\\d+|\\d)$"
+                    },
+                    "enemy_table": {
+                        "description": "Used to tell what loot table to use to spawn enemies.\nFloors without a loot table wont spawn enemies (TODO)",
+                        "type": "string",
+                        "pattern": "^[$][A-Za-z_]*$"
                     }
                 }
             }
@@ -194,11 +199,18 @@
                             }
                         },
                         "then": {
-                            "required": [
-                                "allow_extra"
-                            ],
                             "properties": {
-                                "allow_extra": {
+                                "amount": {
+                                    "description": "The amount of items to add to the result when hitting the always check.\nDefaults to: 1",
+                                    "type": "number",
+                                    "minimum": 1
+                                },
+                                "droppable": {
+                                    "description": "Wether the item should still be droppable or not.\nDefaults to: false",
+                                    "type": "boolean"
+                                },
+                                "inclusive": {
+                                    "description": "Wether the amount will be counted torwards the real drop count.\nDefaults to: true",
                                     "type": "boolean"
                                 }
                             }

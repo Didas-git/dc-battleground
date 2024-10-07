@@ -1,18 +1,21 @@
 import type { LootTable } from "./loot-table.js";
 
-export const enum ValueType {
+export const enum LootTableValueType {
     Item,
     Table,
     Enemy
 }
 
 export type LootTableContent = ({
-    type: ValueType.Table,
+    type: LootTableValueType.Table,
     value: LootTable
 } | {
-    type: ValueType.Item,
+    type: LootTableValueType.Item,
     value: string
-}) & { unique: boolean, always: boolean, probability: number, enabled: boolean };
+} | {
+    type: LootTableValueType.Enemy,
+    value: string
+}) & { unique: boolean, always: boolean, amount: number, droppable: boolean, inclusive: boolean, probability: number, enabled: boolean };
 
 export interface LootTableJSON {
     type: "item" | "table" | "enemy";
@@ -20,6 +23,9 @@ export interface LootTableJSON {
     id: string;
     unique: boolean;
     always: boolean;
+    amount?: boolean;
+    droppable?: boolean;
+    inclusive?: boolean;
     probability: number;
     enabled: boolean;
 }

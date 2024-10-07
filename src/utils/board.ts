@@ -1,5 +1,6 @@
-
+import { BasicChestTable, EpicChestTable, LegendaryChestTable, NormalChestTable } from "./loot-tables/generated-tables.js";
 import { getRandomIntInclusive } from "./random-generators.js";
+import { LootTableValueType } from "./loot-tables/types.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 import { findClosest } from "./closest.js";
 
@@ -8,9 +9,7 @@ import * as Board from "../schemas/board.js";
 
 import type { Embed, Message } from "lilybird";
 import type { LootTable } from "./loot-tables/loot-table.js";
-import { BasicChestTable, EpicChestTable, LegendaryChestTable, NormalChestTable } from "./loot-tables/generated-tables.js";
 import type { LootTableContent } from "./loot-tables/types.js";
-import { ValueType } from "./loot-tables/types.js";
 
 // https://www.compart.com/en/unicode/block/U+1F800
 export const DIRECTION_MAP: Record<string, string> = {
@@ -110,10 +109,12 @@ export function generateRandomChestData(): Board.ChestData {
     return { rarity, contents };
 }
 
+//! TODO: Nested tables should be handled by the loot table class itself
 function iterateUntilValue(loot: LootTableContent): string {
     switch (loot.type) {
-        case ValueType.Table: { return iterateUntilValue(loot.value.getResults(1)[0]); }
-        case ValueType.Item: { return loot.value; }
+        case LootTableValueType.Table: { return iterateUntilValue(loot.value.getResults(1)[0]); }
+        case LootTableValueType.Item: { return loot.value; }
+        case LootTableValueType.Enemy: { throw new Error("Unreachable!"); }
     }
 }
 

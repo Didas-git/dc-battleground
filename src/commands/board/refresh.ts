@@ -1,12 +1,15 @@
+import { LootTableValueType } from "../../utils/loot-tables/types.js";
 import { generateRandomChestData } from "../../utils/board.js";
 import { PermissionFlags } from "lilybird";
 import { randomUUID } from "node:crypto";
 import { db } from "../../db.js";
 
+import * as LootTables from "../../utils/loot-tables/generated-tables.js";
 import * as BoardLayer from "../../schemas/board-layer.js";
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
+import type { LootTable } from "../../utils/loot-tables/loot-table.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -127,13 +130,26 @@ function refreshLayer(guildId: string, layerInfo: BoardLayer.BoardLayer): { ches
 
     const endChest = performance.now();
 
+    if (layerInfo.loot_table === null) {
+        return {
+            chest: { quantity: chestQuantity, time: endChest - startChest },
+            mob: { quantity: 0, time: 0 }
+        };
+    }
+
+    const layerTable: new () => LootTable = LootTables[<never>layerInfo.loot_table];
+    const enemies = new layerTable().getResults(mobQuantity);
+
     for (let i = 0; i < mobQuantity; i++) {
         const entityId = `${guildId}:${randomUUID()}`;
 
         do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
         while (Board.getEntityInPosition(layerInfo.layer, x, y).type !== Board.BoardEntityType.Empty);
 
-        Board.generateEnemy(entityId, layerInfo.layer, x, y, "goblin");
+        const enemy = enemies[i];
+        if (enemy.type !== LootTableValueType.Enemy) throw new Error("Layer loot table contains a non-enemy value");
+
+        Board.generateEnemy(entityId, layerInfo.layer, x, y, enemy.value);
     }
 
     const endMob = performance.now();

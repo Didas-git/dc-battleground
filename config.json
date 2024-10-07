@@ -6,7 +6,8 @@
         },
         {
             "name": "Greenwoods",
-            "size": "300"
+            "size": "300",
+            "enemy_table": "$greenwoods_enemy_pool"
         },
         {
             "name": "Icefall",
@@ -158,10 +159,10 @@
             "name": "Goblin Core",
             "description": "The central core of a goblin."
         },
-        "human_bone": {
+        "skeleton_bone": {
             "type": "crafting",
             "rarity": "normal",
-            "name": "Human Bone",
+            "name": "Skeleton Bone",
             "description": "Just a bone."
         },
         "diamond_sword": {
@@ -439,7 +440,8 @@
                 "id": "goblin_core",
                 "unique": false,
                 "always": true,
-                "allow_extra": true,
+                "amount": 1,
+                "droppable": true,
                 "probability": 1,
                 "enabled": true
             }
@@ -447,10 +449,11 @@
         "$skeleton_table": [
             {
                 "type": "item",
-                "id": "human_bone",
+                "id": "skeleton_bone",
                 "unique": false,
                 "always": true,
-                "allow_extra": true,
+                "amount": 1,
+                "droppable": true,
                 "probability": 1,
                 "enabled": true
             }
@@ -461,7 +464,7 @@
                 "id": "#goblin",
                 "unique": false,
                 "always": false,
-                "probability": 50,
+                "probability": 10,
                 "enabled": true
             },
             {

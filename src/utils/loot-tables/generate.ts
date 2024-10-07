@@ -1,4 +1,4 @@
-import { ValueType } from "./types.js";
+import { LootTableValueType } from "./types.js";
 import { join } from "node:path";
 
 import * as Enemy from "../../schemas/enemy.js";
@@ -100,10 +100,13 @@ function parseItemsAndTables(config: Config): Array<string> {
                     if (name === tableName) throw new Error("A table cannot reference itself in its contents");
 
                     tableContents.push(`${j > 0 ? "\n" : ""}        {
-            type: ${ValueType.Table},
+            type: ${LootTableValueType.Table},
             value: new ${name}(),
             unique: ${item.unique},
             always: ${item.always},
+            amount: ${item.amount ?? 1},
+            droppable: ${item.droppable ?? false},
+            inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},
             enabled: ${item.enabled}
         }`);
@@ -111,10 +114,13 @@ function parseItemsAndTables(config: Config): Array<string> {
                 }
                 case "item": {
                     tableContents.push(`${j > 0 ? "\n" : ""}        {
-            type: ${ValueType.Item},
+            type: ${LootTableValueType.Item},
             value: "${item.id}",
             unique: ${item.unique},
             always: ${item.always},
+            amount: ${item.amount ?? 1},
+            droppable: ${item.droppable ?? false},
+            inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},
             enabled: ${item.enabled}
         }`);
@@ -122,10 +128,13 @@ function parseItemsAndTables(config: Config): Array<string> {
                 }
                 case "enemy": {
                     tableContents.push(`${j > 0 ? "\n" : ""}        {
-            type: ${ValueType.Enemy},
+            type: ${LootTableValueType.Enemy},
             value: "${item.id.slice(1)}",
             unique: ${item.unique},
             always: ${item.always},
+            amount: ${item.amount ?? 1},
+            droppable: ${item.droppable ?? false},
+            inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},
             enabled: ${item.enabled}
         }`);

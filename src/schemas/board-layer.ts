@@ -7,6 +7,7 @@ assert(floors.length >= 2, "At least 2 floors must exist (Base & layer 1).");
 export interface BoardLayer {
     layer: number;
     name: string;
+    loot_table: string | null;
     x: number;
     y: number;
     previous: number | null;
@@ -17,6 +18,7 @@ db.run(`
 CREATE TABLE IF NOT EXISTS BoardLayer (
     layer INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
+    loot_table TEXT,
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
     previous INTEGER,
@@ -41,17 +43,26 @@ for (let i = 0; ; i++) {
     const previousLayer = i - 1 <= 0 ? null : i - 1;
     const nextLayer = i + 1 === 1 ? null : typeof floors[i + 1] === "undefined" ? null : i + 1;
 
-    createBoardLayer(i, layer.name, x, y, previousLayer, nextLayer);
+    function parseTableName(name: string | undefined): string | null {
+        if (typeof name === "undefined") return null;
+        const nameParts = name.slice(1).split("_");
+        const tableName = nameParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+
+        return tableName;
+    }
+
+    createBoardLayer(i, layer.name, x, y, previousLayer, nextLayer, parseTableName(layer.enemy_table));
 }
 
 export function getBoardLayerInfo(layer: number): BoardLayer | null {
-    return <BoardLayer | null>db.query("SELECT layer, name, x, y, previous, next FROM BoardLayer WHERE layer = $layer").get({ layer });
+    return <BoardLayer | null>db.query("SELECT layer, name, loot_table, x, y, previous, next FROM BoardLayer WHERE layer = $layer").get({ layer });
 }
 
-export function createBoardLayer(layer: number, name: string, x: number, y: number, previousLayer: number | null, nextLayer: number | null): void {
-    db.query("INSERT INTO BoardLayer (layer, name, x, y, previous, next) VALUES ($layer, $name, $x, $y, $previousLayer, $nextLayer)").run({
+export function createBoardLayer(layer: number, name: string, x: number, y: number, previousLayer: number | null, nextLayer: number | null, tableName: string | null): void {
+    db.query("INSERT INTO BoardLayer (layer, name, loot_table, x, y, previous, next) VALUES ($layer, $name, $table, $x, $y, $previousLayer, $nextLayer)").run({
         layer,
         name,
+        table: tableName,
         x,
         y,
         previousLayer,

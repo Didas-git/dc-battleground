@@ -23,7 +23,7 @@ export const client = await createClient({
         console.log(`Logged in as ${c.user.username} (${c.user.id})`);
         await handler.loadGlobalCommands(c);
         console.log("The following floors are available:");
-        console.table(floors);
+        console.table(floors, ["name", "size"]);
     },
     transformers: trimmed,
     listeners: handler.getListenersObject()
