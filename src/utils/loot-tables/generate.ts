@@ -66,6 +66,7 @@ function mapItemMeta(meta: ItemJSON["meta"] | undefined): Item.EquipmentData | n
 function mapEnemyClass(eClass: EnemyJSON["class"]): Enemy.EnemyClass {
     switch (eClass) {
         case "undead": return Enemy.EnemyClass.Undead;
+        case "iter": { throw new Error("Placeholder"); }
     }
 }
 
@@ -107,7 +108,7 @@ function parseItemsAndTables(config: Config): Array<string> {
             value: new ${name}(),
             unique: ${item.unique},
             always: ${item.always},
-            amount: ${item.amount ?? 1},
+            count: ${item.count ?? 1},
             droppable: ${item.droppable ?? false},
             inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},
@@ -119,9 +120,10 @@ function parseItemsAndTables(config: Config): Array<string> {
                     tableContents.push(`${j > 0 ? "\n" : ""}        {
             type: ${LootTableValueType.Item},
             value: "${item.id}",
+            amount: ${item.amount ?? 1},
             unique: ${item.unique},
             always: ${item.always},
-            amount: ${item.amount ?? 1},
+            count: ${item.count ?? 1},
             droppable: ${item.droppable ?? false},
             inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},
@@ -135,7 +137,7 @@ function parseItemsAndTables(config: Config): Array<string> {
             value: "${item.id.slice(1)}",
             unique: ${item.unique},
             always: ${item.always},
-            amount: ${item.amount ?? 1},
+            count: ${item.count ?? 1},
             droppable: ${item.droppable ?? false},
             inclusive: ${item.inclusive ?? true},
             probability: ${item.probability},

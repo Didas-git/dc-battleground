@@ -11,19 +11,21 @@ export type LootTableContent = ({
     value: LootTable
 } | {
     type: LootTableValueType.Item,
-    value: string
+    value: string,
+    amount: number
 } | {
     type: LootTableValueType.Enemy,
     value: string
-}) & { unique: boolean, always: boolean, amount: number, droppable: boolean, inclusive: boolean, probability: number, enabled: boolean };
+}) & { unique: boolean, always: boolean, count: number, droppable: boolean, inclusive: boolean, probability: number, enabled: boolean };
 
 export interface LootTableJSON {
     type: "item" | "table" | "enemy";
     /** id reference */
     id: string;
+    amount?: boolean;
     unique: boolean;
     always: boolean;
-    amount?: boolean;
+    count?: number;
     droppable?: boolean;
     inclusive?: boolean;
     probability: number;
@@ -31,7 +33,7 @@ export interface LootTableJSON {
 }
 
 export interface ItemJSON {
-    type: "equipment" | "crafting" | "consumable";
+    type: "equipment" | "crafting" | "consumable" | "currency";
     rarity: "cursed" | "normal" | "advanced" | "epic" | "legendary";
     name: string;
     description: string;
@@ -43,7 +45,7 @@ export interface ItemJSON {
 }
 
 export interface EnemyJSON {
-    class: "undead";
+    class: "undead" | "iter";
     name: string;
     description: string;
     loot_table: string;

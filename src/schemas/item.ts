@@ -1,21 +1,25 @@
 import { db } from "../db.js";
 
-export type Item = NormalItem | Equipment;
+export type Item = NormalItem | Equipment | Currency;
 
-interface NormalItem {
-    type: ItemType.Crafting | ItemType.Consumable;
+interface BaseItem {
     rarity: ItemRarity;
     name: string;
     description: string;
+}
+
+interface NormalItem extends BaseItem {
+    type: ItemType.Crafting | ItemType.Consumable;
     data: null;
 }
 
-interface Equipment {
+interface Equipment extends BaseItem {
     type: ItemType.Equipment;
-    rarity: ItemRarity;
-    name: string;
-    description: string;
     data: EquipmentData;
+}
+
+interface Currency extends BaseItem {
+    type: ItemType.Currency;
 }
 
 export interface EquipmentData {
@@ -39,8 +43,9 @@ export const enum WeaponSubType {
 }
 
 export const enum ItemType {
-    Equipment,
+    Currency,
     Crafting,
+    Equipment,
     Consumable
 }
 
@@ -69,7 +74,7 @@ export function addItem(id: string, item: Item): void {
         rarity: item.rarity,
         name: item.name,
         description: item.description,
-        data: item.data === null ? null : JSON.stringify(item.data)
+        data: "data" in item ? item.data === null ? null : JSON.stringify(item.data) : null
     });
 }
 

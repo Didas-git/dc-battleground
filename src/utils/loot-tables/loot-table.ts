@@ -21,9 +21,9 @@ export class LootTable {
             if (object.always) {
                 if (typeof this.beforeAlways !== "undefined") this.beforeAlways(object);
 
-                if (object.amount > 1) {
+                if (object.count > 1) {
                     // If we reduce the amount by one we don't need to add an else for pushing to the array
-                    for (let j = 0, amount = object.amount - 1; j < amount; j++) {
+                    for (let j = 0, amount = object.count - 1; j < amount; j++) {
                         if (object.inclusive) alwaysCount++;
                         result.push(object);
                     }

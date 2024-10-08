@@ -440,7 +440,6 @@
                 "id": "goblin_core",
                 "unique": false,
                 "always": true,
-                "amount": 1,
                 "droppable": true,
                 "probability": 1,
                 "enabled": true
@@ -452,7 +451,6 @@
                 "id": "skeleton_bone",
                 "unique": false,
                 "always": true,
-                "amount": 1,
                 "droppable": true,
                 "probability": 1,
                 "enabled": true

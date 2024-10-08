@@ -85,7 +85,8 @@
                             "enum": [
                                 "equipment",
                                 "crafting",
-                                "consumable"
+                                "consumable",
+                                "currency"
                             ]
                         },
                         "rarity": {
@@ -191,30 +192,52 @@
                                 "type": "boolean"
                             }
                         },
-                        "if": {
-                            "properties": {
-                                "always": {
-                                    "const": true
+                        "allOf": [
+                            {
+                                "if": {
+                                    "properties": {
+                                        "always": {
+                                            "const": true
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "properties": {
+                                        "count": {
+                                            "description": "The amount of items to add to the result when hitting the always check.\nDefaults to: 1",
+                                            "type": "number",
+                                            "minimum": 1
+                                        },
+                                        "droppable": {
+                                            "description": "Wether the item should still be droppable or not.\nDefaults to: false",
+                                            "type": "boolean"
+                                        },
+                                        "inclusive": {
+                                            "description": "Wether the amount will be counted torwards the real drop count.\nDefaults to: true",
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "if": {
+                                    "properties": {
+                                        "type": {
+                                            "const": "item"
+                                        }
+                                    }
+                                },
+                                "then": {
+                                    "properties": {
+                                        "amount": {
+                                            "description": "The amount of items that will be added to the inventory when this item is a result in the loot table.\nDefaults to: 1",
+                                            "type": "number",
+                                            "minimum": 1
+                                        }
+                                    }
                                 }
                             }
-                        },
-                        "then": {
-                            "properties": {
-                                "amount": {
-                                    "description": "The amount of items to add to the result when hitting the always check.\nDefaults to: 1",
-                                    "type": "number",
-                                    "minimum": 1
-                                },
-                                "droppable": {
-                                    "description": "Wether the item should still be droppable or not.\nDefaults to: false",
-                                    "type": "boolean"
-                                },
-                                "inclusive": {
-                                    "description": "Wether the amount will be counted torwards the real drop count.\nDefaults to: true",
-                                    "type": "boolean"
-                                }
-                            }
-                        }
+                        ]
                     }
                 }
             }
