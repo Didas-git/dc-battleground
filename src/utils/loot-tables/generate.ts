@@ -69,6 +69,11 @@ function mapEnemyClass(eClass: EnemyJSON["class"]): Enemy.EnemyClass {
     }
 }
 
+export function parseLootTableName(name: string): string {
+    const idParts = name.slice(1).split("_");
+    return idParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+}
+
 function parseItemsAndTables(config: Config): Array<string> {
     const fileContents: Array<string> = ["import { LootTable } from \"./loot-table.js\";"];
 
@@ -86,16 +91,14 @@ function parseItemsAndTables(config: Config): Array<string> {
 
     for (let i = 0, entries = Object.entries(config.loot_tables), { length } = entries; i < length; i++) {
         const [id, table] = entries[i];
-        const idParts = id.slice(1).split("_");
-        const tableName = idParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+        const tableName = parseLootTableName(id);
         const tableContents: Array<string> = [];
 
         for (let j = 0, l = table.length; j < l; j++) {
             const item = table[j];
             switch (item.type) {
                 case "table": {
-                    const nameParts = item.id.slice(1).split("_");
-                    const name = nameParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+                    const name = parseLootTableName(item.id);
 
                     if (name === tableName) throw new Error("A table cannot reference itself in its contents");
 
@@ -149,8 +152,8 @@ function parseItemsAndTables(config: Config): Array<string> {
     }
 
     const fn: Array<string> = [
-        "export function mapEnemyToLootTable(enemy: { id: string }): new () => LootTable {",
-        "    switch (enemy.id) {"
+        "export function mapEnemyToLootTable(id: string): new () => LootTable {",
+        "    switch (id) {"
     ];
     for (let i = 0, entries = Object.entries(config.enemies), { length } = entries; i < length; i++) {
         const [idWithPrefix, enemy] = entries[i];

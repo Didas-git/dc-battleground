@@ -82,7 +82,7 @@ export const enum BoardEntityType {
     LayerEntrance
 }
 
-export type BoardEntity = ChestEntity | LayerEntity | { type: BoardEntityType.Empty } | OtherEntities;
+export type BoardEntity = ChestEntity | LayerEntity | EnemyEntity | { type: BoardEntityType.Empty } | OtherEntities;
 
 export interface BaseBoardEntity {
     id: string;
@@ -105,7 +105,7 @@ export interface EnemyEntity extends BaseBoardEntity {
 }
 
 export interface OtherEntities extends BaseBoardEntity {
-    type: BoardEntityType.Player | BoardEntityType.Enemy;
+    type: BoardEntityType.Player;
 }
 
 export const CHEST_RARITY_MAPPINGS: Record<ChestRarity, string> = {

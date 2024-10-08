@@ -9,7 +9,6 @@ export class LootTable {
     public afterAlways?: (object: LootTableContent) => void;
 
     public getResults(count: number): Array<LootTableContent> {
-        const uniqueDrops = new Set();
         const result: Array<LootTableContent> = [];
         const droppable: Array<LootTableContent> = [];
 
@@ -54,20 +53,12 @@ export class LootTable {
             for (let i = 0; i < realDropCount; i++) {
                 const hitValue = getRandomArbitrary(0, probabilitySum);
 
+                //? Possible optimization? https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm
                 for (let j = 0, w = 0, { length } = droppable; j < length; j++) {
                     const object = droppable[j];
                     w += object.probability;
                     if (hitValue > w) continue;
-                    if (object.unique) {
-                        if (uniqueDrops.has(object)) {
-                            // Even tho the item is already in the drops
-                            // we still want to get the specified amount of items
-                            i--;
-                            continue;
-                        }
-
-                        uniqueDrops.add(object);
-                    }
+                    if (object.unique) droppable.splice(j, 1);
 
                     result.push(object);
                     break;

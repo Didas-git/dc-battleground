@@ -1,9 +1,9 @@
+import { makeDropEmbed } from "../../../utils/embeds.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 
 import * as BoardCache from "../../../schemas/board-cache.js";
 import * as Player from "../../../schemas/player.js";
 import * as Board from "../../../schemas/board.js";
-import * as Item from "../../../schemas/item.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
 
@@ -65,23 +65,8 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
     Board.updatePlayerPosition(memberId, x, y);
     BoardCache.update(cacheId);
 
-    const contentsArray = Object.entries(contents);
-
     await interaction.editReply({
-        embeds: [
-            {
-                color: 0x00ff00,
-                title: `Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`,
-                description: `- Coins: ${coins}\n- Items:\n${contentsArray.length > 0
-                    ? contentsArray.map((i) => {
-                        const [id, amount] = i;
-                        const item = Item.getItemMeta(id);
-
-                        return `  - ${item.name}: ${amount}`;
-                    }).join("\n")
-                    : "  - None"}`
-            }
-        ],
+        embeds: [makeDropEmbed(`Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`, coins, Object.entries(contents))],
         components: [
             {
                 type: ComponentType.ActionRow,

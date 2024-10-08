@@ -1,4 +1,6 @@
 import assert from "node:assert";
+
+import { parseLootTableName } from "../utils/loot-tables/generate.js";
 import { db } from "../db.js";
 
 import { floors } from "../../config.json";
@@ -43,15 +45,15 @@ for (let i = 0; ; i++) {
     const previousLayer = i - 1 <= 0 ? null : i - 1;
     const nextLayer = i + 1 === 1 ? null : typeof floors[i + 1] === "undefined" ? null : i + 1;
 
-    function parseTableName(name: string | undefined): string | null {
-        if (typeof name === "undefined") return null;
-        const nameParts = name.slice(1).split("_");
-        const tableName = nameParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
-
-        return tableName;
-    }
-
-    createBoardLayer(i, layer.name, x, y, previousLayer, nextLayer, parseTableName(layer.enemy_table));
+    createBoardLayer(
+        i,
+        layer.name,
+        x,
+        y,
+        previousLayer,
+        nextLayer,
+        typeof layer.enemy_table === "undefined" ? null : parseLootTableName(layer.enemy_table)
+    );
 }
 
 export function getBoardLayerInfo(layer: number): BoardLayer | null {
