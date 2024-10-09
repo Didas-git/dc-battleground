@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { getRandomIntInclusive } from "../utils/random-generators.js";
-import { makeBoardEmbed, MOVEMENT_ROW } from "../utils/board.js";
+import { getRandomIntInclusive } from "#utils/random.js";
+import { MOVEMENT_ROW } from "#utils/components.js";
+import { makeBoardEmbed } from "#utils/embeds.js";
 import { client } from "../index.js";
 import { db } from "../db.js";
 
-import assert from "node:assert";
-
 import * as BoardCache from "./board-cache.js";
+
+import assert from "node:assert";
 
 export const BOARD_VIEW_SIZE = parseInt(process.env.BOARD_VIEW_SIZE);
 

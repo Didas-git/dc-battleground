@@ -1,14 +1,14 @@
-import { LootTableValueType } from "../../utils/loot-tables/types.js";
+import { LootTableValueType } from "#loot-table/types.js";
 import { PermissionFlags } from "lilybird";
 import { randomUUID } from "node:crypto";
-import { db } from "../../db.js";
+import { db } from "../../../db.js";
 
-import * as LootTables from "../../utils/loot-tables/generated-tables.js";
-import * as BoardLayer from "../../schemas/board-layer.js";
-import * as Board from "../../schemas/board.js";
+import * as LootTables from "#loot-table/generated-tables.js";
+import * as BoardLayer from "#models/board-layer.js";
+import * as Board from "#models/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
-import type { LootTable } from "../../utils/loot-tables/loot-table.js";
+import type { LootTable } from "#loot-table/index.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;

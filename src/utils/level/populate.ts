@@ -1,6 +1,6 @@
 import { createCustomGrowthArray, cfg } from "./level.js";
 
-import * as Level from "../../schemas/levels.js";
+import * as Level from "#models/levels.js";
 
 const data = createCustomGrowthArray(cfg);
 

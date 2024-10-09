@@ -1,5 +1,5 @@
-import type { GenericStats } from "../../schemas/stats.js";
-import type { LootTable } from "./loot-table.js";
+import type { GenericStats } from "#models/stats.js";
+import type { LootTable } from "./index.js";
 
 export const enum LootTableValueType {
     Item,

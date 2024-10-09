@@ -1,4 +1,4 @@
-import { getRandomArbitrary } from "../random-generators.js";
+import { getRandomArbitrary } from "#utils/random.js";
 
 import type { LootTableContent } from "./types.js";
 

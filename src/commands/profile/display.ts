@@ -1,9 +1,9 @@
-import { getMember, getMemberName } from "../../utils/get-member.js";
-import { calculateDef } from "../../utils/battle.js";
+import { getMember, getMemberName } from "#utils/member.js";
 import { GuildMember } from "@lilybird/transformers";
+import { calculateDef } from "#utils/battle.js";
 
-import * as Player from "../../schemas/player.js";
-import * as Item from "../../schemas/item.js";
+import * as Player from "#models/player.js";
+import * as Item from "#models/item.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 

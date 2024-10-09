@@ -1,16 +1,16 @@
-import { calculateFinalDamage } from "../../utils/battle.js";
+import { updatePlayerInventoryAndGetEmbed } from "#utils/embeds.js";
+import { calculateFinalDamage } from "#utils/battle.js";
 
-import * as BoardCache from "../../schemas/board-cache.js";
-import * as Battle from "../../schemas/battle.js";
-import * as Player from "../../schemas/player.js";
-import * as Board from "../../schemas/board.js";
-import * as Enemy from "../../schemas/enemy.js";
-import * as Stats from "../../schemas/stats.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as Battle from "#models/battle.js";
+import * as Player from "#models/player.js";
+import * as Board from "#models/board.js";
+import * as Enemy from "#models/enemy.js";
+import * as Stats from "#models/stats.js";
 
-import { mapEnemyToLootTable } from "../../utils/loot-tables/generated-tables.js";
+import { mapEnemyToLootTable } from "#loot-table/generated-tables.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
-import { updatePlayerInventoryAndGetEmbed } from "../../utils/embeds.js";
 
 export async function attack(interaction: Interaction<MessageComponentData, Message>): Promise<void> {
     if (!interaction.inGuild()) return;

@@ -1,8 +1,8 @@
-import * as BoardCache from "../../../schemas/board-cache.js";
-import * as Battle from "../../../schemas/battle.js";
-import * as Enemy from "../../../schemas/enemy.js";
-import * as Stats from "../../../schemas/stats.js";
-import * as Board from "../../../schemas/board.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as Battle from "#models/battle.js";
+import * as Enemy from "#models/enemy.js";
+import * as Stats from "#models/stats.js";
+import * as Board from "#models/board.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
 

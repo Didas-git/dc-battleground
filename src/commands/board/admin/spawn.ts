@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import * as BoardLayer from "../../schemas/board-layer.js";
-import * as Board from "../../schemas/board.js";
+import * as BoardLayer from "#models/board-layer.js";
+import * as Board from "#models/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 

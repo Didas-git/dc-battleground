@@ -1,11 +1,11 @@
+import { getMemberName } from "#utils/member.js";
 import { ComponentType } from "lilybird";
 
-import * as BoardLayer from "../../schemas/board-layer.js";
-import * as Player from "../../schemas/player.js";
-import * as Board from "../../schemas/board.js";
+import * as BoardLayer from "#models/board-layer.js";
+import * as Player from "#models/player.js";
+import * as Board from "#models/board.js";
 
 import type { ApplicationCommandData, Interaction, Message, MessageComponentData } from "@lilybird/transformers";
-import { getMemberName } from "../../utils/get-member.js";
 
 export async function profileCreate(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;

@@ -1,6 +1,6 @@
 import { db } from "../db.js";
 
-import type { EnemyJSON } from "../utils/loot-tables/types.js";
+import type { EnemyJSON } from "#loot-table/types.js";
 
 export interface Enemy {
     class: EnemyClass;

@@ -1,8 +1,31 @@
-import * as Player from "../schemas/player.js";
-import * as Item from "../schemas/item.js";
+import { LootTableValueType } from "#loot-table/types.js";
 
+import * as BoardLayer from "#models/board-layer.js";
+import * as Player from "#models/player.js";
+import * as Board from "#models/board.js";
+import * as Item from "#models/item.js";
+
+import type { LootTableContent } from "#loot-table/types.js";
 import type { Embed } from "lilybird";
-import { LootTableValueType, type LootTableContent } from "./loot-tables/types.js";
+
+export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
+    const board = await Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId, typeof moveDirection !== "undefined");
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { name } = BoardLayer.getBoardLayerInfo(position.layer)!;
+
+    let str = "";
+    for (let i = 0, { length } = board; i < length; i++) {
+        if (i % Board.BOARD_VIEW_SIZE === 0 && i !== 0) str += "\n";
+        str += Board.BOARD_MAPPINGS[board[i]];
+    }
+
+    return {
+        title: "Board",
+        color: 0x0000ff,
+        description: str,
+        footer: { text: `[${position.layer}]${name}: X: ${position.x} | Y: ${position.y} ${moveDirection ?? ""}` }
+    };
+}
 
 export function updatePlayerInventoryAndGetEmbed(playerId: string, title: string, drops: Array<LootTableContent>): Embed.Structure {
     const contents: Player.InventoryStructure["items"] = {};

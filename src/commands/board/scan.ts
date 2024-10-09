@@ -1,5 +1,5 @@
-import * as Player from "../../schemas/player.js";
-import * as Board from "../../schemas/board.js";
+import * as Player from "#models/player.js";
+import * as Board from "#models/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 import type { Embed } from "lilybird";

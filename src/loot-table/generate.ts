@@ -1,10 +1,10 @@
 import { LootTableValueType } from "./types.js";
 import { join } from "node:path";
 
-import * as Enemy from "../../schemas/enemy.js";
-import * as Item from "../../schemas/item.js";
+import * as Enemy from "#models/enemy.js";
+import * as Item from "#models/item.js";
 
-import { items, loot_tables, enemies } from "../../../config.json";
+import { items, loot_tables, enemies } from "../../config.json";
 
 import type { LootTableJSON, ItemJSON, EnemyJSON } from "./types.js";
 
@@ -77,7 +77,7 @@ export function parseLootTableName(name: string): string {
 }
 
 function parseItemsAndTables(config: Config): Array<string> {
-    const fileContents: Array<string> = ["import { LootTable } from \"./loot-table.js\";"];
+    const fileContents: Array<string> = ["import { LootTable } from \"./index.js\";"];
 
     for (let i = 0, entries = Object.entries(config.items), { length } = entries; i < length; i++) {
         const [id, data] = entries[i];

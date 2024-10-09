@@ -1,4 +1,4 @@
-import type { GenericStats } from "../schemas/stats.js";
+import type { GenericStats } from "#models/stats.js";
 
 export function calculateDef(def: number, armor: number): number {
     const calculatedDef = armorToDef(armor) * def;

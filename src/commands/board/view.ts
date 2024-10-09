@@ -1,8 +1,9 @@
-import { makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.js";
+import { MOVEMENT_ROW } from "#utils/components.js";
+import { makeBoardEmbed } from "#utils/embeds.js";
 
-import * as BoardCache from "../../schemas/board-cache.js";
-import * as Battle from "../../schemas/battle.js";
-import * as Board from "../../schemas/board.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as Battle from "#models/battle.js";
+import * as Board from "#models/board.js";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 

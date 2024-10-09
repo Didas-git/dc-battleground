@@ -2,6 +2,7 @@
     "compilerOptions": {
         "outDir": "dist",
         "baseUrl": ".",
+        "rootDir": ".",
         "target": "ESNext",
         "module": "NodeNext",
         "moduleResolution": "Node16",
@@ -33,10 +34,18 @@
         "noErrorTruncation": true,
         "resolveJsonModule": true,
         "noUncheckedSideEffectImports": true,
+        "customConditions": [
+            "dev"
+        ],
         "types": [
             "bun-types",
             "./globals"
-        ]
+        ],
+        "paths": {
+            "#models": [
+                "./src/models/*"
+            ]
+        }
     },
     "include": [
         "src/**/*"

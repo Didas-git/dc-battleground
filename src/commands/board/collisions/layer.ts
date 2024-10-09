@@ -1,8 +1,8 @@
 import { ButtonStyle, ComponentType } from "lilybird";
 
-import * as BoardCache from "../../../schemas/board-cache.js";
-import * as BoardLayer from "../../../schemas/board-layer.js";
-import * as Board from "../../../schemas/board.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as BoardLayer from "#models/board-layer.js";
+import * as Board from "#models/board.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
 

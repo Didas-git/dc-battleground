@@ -1,6 +1,6 @@
 import assert from "node:assert";
 
-import { parseLootTableName } from "../utils/loot-tables/generate.js";
+import { parseLootTableName } from "#loot-table/generate.js";
 import { db } from "../db.js";
 
 import { floors } from "../../config.json";

@@ -1,10 +1,11 @@
-import { calculateCoordinates, DIRECTION_MAP, makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.js";
-import { BACK_BUTTON } from "../../utils/components.js";
+import { calculateCoordinates, DIRECTION_MAP } from "#utils/board.js";
+import { MOVEMENT_ROW, BACK_BUTTON } from "#utils/components.js";
 import { ButtonStyle, ComponentType } from "lilybird";
+import { makeBoardEmbed } from "#utils/embeds.js";
 
-import * as BoardCache from "../../schemas/board-cache.js";
-import * as BoardLayer from "../../schemas/board-layer.js";
-import * as Board from "../../schemas/board.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as BoardLayer from "#models/board-layer.js";
+import * as Board from "#models/board.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
 

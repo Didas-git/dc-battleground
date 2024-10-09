@@ -1,17 +1,19 @@
-import { DIRECTION_MAP, makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.js";
 import { ApplicationCommandOptionType, ComponentType } from "lilybird";
 import { handleChestCollision } from "./collisions/chest.js";
 import { handleLayerCollision } from "./collisions/layer.js";
 import { handleMobBattle } from "./collisions/mobs.js";
 import { $applicationCommand } from "../../handler.js";
-import { boardReset } from "./refresh.js";
+import { MOVEMENT_ROW } from "#utils/components.js";
+import { makeBoardEmbed } from "#utils/embeds.js";
+import { DIRECTION_MAP } from "#utils/board.js";
+import { boardReset } from "./admin/refresh.js";
+import { boardSpawn } from "./admin/spawn.js";
 import { handleMoving } from "./move.js";
-import { boardSpawn } from "./spawn.js";
 import { viewBoard } from "./view.js";
 import { scanBoard } from "./scan.js";
 
-import * as BoardCache from "../../schemas/board-cache.js";
-import * as Board from "../../schemas/board.js";
+import * as BoardCache from "#models/board-cache.js";
+import * as Board from "#models/board.js";
 
 $applicationCommand({
     name: "board",
