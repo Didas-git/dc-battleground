@@ -52,6 +52,7 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         classes.total += 1;
     }
 
+    const stats = Player.Stats.getStats(targetDbId);
     const inventory = Object.entries(Player.Inventory.getContents(targetDbId));
 
     await interaction.reply({
@@ -95,14 +96,14 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
                         name: "Status",
                         inline: true,
                         value: [
-                            `- HP: \`${profile.hp.current}/${profile.hp.max}\``,
-                            `- ATK: \`${profile.atk}\``,
-                            `- Mana: \`${profile.mana.current}/${profile.mana.max}\``,
-                            `- Ward: \`${profile.ward}\``,
-                            `- Armor: \`${profile.armor}\``,
-                            `- Defense: \`${(profile.def - 1) * 100}%\` (\`${calculateDef(profile.def, profile.armor) * 100}%\`)`,
-                            `- Crit. Rate: \`${profile.crit_rate * 100}%\``,
-                            `- Crit. DMG: \`${profile.crit_damage * 100}%\``,
+                            `- HP: \`${stats.hp.current}/${stats.hp.max}\``,
+                            `- ATK: \`${stats.atk}\``,
+                            `- Mana: \`${stats.mana.current}/${stats.mana.max}\``,
+                            `- Ward: \`${stats.ward}\``,
+                            `- Armor: \`${stats.armor}\``,
+                            `- Defense: \`${(stats.def - 1) * 100}%\` (\`${calculateDef(stats.def, stats.armor) * 100}%\`)`,
+                            `- Crit. Rate: \`${stats.crit_rate * 100}%\``,
+                            `- Crit. DMG: \`${stats.crit_damage * 100}%\``,
                             `- Intelligence: \`${profile.intelligence}\``,
                             `- Strength: \`${profile.strength}\``
                         ].join("\n")
@@ -111,38 +112,38 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
                         name: "DMG Bonus",
                         inline: true,
                         value: [
-                            `- Elemental: \`${profile.bonus.elemental * 100}%\``,
-                            `- Ranged: \`${profile.bonus.ranged * 100}%\``,
-                            `- Melee: \`${profile.bonus.melee * 100}%\``,
-                            `- Physical: \`${profile.bonus.physical * 100}%\``,
-                            `- Fire: \`${profile.bonus.fire * 100}%\``,
-                            `- Water: \`${profile.bonus.water * 100}%\``,
-                            `- Nature: \`${profile.bonus.nature * 100}%\``,
-                            `- Electric: \`${profile.bonus.electric * 100}%\``,
-                            `- Ice: \`${profile.bonus.ice * 100}%\``,
-                            `- Wind: \`${profile.bonus.wind * 100}%\``,
-                            `- Light: \`${profile.bonus.light * 100}%\``,
-                            `- Cosmos: \`${profile.bonus.cosmos * 100}%\``,
-                            `- Poison: \`${profile.bonus.poison * 100}%\``
+                            `- Elemental: \`${stats.bonus.elemental * 100}%\``,
+                            `- Ranged: \`${stats.bonus.ranged * 100}%\``,
+                            `- Melee: \`${stats.bonus.melee * 100}%\``,
+                            `- Physical: \`${stats.bonus.physical * 100}%\``,
+                            `- Fire: \`${stats.bonus.fire * 100}%\``,
+                            `- Water: \`${stats.bonus.water * 100}%\``,
+                            `- Nature: \`${stats.bonus.nature * 100}%\``,
+                            `- Electric: \`${stats.bonus.electric * 100}%\``,
+                            `- Ice: \`${stats.bonus.ice * 100}%\``,
+                            `- Wind: \`${stats.bonus.wind * 100}%\``,
+                            `- Light: \`${stats.bonus.light * 100}%\``,
+                            `- Cosmos: \`${stats.bonus.cosmos * 100}%\``,
+                            `- Poison: \`${stats.bonus.poison * 100}%\``
                         ].join("\n")
                     },
                     {
                         name: "Resistances",
                         inline: true,
                         value: [
-                            `- Elemental: \`${profile.resistances.elemental * 100}%\``,
-                            `- Ranged: \`${profile.resistances.ranged * 100}%\``,
-                            `- Melee: \`${profile.resistances.melee * 100}%\``,
-                            `- Physical: \`${profile.resistances.physical * 100}%\``,
-                            `- Fire: \`${profile.resistances.fire * 100}%\``,
-                            `- Water: \`${profile.resistances.water * 100}%\``,
-                            `- Nature: \`${profile.resistances.nature * 100}%\``,
-                            `- Electric: \`${profile.resistances.electric * 100}%\``,
-                            `- Ice: \`${profile.resistances.ice * 100}%\``,
-                            `- Wind: \`${profile.resistances.wind * 100}%\``,
-                            `- Light: \`${profile.resistances.light * 100}%\``,
-                            `- Cosmos: \`${profile.resistances.cosmos * 100}%\``,
-                            `- Poison: \`${profile.resistances.poison * 100}%\``
+                            `- Elemental: \`${stats.resistances.elemental * 100}%\``,
+                            `- Ranged: \`${stats.resistances.ranged * 100}%\``,
+                            `- Melee: \`${stats.resistances.melee * 100}%\``,
+                            `- Physical: \`${stats.resistances.physical * 100}%\``,
+                            `- Fire: \`${stats.resistances.fire * 100}%\``,
+                            `- Water: \`${stats.resistances.water * 100}%\``,
+                            `- Nature: \`${stats.resistances.nature * 100}%\``,
+                            `- Electric: \`${stats.resistances.electric * 100}%\``,
+                            `- Ice: \`${stats.resistances.ice * 100}%\``,
+                            `- Wind: \`${stats.resistances.wind * 100}%\``,
+                            `- Light: \`${stats.resistances.light * 100}%\``,
+                            `- Cosmos: \`${stats.resistances.cosmos * 100}%\``,
+                            `- Poison: \`${stats.resistances.poison * 100}%\``
                         ].join("\n")
                     }
                 ]

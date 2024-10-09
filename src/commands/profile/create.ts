@@ -50,8 +50,14 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         return;
     }
 
-    const playerStats: Player.PlayerData = {
+    const playerInfo: Player.PlayerData = {
         class: Player.ClassType.None,
+        intelligence: 0,
+        strength: 0,
+        last_scan: 1000000000
+    };
+
+    const playerStats: Player.Stats.GenericStats = {
         hp: { current: 100, max: 100 },
         ward: 0,
         atk: 5,
@@ -64,8 +70,6 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         def: 1,
         // soft cap 30000
         armor: 50,
-        intelligence: 0,
-        strength: 0,
         bonus: {
             elemental: 0,
             ranged: 0,
@@ -95,15 +99,14 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
             light: 0,
             cosmos: 0,
             poison: 0
-        },
-        last_scan: 1000000000
+        }
     };
 
     switch (playerClass) {
         case Player.ClassType.None: break;
         case Player.ClassType.Mage: {
-            playerStats.class = playerClass;
-            playerStats.intelligence = 3;
+            playerInfo.class = playerClass;
+            playerInfo.intelligence = 3;
             playerStats.mana = { current: 60, max: 60 };
             playerStats.bonus.elemental = 0.05;
             playerStats.bonus.ranged = 0.05;
@@ -112,8 +115,8 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
             break;
         }
         case Player.ClassType.Warrior: {
-            playerStats.class = playerClass;
-            playerStats.strength = 3;
+            playerInfo.class = playerClass;
+            playerInfo.strength = 3;
             playerStats.hp = { current: 120, max: 120 };
             playerStats.armor = 100;
             playerStats.bonus.melee = 0.05;
@@ -137,8 +140,9 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
         while (Board.getEntityInPosition(1, x, y).type !== Board.BoardEntityType.Empty);
 
+        Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerInfo);
+        Player.Stats.createStats(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);
         Board.spawnPlayer(`${interaction.guildId}:${interaction.member.user.id}`, x, y);
-        Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);
         await interaction.followUp({ content: `Profile created successfully!\nSpawned at: ${x},${y}` });
     } catch (error) {
         await interaction.followUp({ content: "You already have a profile.", ephemeral: true });

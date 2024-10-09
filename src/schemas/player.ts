@@ -3,6 +3,7 @@ import { db } from "../db.js";
 import * as Inv from "./inventory.js";
 import * as Level from "./levels.js";
 
+export * as Stats from "./stats.js";
 export const Inventory = Inv;
 
 export interface InventoryStructure {
@@ -12,46 +13,8 @@ export interface InventoryStructure {
 
 export interface PlayerData {
     class: ClassType;
-    hp: { current: number, max: number };
-    ward: number;
-    atk: number;
-    mana: { current: number, max: number };
-    crit_rate: number;
-    crit_damage: number;
-    def: number;
-    armor: number;
     intelligence: number;
     strength: number;
-    bonus: {
-        elemental: number,
-        ranged: number,
-        melee: number,
-        physical: number,
-        fire: number,
-        water: number,
-        nature: number,
-        electric: number,
-        ice: number,
-        wind: number,
-        light: number,
-        cosmos: number,
-        poison: number
-    };
-    resistances: {
-        elemental: number,
-        ranged: number,
-        melee: number,
-        physical: number,
-        fire: number,
-        water: number,
-        nature: number,
-        electric: number,
-        ice: number,
-        wind: number,
-        light: number,
-        cosmos: number,
-        poison: number
-    };
     last_scan: number;
 }
 
