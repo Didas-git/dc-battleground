@@ -2,6 +2,7 @@ import { DIRECTION_MAP, makeBoardEmbed, MOVEMENT_ROW } from "../../utils/board.j
 import { ApplicationCommandOptionType, ComponentType } from "lilybird";
 import { handleChestCollision } from "./collisions/chest.js";
 import { handleLayerCollision } from "./collisions/layer.js";
+import { handleMobBattle } from "./collisions/mobs.js";
 import { $applicationCommand } from "../../handler.js";
 import { boardReset } from "./refresh.js";
 import { handleMoving } from "./move.js";
@@ -34,6 +35,18 @@ $applicationCommand({
             customMatcher: "custom_id.split(\":\",2)[0] === \"pot\"",
             handle: handleLayerCollision
         },
+        {
+            type: ComponentType.Button,
+            id: "battle-mob",
+            customMatcher: "custom_id.split(\":\",2)[0] === \"btm\"",
+            handle: handleMobBattle
+        },
+        // {
+        //     type: ComponentType.Button,
+        //     id: "purify-mob",
+        //     customMatcher: "custom_id.split(\"-\",2)[0] === \"pur\"",
+        //     handle: handleLayerCollision
+        // },
         {
             type: ComponentType.Button,
             id: "back",

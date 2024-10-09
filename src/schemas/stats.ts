@@ -43,11 +43,15 @@ export interface GenericStats {
 
 db.run("CREATE TABLE IF NOT EXISTS Stats ( id TEXT PRIMARY KEY, data TEXT NOT NULL )");
 
-export function getStats(id: string): GenericStats {
+export function get(id: string): GenericStats {
     const { data } = <{ data: string }>db.query("SELECT data FROM Stats WHERE id = $id").get({ id });
     return <never>JSON.parse(data);
 }
 
-export function createStats(id: string, stats: GenericStats): void {
+export function create(id: string, stats: GenericStats): void {
     db.query("INSERT INTO Stats (id, data) VALUES ($id, $data)").run({ id, data: JSON.stringify(stats) });
+}
+
+export function remove(id: string): void {
+    db.query("DELETE FROM Stats WHERE id = $id").run({ id });
 }

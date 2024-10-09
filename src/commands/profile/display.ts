@@ -1,5 +1,5 @@
 import { getMember, getMemberName } from "../../utils/get-member.js";
-import { calculateDef } from "../../utils/calculate-total-def.js";
+import { calculateDef } from "../../utils/battle.js";
 import { GuildMember } from "@lilybird/transformers";
 
 import * as Player from "../../schemas/player.js";
@@ -29,13 +29,13 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
     const targetDbId = `${interaction.guildId}:${targetId}`;
 
     const targetMember = new GuildMember(interaction.client, member);
-    const profile = Player.getData(targetDbId);
+    const profile = Player.getProfile(targetDbId);
     if (profile === null) {
         await interaction.reply({ content: "You don't have a profile that can be displayed.", ephemeral: true });
         return;
     }
 
-    const allProfiles = Player.getDataInAllGuilds(targetId);
+    const allProfiles = Player.getProfileInAllGuilds(targetId);
     if (allProfiles === null) {
         await interaction.reply({ content: "You don't have a profile that can be displayed.", ephemeral: true });
         return;
@@ -52,7 +52,7 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         classes.total += 1;
     }
 
-    const stats = Player.Stats.getStats(targetDbId);
+    const stats = Player.Stats.get(targetDbId);
     const inventory = Object.entries(Player.Inventory.getContents(targetDbId));
 
     await interaction.reply({

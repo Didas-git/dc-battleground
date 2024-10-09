@@ -177,6 +177,10 @@ export function getPlayerPosition(memberId: string): BoardData | null {
     return <BoardData>db.query("SELECT layer, x, y FROM Board WHERE id = $id").get({ id: memberId });
 }
 
+export function deletePlayer(memberId: string): void {
+    db.query("DELETE FROM Board WHERE id = $id").run({ id: memberId });
+}
+
 export function getPortalPosition(guildId: string, layer: number, direction: "back" | "forward"): BoardData {
     return <BoardData>db.query(`SELECT layer, x, y FROM Board WHERE layer = $layer AND id LIKE '${guildId}:%' AND data = $to`).get({
         layer,

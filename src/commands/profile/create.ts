@@ -5,13 +5,14 @@ import * as Player from "../../schemas/player.js";
 import * as Board from "../../schemas/board.js";
 
 import type { ApplicationCommandData, Interaction, Message, MessageComponentData } from "@lilybird/transformers";
+import { getMemberName } from "../../utils/get-member.js";
 
 export async function profileCreate(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
 
     const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
 
-    if (Player.getData(memberId) !== null) {
+    if (Player.getProfile(memberId) !== null) {
         await interaction.reply({ content: "You already have a profile.", ephemeral: true });
         return;
     }
@@ -51,6 +52,7 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
     }
 
     const playerInfo: Player.PlayerData = {
+        name: getMemberName(interaction.member),
         class: Player.ClassType.None,
         intelligence: 0,
         strength: 0,
@@ -140,8 +142,8 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
         while (Board.getEntityInPosition(1, x, y).type !== Board.BoardEntityType.Empty);
 
-        Player.create(`${interaction.guildId}:${interaction.member.user.id}`, playerInfo);
-        Player.Stats.createStats(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);
+        Player.createProfile(`${interaction.guildId}:${interaction.member.user.id}`, playerInfo);
+        Player.Stats.create(`${interaction.guildId}:${interaction.member.user.id}`, playerStats);
         Board.spawnPlayer(`${interaction.guildId}:${interaction.member.user.id}`, x, y);
         await interaction.followUp({ content: `Profile created successfully!\nSpawned at: ${x},${y}` });
     } catch (error) {

@@ -8,7 +8,7 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
     if (!interaction.inGuild()) return;
 
     const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
-    const profile = Player.getData(memberId);
+    const profile = Player.getProfile(memberId);
     if (profile === null) {
         await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });
         return;
@@ -63,7 +63,7 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
     const time = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
 
     profile.last_scan = Date.now();
-    Player.update(memberId, profile);
+    Player.updateProfile(memberId, profile);
 
     const embed: Embed.Structure = {
         title: `Found ${chests.length + mobs.length} entities`,

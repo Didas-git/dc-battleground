@@ -63,7 +63,6 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
         }
         case Board.BoardEntityType.Player: {
             // TODO: Option to battle the player
-
             await interaction.updateComponents({
                 embeds: [
                     await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
@@ -83,12 +82,27 @@ export async function handleMoving(interaction: Interaction<MessageComponentData
             await interaction.updateComponents({
                 embeds: [
                     await makeBoardEmbed(player, memberId, DIRECTION_MAP[direction]),
-                    { color: 0xff0000, description: "Enemy collisions are not yet implemented" }
+                    { color: 0xf55742, description: "Do you want to battle or purify the enemy?" }
                 ],
                 components: [
                     {
                         type: ComponentType.ActionRow,
-                        components: [BACK_BUTTON]
+                        components: [
+                            BACK_BUTTON,
+                            {
+                                type: ComponentType.Button,
+                                custom_id: `btm:${player.layer},${x},${y}`,
+                                style: ButtonStyle.Danger,
+                                label: "Battle"
+                            }
+                            // {
+                            //     type: ComponentType.Button,
+                            //     custom_id: `pur-${direction}:${player.layer},${x},${y}`,
+                            //     style: ButtonStyle.Primary,
+                            //     disabled: true,
+                            //     label: "Purify"
+                            // }
+                        ]
                     }
                 ]
             });

@@ -12,6 +12,7 @@ export interface InventoryStructure {
 }
 
 export interface PlayerData {
+    name: string;
     class: ClassType;
     intelligence: number;
     strength: number;
@@ -60,24 +61,33 @@ export const CLASS_MAPPINGS = {
     [ClassType.Warrior]: "Warrior"
 };
 
-db.run("CREATE TABLE IF NOT EXISTS Players ( id TEXT PRIMARY KEY, level INTEGER NOT NULL, xp INTEGER NOT NULL, data TEXT NOT NULL )");
+db.run(`CREATE TABLE IF NOT EXISTS Players (
+    id TEXT PRIMARY KEY,
+    level INTEGER NOT NULL,
+    xp INTEGER NOT NULL,
+    data TEXT NOT NULL
+)`);
 
-export function create(memberId: string, data: PlayerData): void {
+export function createProfile(memberId: string, data: PlayerData): void {
     db.query("INSERT INTO Players (id, data, level, xp) VALUES ($id, $data, 0, 0)").run({ id: memberId, data: JSON.stringify(data) });
     Inventory.create(memberId);
 }
 
-export function getData(memberId: string): PlayerData | null {
+export function deleteProfile(memberId: string): void {
+    db.query("DELETE FROM Players WHERE id = $id").run({ id: memberId });
+}
+
+export function getProfile(memberId: string): PlayerData | null {
     const data = <{ data: string } | null>db.query("SELECT data FROM Players WHERE id = $id").get({ id: memberId });
     if (data === null) return null;
     return JSON.parse(data.data) as PlayerData;
 }
 
-export function update(memberId: string, data: PlayerData): void {
+export function updateProfile(memberId: string, data: PlayerData): void {
     db.query("UPDATE Players SET data = $data WHERE id = $id").run({ id: memberId, data: JSON.stringify(data) });
 }
 
-export function getDataInAllGuilds(userId: string): Array<PlayerData> | null {
+export function getProfileInAllGuilds(userId: string): Array<PlayerData> | null {
     const data = <Array<{ data: string }>>db.query(`SELECT data FROM Players WHERE id LIKE '%:${userId}'`).all();
     if (data.length === 0) return null;
 
