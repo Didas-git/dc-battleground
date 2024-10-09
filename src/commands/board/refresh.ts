@@ -1,5 +1,4 @@
 import { LootTableValueType } from "../../utils/loot-tables/types.js";
-import { generateRandomChestData } from "../../utils/board.js";
 import { PermissionFlags } from "lilybird";
 import { randomUUID } from "node:crypto";
 import { db } from "../../db.js";
@@ -125,7 +124,7 @@ function refreshLayer(guildId: string, layerInfo: BoardLayer.BoardLayer): { ches
         do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
         while (Board.getEntityInPosition(layerInfo.layer, x, y).type !== Board.BoardEntityType.Empty);
 
-        Board.generateChest(entityId, layerInfo.layer, x, y, generateRandomChestData());
+        Board.generateChest(entityId, layerInfo.layer, x, y);
     }
 
     const endChest = performance.now();

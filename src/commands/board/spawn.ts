@@ -1,4 +1,3 @@
-import { generateRandomChestData } from "../../utils/board.js";
 import { randomUUID } from "node:crypto";
 
 import * as BoardLayer from "../../schemas/board-layer.js";
@@ -44,7 +43,7 @@ export async function boardSpawn(interaction: Interaction<ApplicationCommandData
         do ({ x, y } = Board.generateRandomCoordinates(layerLimits.x, layerLimits.y));
         while (Board.getEntityInPosition(layer, x, y).type !== Board.BoardEntityType.Empty);
 
-        Board.generateChest(entityId, layer, x, y, generateRandomChestData());
+        Board.generateChest(entityId, layer, x, y);
         locations.push({ layer, x, y });
     }
 

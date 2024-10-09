@@ -6,6 +6,7 @@ interface BaseItem {
     rarity: ItemRarity;
     name: string;
     description: string;
+    amount: number;
 }
 
 interface NormalItem extends BaseItem {
@@ -57,21 +58,22 @@ export const enum ItemRarity {
     Legendary
 }
 
-db.run(`
-CREATE TABLE IF NOT EXISTS Items ( 
+db.run(`CREATE TABLE IF NOT EXISTS Items ( 
     id TEXT PRIMARY KEY,
     type INTEGER NOT NULL,
     rarity INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     data
 )`);
 
 export function addItem(id: string, item: Item): void {
-    db.query("INSERT OR REPLACE INTO Items (id, type, rarity, name, description, data) VALUES ($id, $type, $rarity, $name, $description, $data)").run({
+    db.query("INSERT OR REPLACE INTO Items (id, type, rarity, amount, name, description, data) VALUES ($id, $type, $rarity, $amount, $name, $description, $data)").run({
         id,
         type: item.type,
         rarity: item.rarity,
+        amount: item.amount,
         name: item.name,
         description: item.description,
         data: "data" in item ? item.data === null ? null : JSON.stringify(item.data) : null

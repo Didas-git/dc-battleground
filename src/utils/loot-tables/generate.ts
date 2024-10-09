@@ -16,6 +16,7 @@ interface Config {
 
 function mapItemType(type: ItemJSON["type"]): Item.ItemType {
     switch (type) {
+        case "currency": return Item.ItemType.Currency;
         case "equipment": return Item.ItemType.Equipment;
         case "crafting": return Item.ItemType.Crafting;
         case "consumable": return Item.ItemType.Consumable;
@@ -84,6 +85,7 @@ function parseItemsAndTables(config: Config): Array<string> {
         Item.addItem(id, <never>{
             type: mapItemType(data.type),
             rarity: mapItemRarity(data.rarity),
+            amount: data.amount ?? 1,
             name: data.name,
             description: data.description,
             data: mapItemMeta(data.meta)

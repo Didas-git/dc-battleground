@@ -35,6 +35,7 @@ export interface LootTableJSON {
 export interface ItemJSON {
     type: "equipment" | "crafting" | "consumable" | "currency";
     rarity: "cursed" | "normal" | "advanced" | "epic" | "legendary";
+    amount?: number;
     name: string;
     description: string;
     meta: {

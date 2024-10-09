@@ -10,32 +10,6 @@ import * as BoardCache from "./board-cache.js";
 
 export const BOARD_VIEW_SIZE = parseInt(process.env.BOARD_VIEW_SIZE);
 
-export interface ChestData {
-    rarity: ChestRarity;
-    contents: Array<ChestContent>;
-}
-
-export type ChestContent = CoinsChestContent | ItemChestContent;
-
-export interface ChestContentBase {
-    type: ChestContentType;
-}
-
-export interface CoinsChestContent extends ChestContentBase {
-    type: ChestContentType.Coins;
-    amount: number;
-}
-
-export interface ItemChestContent extends ChestContentBase {
-    type: ChestContentType.Item;
-    item: string;
-}
-
-export const enum ChestContentType {
-    Coins,
-    Item
-}
-
 export const enum ChestRarity {
     Cursed,
     Basic,
@@ -91,7 +65,6 @@ export interface BaseBoardEntity {
 
 export interface ChestEntity extends BaseBoardEntity {
     type: BoardEntityType.Chest;
-    data: ChestData;
 }
 
 export interface LayerEntity extends BaseBoardEntity {
@@ -123,7 +96,6 @@ export const BOARD_MAPPINGS: Record<number, string> = {
     [BoardEntityType.Chest]: "🟦",
     [BoardEntityType.LayerEntrance]: "🔳",
 
-    88: "🟨",
     99: "🟪"
 };
 
@@ -134,7 +106,14 @@ export function generateRandomCoordinates(x: number, y: number): Omit<BoardData,
     };
 }
 
-db.run("CREATE TABLE IF NOT EXISTS Board ( id TEXT PRIMARY KEY, type INTEGER NOT NULL, layer INTEGER NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, data TEXT )");
+db.run(`CREATE TABLE IF NOT EXISTS Board (
+    id TEXT PRIMARY KEY,
+    type INTEGER NOT NULL,
+    layer INTEGER NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    data TEXT
+)`);
 
 export function spawnPlayer(memberId: string, x: number, y: number): void {
     db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, 1, $x, $y)").run({
@@ -145,14 +124,13 @@ export function spawnPlayer(memberId: string, x: number, y: number): void {
     });
 }
 
-export function generateChest(chestId: string, layer: number, x: number, y: number, data: ChestData): void {
-    db.query("INSERT INTO Board (id, type, layer, x, y, data) VALUES ($id, $type, $layer, $x, $y, $data)").run({
+export function generateChest(chestId: string, layer: number, x: number, y: number): void {
+    db.query("INSERT INTO Board (id, type, layer, x, y) VALUES ($id, $type, $layer, $x, $y)").run({
         id: chestId,
         type: BoardEntityType.Chest,
         layer,
         x,
-        y,
-        data: JSON.stringify(data)
+        y
     });
 }
 
@@ -238,8 +216,7 @@ export async function scanFromCenter(center: BoardData, size: number, playerId?:
         }
 
         const entity = getEntityInPosition(center.layer, x, y);
-        if (entity.type === BoardEntityType.Chest && entity.data.rarity === ChestRarity.Legendary) board.push(88);
-        else if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
+        if (entity.type === BoardEntityType.Player && entity.id !== playerId) {
             if (updateViews) {
                 const cacheEntry = BoardCache.getMember(entity.id);
                 if (cacheEntry === null) {

@@ -1,8 +1,6 @@
-import { makeDropEmbed } from "../../../utils/embeds.js";
 import { ButtonStyle, ComponentType } from "lilybird";
 
 import * as BoardCache from "../../../schemas/board-cache.js";
-import * as Player from "../../../schemas/player.js";
 import * as Board from "../../../schemas/board.js";
 
 import type { Interaction, Message, MessageComponentData } from "@lilybird/transformers";
@@ -40,33 +38,17 @@ export async function handleChestCollision(interaction: Interaction<MessageCompo
         return;
     }
 
-    let coins = 0;
-    const contents: Player.InventoryStructure["items"] = {};
-    for (let i = 0, data = chest.data.contents, { length } = data; i < length; i++) {
-        const item = data[i];
-        switch (item.type) {
-            case Board.ChestContentType.Coins: {
-                coins += item.amount;
-                break;
-            }
-            case Board.ChestContentType.Item: {
-                if (typeof contents[item.item] === "undefined") contents[item.item] = 1;
-                else contents[item.item] += 1;
-                break;
-            }
-        }
-    }
+    //! TODO: Chests should be generated when opened
+    // const contents: Player.InventoryStructure["items"] = {};
 
     await interaction.deferComponentReply();
 
-    Player.Inventory.addCoins(memberId, coins);
-    Player.Inventory.updateContents(memberId, contents);
     Board.deleteEntityInPosition(layer, x, y);
     Board.updatePlayerPosition(memberId, x, y);
     BoardCache.update(cacheId);
 
     await interaction.editReply({
-        embeds: [makeDropEmbed(`Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`, coins, Object.entries(contents))],
+        // embeds: [updatePlayerInventoryAndGetEmbed(memberId, `Opened ${Board.CHEST_RARITY_MAPPINGS[chest.data.rarity]} chest!`, contents)],
         components: [
             {
                 type: ComponentType.ActionRow,
