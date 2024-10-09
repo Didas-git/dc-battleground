@@ -23,13 +23,29 @@
             "class": "undead",
             "name": "Raider Goblin",
             "description": "A normal enemy found all across Greenwoods",
-            "loot_table": "$goblin_table"
+            "loot_table": "$goblin_table",
+            "stats": {
+                "hp": 10,
+                "atk": 1,
+                "crit_rate": 0,
+                "crit_damage": 1,
+                "def": 1,
+                "armor": 0
+            }
         },
         "#skeleton": {
             "class": "undead",
             "name": "Skeleton",
             "description": "A normal enemy found all across Greenwoods",
-            "loot_table": "$skeleton_table"
+            "loot_table": "$skeleton_table",
+            "stats": {
+                "hp": 12,
+                "atk": 1.5,
+                "crit_rate": 0.05,
+                "crit_damage": 2,
+                "def": 1,
+                "armor": 10
+            }
         }
     },
     "items": {

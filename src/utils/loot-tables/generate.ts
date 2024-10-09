@@ -163,11 +163,63 @@ function parseItemsAndTables(config: Config): Array<string> {
         const [idWithPrefix, enemy] = entries[i];
         const id = idWithPrefix.slice(1);
 
-        Enemy.addEnemy(id, {
+        const enemyData: Enemy.Enemy = {
             class: mapEnemyClass(enemy.class),
             name: enemy.name,
-            description: enemy.description
-        });
+            description: enemy.description,
+            stats: {
+                hp: 0,
+                ward: 0,
+                atk: 0,
+                mana: 0,
+                crit_rate: 0,
+                crit_damage: 1,
+                def: 1,
+                armor: 0,
+                bonus: {
+                    elemental: 0,
+                    ranged: 0,
+                    melee: 0,
+                    physical: 0,
+                    fire: 0,
+                    water: 0,
+                    nature: 0,
+                    electric: 0,
+                    ice: 0,
+                    wind: 0,
+                    light: 0,
+                    cosmos: 0,
+                    poison: 0
+                },
+                resistances: {
+                    elemental: 0,
+                    ranged: 0,
+                    melee: 0,
+                    physical: 0,
+                    fire: 0,
+                    water: 0,
+                    nature: 0,
+                    electric: 0,
+                    ice: 0,
+                    wind: 0,
+                    light: 0,
+                    cosmos: 0,
+                    poison: 0
+                }
+            }
+        };
+
+        for (let j = 0, stats = Object.entries(enemy.stats), le = stats.length; j < le; j++) {
+            const [key, value] = stats[j];
+            if (typeof value === "object") {
+                for (let k = 0, innerStats = Object.entries(value), l = innerStats.length; k < l; k++) {
+                    const [ke, val] = innerStats[k];
+                    enemyData.stats[<"resistances"><unknown>key][<keyof typeof enemyData.stats.resistances>ke] = val;
+                }
+            } else enemyData.stats[<keyof typeof enemyData.stats>key] = <never>value;
+        }
+
+        Enemy.addEnemy(id, enemyData);
 
         fn.push(
             `        case "${id}": {`,

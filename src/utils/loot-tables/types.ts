@@ -1,3 +1,4 @@
+import type { GenericStats } from "../../schemas/stats.js";
 import type { LootTable } from "./loot-table.js";
 
 export const enum LootTableValueType {
@@ -50,4 +51,6 @@ export interface EnemyJSON {
     name: string;
     description: string;
     loot_table: string;
+    stats: Partial<Omit<GenericStats, "hp" | "atk" | "crit_rate" | "crit_damage" | "def" | "armor" | "mana">>
+        & { hp: number, atk: number, crit_rate: number, crit_damage: number, def: number, armor: number, mana?: number };
 }
