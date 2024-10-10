@@ -19,21 +19,21 @@ CREATE TABLE IF NOT EXISTS Enemies (
     class INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
-    data TEXT NOT NULL
+    stats TEXT NOT NULL
 )`);
 
 export function addEnemy(id: string, enemy: Enemy): void {
-    db.query("INSERT OR REPLACE INTO Enemies (id, class, name, description, data) VALUES ($id, $class, $name, $description, $data)").run({
+    db.query("INSERT OR REPLACE INTO Enemies (id, class, name, description, stats) VALUES ($id, $class, $name, $description, $stats)").run({
         id,
         class: enemy.class,
         name: enemy.name,
         description: enemy.description,
-        data: JSON.stringify(enemy.stats)
+        stats: JSON.stringify(enemy.stats)
     });
 }
 
 export function getEnemyMeta(id: string): Enemy {
-    const enemy = <{ data: string }>db.query("SELECT class, name, description, data FROM Enemies WHERE id = $id").get({ id });
-    enemy.data = <never>JSON.parse(enemy.data);
+    const enemy = <{ stats: string }>db.query("SELECT class, name, description, stats FROM Enemies WHERE id = $id").get({ id });
+    enemy.stats = <never>JSON.parse(enemy.stats);
     return <never>enemy;
 }

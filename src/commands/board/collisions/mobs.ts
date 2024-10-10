@@ -52,6 +52,8 @@ export async function handleMobBattle(interaction: Interaction<MessageComponentD
     Battle.createBattleFlow(battleId, Battle.BattleFlowType.Mob, interaction.member.user.id, battleId, { layer, x, y });
 
     await interaction.editReply({
-        content: `Battle flow against \`${mobMeta.name}\` started!`
+        content: `Battle flow against \`${mobMeta.name}\` started!`,
+        embeds: [],
+        components: []
     });
 }

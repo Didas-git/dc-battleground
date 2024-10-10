@@ -4,7 +4,7 @@ import type { BoardData } from "./board.js";
 
 db.run(`
 CREATE TABLE IF NOT EXISTS Battles (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     type INTEGER NOT NULL,
     attacker TEXT NOT NULL,
     defender TEXT NOT NULL,

@@ -52,7 +52,8 @@ export async function profileDisplay(interaction: Interaction<ApplicationCommand
         classes.total += 1;
     }
 
-    const stats = Player.Stats.get(targetDbId);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const stats = Player.Stats.get(targetDbId)!;
     const inventory = Object.entries(Player.Inventory.getContents(targetDbId));
 
     await interaction.reply({

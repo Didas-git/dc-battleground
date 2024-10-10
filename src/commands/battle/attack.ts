@@ -23,14 +23,30 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
         return;
     }
 
-    await interaction.deferReply();
-
     const playerStats = Stats.get(memberId);
+    if (playerStats === null) {
+        await interaction.reply({
+            content: "It appears that you died.\nIf you are seeing this you are sending commands way to fast.",
+            ephemeral: true
+        });
+        return;
+    }
+
     const enemyStats = Stats.get(ongoingBattle.defender);
+    if (enemyStats === null) {
+        await interaction.reply({
+            content: "It appears that your enemy has died.\nIf you are seeing this you are sending commands way to fast.",
+            ephemeral: true
+        });
+        return;
+    }
+
+    await interaction.deferReply();
 
     const { final: finalDmg } = calculateFinalDamage(playerStats, enemyStats);
 
     enemyStats.hp.current -= finalDmg;
+    Stats.update(ongoingBattle.defender, enemyStats);
 
     switch (ongoingBattle.type) {
         case Battle.BattleFlowType.Mob: {
@@ -56,31 +72,35 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
                 await interaction.followUp({
                     embeds: [updatePlayerInventoryAndGetEmbed(memberId, `Killed \`${enemyMeta.name}\`.`, drops)]
                 });
-            } else {
-                const { final: mobDmg } = calculateFinalDamage(enemyStats, playerStats);
+                return;
+            }
 
-                playerStats.hp.current -= mobDmg;
+            const { final: mobDmg } = calculateFinalDamage(enemyStats, playerStats);
+
+            playerStats.hp.current -= mobDmg;
+            Stats.update(memberId, playerStats);
+
+            await interaction.followUp({
+                content: `Received \`${mobDmg}\` damage from \`${enemyMeta.name}\``
+            });
+
+            if (playerStats.hp.current <= 0) {
+                BoardCache.del(memberId);
+                Board.deletePlayer(memberId);
+                Stats.remove(memberId);
+                Stats.remove(ongoingBattle.defender);
+                Player.deleteProfile(memberId);
+                Battle.deleteBattleFlow(ongoingBattle.id);
+
                 await interaction.followUp({
-                    content: `Received \`${mobDmg}\` damage from \`${enemyMeta.name}\``
+                    embeds: [
+                        {
+                            color: 0x470500,
+                            title: "You died!",
+                            description: "As of now deaths are permanent, you need to create a new profile to start playing again."
+                        }
+                    ]
                 });
-
-                if (playerStats.hp.current <= 0) {
-                    BoardCache.del(memberId);
-                    Board.deletePlayer(memberId);
-                    Stats.remove(memberId);
-                    Player.deleteProfile(memberId);
-                    Battle.deleteBattleFlow(ongoingBattle.id);
-
-                    await interaction.followUp({
-                        embeds: [
-                            {
-                                color: 0x470500,
-                                title: "You died!",
-                                description: "As of now deaths are permanent, you need to create a new profile to start playing again."
-                            }
-                        ]
-                    });
-                }
             }
 
             break;
