@@ -46,7 +46,7 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
                 const EnemyTable = mapEnemyToLootTable(enemyId);
                 const drops = new EnemyTable().getResults(3);
 
-                const { layer, x, y } = ongoingBattle.to;
+                const { layer, x, y } = ongoingBattle.move_to;
 
                 Board.deleteEntityInPosition(layer, x, y);
                 Board.updatePlayerPosition(memberId, x, y);

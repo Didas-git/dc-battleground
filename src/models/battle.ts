@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Battles (
     attacker TEXT NOT NULL,
     defender TEXT NOT NULL,
     last_move INTEGER NOT NULL,
-    to TEXT NOT NULL
+    move_to TEXT NOT NULL
 )`);
 
 export const enum LastMove {
@@ -27,11 +27,11 @@ export interface BattleFlow {
     attacker: string;
     defender: string;
     last_move: LastMove;
-    to: BoardData;
+    move_to: BoardData;
 }
 
 export function createBattleFlow(id: string, type: BattleFlowType, attackerId: string, defenderId: string, defenderPosition: BoardData): void {
-    db.query("INSERT INTO Battles (id, type, attacker, defender, last_move, to) VALUES ($id, $type, $attacker, $defender, $last, $to)").run({
+    db.query("INSERT INTO Battles (id, type, attacker, defender, last_move, move_to) VALUES ($id, $type, $attacker, $defender, $last, $to)").run({
         id,
         type,
         attacker: attackerId,
@@ -50,17 +50,17 @@ export function deleteBattleFlow(id: string): void {
 }
 
 export function getBattleFlow(id: string): BattleFlow | null {
-    const flow = <{ to: string } | null>db.query("SELECT type, attacker, defender, last_move, to FROM Battles WHERE id = $id").get({ id });
+    const flow = <{ move_to: string } | null>db.query("SELECT type, attacker, defender, last_move, move_to FROM Battles WHERE id = $id").get({ id });
     if (flow === null) return null;
-    flow.to = <never>JSON.parse(flow.to);
+    flow.move_to = <never>JSON.parse(flow.move_to);
 
     return <never>flow;
 }
 
 export function findFlowAsAttacker(guildAndMemberId: string): BattleFlow & { id: string } | null {
-    const flow = <{ to: string } | null>db.query(`SELECT id, type, attacker, defender, last_move, to FROM Battles WHERE id LIKE '${guildAndMemberId}:%'`).get();
+    const flow = <{ move_to: string } | null>db.query(`SELECT id, type, attacker, defender, last_move, move_to FROM Battles WHERE id LIKE '${guildAndMemberId}:%'`).get();
     if (flow === null) return null;
-    flow.to = <never>JSON.parse(flow.to);
+    flow.move_to = <never>JSON.parse(flow.move_to);
 
     return <never>flow;
 }
