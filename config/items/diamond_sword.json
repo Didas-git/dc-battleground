@@ -1,0 +1,11 @@
+{
+    "type": "equipment",
+    "rarity": "advanced",
+    "name": "Diamond Sword",
+    "description": "A sword that is made out of diamonds.",
+    "meta": {
+        "type": "weapon",
+        "inner_type": "sword",
+        "sub_type": "magic"
+    }
+}

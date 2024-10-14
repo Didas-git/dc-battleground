@@ -1,0 +1,77 @@
+{
+    "type": "object",
+    "required": [
+        "type",
+        "rarity",
+        "name",
+        "description"
+    ],
+    "properties": {
+        "type": {
+            "enum": [
+                "equipment",
+                "crafting",
+                "consumable",
+                "currency"
+            ]
+        },
+        "rarity": {
+            "enum": [
+                "cursed",
+                "normal",
+                "advanced",
+                "epic",
+                "legendary"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        }
+    },
+    "if": {
+        "properties": {
+            "type": {
+                "const": "equipment"
+            }
+        }
+    },
+    "then": {
+        "required": [
+            "meta"
+        ],
+        "properties": {
+            "meta": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "type",
+                    "inner_type",
+                    "sub_type"
+                ],
+                "properties": {
+                    "type": {
+                        "enum": [
+                            "armor",
+                            "weapon"
+                        ]
+                    },
+                    "inner_type": {
+                        "enum": [
+                            "sword",
+                            "bow"
+                        ]
+                    },
+                    "sub_type": {
+                        "enum": [
+                            "normal",
+                            "magic"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

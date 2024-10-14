@@ -1,0 +1,18 @@
+[
+    {
+        "type": "enemy",
+        "id": "goblin",
+        "unique": false,
+        "always": false,
+        "probability": 10,
+        "enabled": true
+    },
+    {
+        "type": "enemy",
+        "id": "skeleton",
+        "unique": false,
+        "always": false,
+        "probability": 1,
+        "enabled": true
+    }
+]

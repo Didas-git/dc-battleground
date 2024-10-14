@@ -1,12 +1,14 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { LootTableValueType } from "./types.js";
 import { join } from "node:path";
 
 import * as Enemy from "#models/enemy.js";
 import * as Item from "#models/item.js";
 
-import { items, loot_tables, enemies } from "../../config.json";
-
 import type { LootTableJSON, ItemJSON, EnemyJSON } from "./types.js";
+
+const PATH = join(import.meta.dir, `${import.meta.file.endsWith(".ts") ? "" : "../"}../../config`);
+const TOP_LEVEL_CONFIG_FILES = ["floors.json"];
 
 interface Config {
     items: Record<string, ItemJSON>;
@@ -72,8 +74,44 @@ function mapEnemyClass(eClass: EnemyJSON["class"]): Enemy.EnemyClass {
 }
 
 export function parseLootTableName(name: string): string {
-    const idParts = name.slice(1).split("_");
+    const idParts = name.split("_");
     return idParts.map((p) => p[0].toUpperCase() + p.slice(1)).join("");
+}
+
+function readDirAndAppendToObject(object: Record<string, any>, path: string): void {
+    const root = readdirSync(path, { withFileTypes: true });
+    for (let i = 0, { length } = root; i < length; i++) {
+        const dirent = root[i];
+        if (dirent.isDirectory()) throw new Error("Cannot have nested directories inside config folder.");
+        if (!dirent.name.endsWith(".json")) throw new Error("Non JSON file found in config folder.");
+
+        const name = dirent.name.slice(0, -5);
+        const data = readFileSync(`${dirent.parentPath}/${dirent.name}`, { encoding: "utf-8" });
+        const json = <ItemJSON>JSON.parse(data);
+        object[name] = json;
+    }
+}
+
+function parseConfigDir(path: string): Config {
+    const root = readdirSync(path, { withFileTypes: true });
+    const items: Config["items"] = {};
+    const tables: Config["loot_tables"] = {};
+    const enemies: Config["enemies"] = {};
+
+    for (let i = 0, { length } = root; i < length; i++) {
+        const dirent = root[i];
+        if (dirent.isDirectory()) {
+            if (dirent.name === "items") readDirAndAppendToObject(items, `${path}/items`);
+            else if (dirent.name === "tables") readDirAndAppendToObject(tables, `${path}/tables`);
+            else if (dirent.name === "enemies") readDirAndAppendToObject(enemies, `${path}/enemies`);
+
+            continue;
+        }
+        if (!dirent.name.endsWith(".json")) throw new Error("Non JSON file found in config folder.");
+        if (!TOP_LEVEL_CONFIG_FILES.includes(dirent.name)) throw new Error(`Invalid top level config file: '${dirent.name}'.`);
+    }
+
+    return { items, loot_tables: tables, enemies };
 }
 
 function parseItemsAndTables(config: Config): Array<string> {
@@ -136,7 +174,7 @@ function parseItemsAndTables(config: Config): Array<string> {
                 case "enemy": {
                     tableContents.push(`${j > 0 ? "\n" : ""}        {
             type: ${LootTableValueType.Enemy},
-            value: "${item.id.slice(1)}",
+            value: "${item.id}",
             unique: ${item.unique},
             always: ${item.always},
             count: ${item.count ?? 1},
@@ -160,8 +198,7 @@ function parseItemsAndTables(config: Config): Array<string> {
         "    switch (id) {"
     ];
     for (let i = 0, entries = Object.entries(config.enemies), { length } = entries; i < length; i++) {
-        const [idWithPrefix, enemy] = entries[i];
-        const id = idWithPrefix.slice(1);
+        const [id, enemy] = entries[i];
 
         const enemyData: Enemy.Enemy = {
             class: mapEnemyClass(enemy.class),
@@ -223,7 +260,7 @@ function parseItemsAndTables(config: Config): Array<string> {
 
         fn.push(
             `        case "${id}": {`,
-            `            return ${enemy.loot_table.slice(1).split("_").map((p) => p[0].toUpperCase() + p.slice(1)).join("")};`,
+            `            return ${enemy.loot_table.split("_").map((p) => p[0].toUpperCase() + p.slice(1)).join("")};`,
             "        }"
         );
     }
@@ -239,7 +276,7 @@ function parseItemsAndTables(config: Config): Array<string> {
     return fileContents;
 }
 
-const arr = parseItemsAndTables(<never>{ items, loot_tables, enemies });
+const arr = parseItemsAndTables(parseConfigDir(PATH));
 
 await Bun.write(join(import.meta.dir, "generated-tables.ts"), `${arr.join("\n\n")}\n`);
 console.log("Finished generating Items, Enemies and Loot Tables.");

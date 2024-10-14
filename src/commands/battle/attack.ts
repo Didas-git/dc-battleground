@@ -84,6 +84,7 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
                 content: `Received \`${mobDmg}\` damage from \`${enemyMeta.name}\``
             });
 
+            //! TODO: Introduce a mechanic that allows players to revive instead of deleting them
             if (playerStats.hp.current <= 0) {
                 BoardCache.del(memberId);
                 Board.deletePlayer(memberId);

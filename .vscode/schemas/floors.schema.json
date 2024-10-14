@@ -1,0 +1,25 @@
+{
+    "type": "array",
+    "minItems": 2,
+    "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+            "name",
+            "size"
+        ],
+        "properties": {
+            "name": {
+                "type": "string"
+            },
+            "size": {
+                "type": "string",
+                "pattern": "^(\\d+x?\\d+|\\d)$"
+            },
+            "enemy_table": {
+                "description": "Used to tell what loot table to use to spawn enemies.\nFloors without a loot table wont spawn enemies (TODO)",
+                "type": "string"
+            }
+        }
+    }
+}

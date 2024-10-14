@@ -1,0 +1,21 @@
+[
+    {
+        "type": "item",
+        "id": "coins",
+        "unique": false,
+        "amount": 10,
+        "always": true,
+        "droppable": false,
+        "probability": 0,
+        "enabled": true
+    },
+    {
+        "type": "item",
+        "id": "goblin_core",
+        "unique": false,
+        "always": true,
+        "droppable": true,
+        "probability": 1,
+        "enabled": true
+    }
+]

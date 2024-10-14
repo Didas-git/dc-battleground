@@ -1,0 +1,14 @@
+{
+    "class": "undead",
+    "name": "Skeleton",
+    "description": "A normal enemy found all across Greenwoods",
+    "loot_table": "skeleton_table",
+    "stats": {
+        "hp": 12,
+        "atk": 1.5,
+        "crit_rate": 0.05,
+        "crit_damage": 2,
+        "def": 1,
+        "armor": 10
+    }
+}

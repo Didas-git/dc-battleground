@@ -18,10 +18,27 @@
     "json.schemas": [
         {
             "fileMatch": [
-                "config.jsonc",
-                "config.json"
+                "/config/floors.json"
             ],
-            "url": "/.vscode/config.schema.json",
-        }
+            "url": "/.vscode/schemas/floors.schema.json",
+        },
+        {
+            "fileMatch": [
+                "/config/enemies/*.json"
+            ],
+            "url": "/.vscode/schemas/enemy.schema.json",
+        },
+        {
+            "fileMatch": [
+                "/config/items/*.json"
+            ],
+            "url": "/.vscode/schemas/item.schema.json",
+        },
+        {
+            "fileMatch": [
+                "/config/tables/*.json"
+            ],
+            "url": "/.vscode/schemas/table.schema.json",
+        },
     ]
 }

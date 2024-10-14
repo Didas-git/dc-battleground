@@ -1,0 +1,21 @@
+[
+    {
+        "type": "item",
+        "id": "coins",
+        "unique": false,
+        "amount": 15,
+        "always": true,
+        "droppable": false,
+        "probability": 0,
+        "enabled": true
+    },
+    {
+        "type": "item",
+        "id": "skeleton_bone",
+        "unique": false,
+        "always": true,
+        "droppable": true,
+        "probability": 1,
+        "enabled": true
+    }
+]

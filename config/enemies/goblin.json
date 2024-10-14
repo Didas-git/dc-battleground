@@ -1,0 +1,14 @@
+{
+    "class": "undead",
+    "name": "Raider Goblin",
+    "description": "A normal enemy found all across Greenwoods",
+    "loot_table": "goblin_table",
+    "stats": {
+        "hp": 10,
+        "atk": 1,
+        "crit_rate": 0,
+        "crit_damage": 1,
+        "def": 1,
+        "armor": 0
+    }
+}
