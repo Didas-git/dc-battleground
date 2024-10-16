@@ -46,8 +46,8 @@
     "@stylistic/eslint-plugin": "^2.9.0",
     "bun-types": "^1.1.30",
     "eslint": "^9.12.0",
-    "eslint-plugin-jsdoc": "^50.3.1",
+    "eslint-plugin-jsdoc": "^50.4.1",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.8.1"
+    "typescript-eslint": "^8.9.0"
   }
 }

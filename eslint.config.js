@@ -253,7 +253,7 @@ export default tsEslint.config({
                 "selector": "variable",
                 "format": [
                     "PascalCase",
-                    "strictCamelCase",
+                    "camelCase",
                     "UPPER_CASE"
                 ]
             },
