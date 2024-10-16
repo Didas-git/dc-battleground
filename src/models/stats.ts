@@ -1,5 +1,27 @@
 import { db } from "../db.js";
 
+export const enum DamageType {
+    Ranged,
+    Melee
+}
+
+/** To any other type than physical the general `elemental` bonus and resistances also apply */
+export const enum ElementType {
+    Physical,
+    Fire,
+    Water,
+    Nature,
+    Electric,
+    Ice,
+    Wind,
+    Light,
+    Cosmos,
+    Poison
+}
+
+export type EntityStats = Omit<GenericStats, "hp" | "mana">
+& { hp: number, mana: number };
+
 export interface GenericStats {
     hp: { current: number, max: number };
     ward: number;
@@ -10,6 +32,7 @@ export interface GenericStats {
     def: number;
     armor: number;
     bonus: {
+        atk: number,
         elemental: number,
         ranged: number,
         melee: number,

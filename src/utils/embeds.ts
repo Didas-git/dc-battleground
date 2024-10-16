@@ -28,8 +28,9 @@ export async function makeBoardEmbed(position: Board.BoardData, memberId: string
 }
 
 export function updatePlayerInventoryAndGetEmbed(playerId: string, title: string, drops: Array<LootTableContent>): Embed.Structure {
-    const contents: Player.InventoryStructure["items"] = {};
-    const temp: Array<string> = ["- Items:"];
+    const contents: Player.InventoryStructure["items"] = Player.Inventory.getContents(playerId);
+    const temp: Array<string> = [];
+    const newItems = new Set<string>();
 
     let coins = 0;
     for (let i = 0, { length } = drops; i < length; i++) {
@@ -49,8 +50,10 @@ export function updatePlayerInventoryAndGetEmbed(playerId: string, title: string
                     case Item.ItemType.Crafting:
                     case Item.ItemType.Equipment:
                     case Item.ItemType.Consumable: {
-                        if (typeof contents[item.value] === "undefined") contents[item.value] = 1;
-                        else contents[item.value] += 1;
+                        if (typeof contents[item.value] === "undefined") {
+                            newItems.add(item.value);
+                            contents[item.value] = 1;
+                        } else contents[item.value] += 1;
                         break;
                     }
                 }
@@ -65,16 +68,16 @@ export function updatePlayerInventoryAndGetEmbed(playerId: string, title: string
     for (let i = 0, entries = Object.entries(contents), { length } = entries; i < length; i++) {
         const [id, amount] = entries[i];
         const item = Item.getItemMeta(id);
-        temp.push(`  - ${item.name}: ${amount}`);
+        temp.push(`  - ${item.name}: ${amount}${newItems.has(id) ? " (New)" : ""}`);
     }
 
-    if (temp.length === 1) temp.push("  - None");
+    if (temp.length === 0) temp.push("  - None");
     Player.Inventory.addCoins(playerId, coins);
-    Player.Inventory.updateContents(playerId, contents);
+    Player.Inventory.overrideContents(playerId, contents);
 
     return {
         color: 0x00ff00,
         title,
-        description: `- Coins: ${coins}\n${temp.join("\n")}`
+        description: `- Coins: ${coins}\n"- Items:\n"${temp.join("\n")}`
     };
 }

@@ -9,6 +9,11 @@ export const Inventory = Inv;
 export interface InventoryStructure {
     coins: number;
     items: Record<string, number>;
+    equipment: {
+        primary_weapon: string | null,
+        helmet: string | null,
+        chest_plate: string | null
+    };
 }
 
 export interface PlayerData {
