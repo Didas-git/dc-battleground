@@ -3,8 +3,12 @@ import assert from "node:assert";
 import { parseLootTableName } from "#loot-table/generate.js";
 import { db } from "../db.js";
 
-import { floors } from "../../config.json";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const floors = require("../../config/floors.json") as Array<{ name: string, size: string, enemy_table?: string }>;
+
 assert(floors.length >= 2, "At least 2 floors must exist (Base & layer 1).");
+console.log("The following floors are available:");
+console.table(floors, ["name", "size"]);
 
 export interface BoardLayer {
     layer: number;
