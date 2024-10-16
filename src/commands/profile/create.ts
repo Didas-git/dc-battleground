@@ -73,6 +73,7 @@ export async function handleClassSelection(interaction: Interaction<MessageCompo
         // soft cap 30000
         armor: 50,
         bonus: {
+            atk: 0,
             elemental: 0,
             ranged: 0,
             melee: 0,

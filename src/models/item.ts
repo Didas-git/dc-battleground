@@ -1,5 +1,7 @@
 import { db } from "../db.js";
 
+import type { EntityStats } from "./stats.js";
+
 export type Item = NormalItem | Equipment | Currency;
 
 interface BaseItem {
@@ -26,6 +28,7 @@ interface Currency extends BaseItem {
 export interface EquipmentData {
     /** A 3 byte bit field (EquipmentType + InnerType + SubType) */
     type: number;
+    stats: EntityStats;
 }
 
 export const enum EquipmentType {

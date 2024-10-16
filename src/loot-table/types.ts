@@ -1,4 +1,4 @@
-import type { GenericStats } from "#models/stats.js";
+import type { EntityStats } from "#models/stats.js";
 import type { LootTable } from "./index.js";
 
 export const enum LootTableValueType {
@@ -39,6 +39,7 @@ export interface ItemJSON {
     amount?: number;
     name: string;
     description: string;
+    stats: EntityStats;
     meta: {
         type: "armor" | "weapon",
         inner_type: "sword" | "bow",
@@ -51,6 +52,5 @@ export interface EnemyJSON {
     name: string;
     description: string;
     loot_table: string;
-    stats: Partial<Omit<GenericStats, "hp" | "atk" | "crit_rate" | "crit_damage" | "def" | "armor" | "mana">>
-        & { hp: number, atk: number, crit_rate: number, crit_damage: number, def: number, armor: number, mana?: number };
+    stats: EntityStats;
 }

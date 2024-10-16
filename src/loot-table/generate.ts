@@ -7,6 +7,8 @@ import * as Item from "#models/item.js";
 
 import type { LootTableJSON, ItemJSON, EnemyJSON } from "./types.js";
 
+import type * as Stats from "#models/stats.js";
+
 const PATH = join(import.meta.dir, `${import.meta.file.endsWith(".ts") ? "" : "../"}../../config`);
 const TOP_LEVEL_CONFIG_FILES = ["floors.json"];
 
@@ -37,7 +39,7 @@ function mapItemRarity(rarity: ItemJSON["rarity"]): Item.ItemRarity {
     }
 }
 
-function mapItemMeta(meta: ItemJSON["meta"] | undefined): Item.EquipmentData | null {
+function mapItemMeta(stats: ItemJSON["stats"], meta: ItemJSON["meta"]): Item.EquipmentData | null {
     if (typeof meta === "undefined") return null;
 
     let firstByte = 0;
@@ -61,8 +63,61 @@ function mapItemMeta(meta: ItemJSON["meta"] | undefined): Item.EquipmentData | n
     if (secondByte === 0) throw new Error("Missing equipment inner type");
     if (thirdByte === 0) throw new Error("Missing equipment sub type");
 
+    const parsedStats: Stats.EntityStats = {
+        hp: 0,
+        ward: 0,
+        atk: 0,
+        mana: 0,
+        crit_rate: 0,
+        crit_damage: 1,
+        def: 1,
+        armor: 0,
+        bonus: {
+            atk: 0,
+            elemental: 0,
+            ranged: 0,
+            melee: 0,
+            physical: 0,
+            fire: 0,
+            water: 0,
+            nature: 0,
+            electric: 0,
+            ice: 0,
+            wind: 0,
+            light: 0,
+            cosmos: 0,
+            poison: 0
+        },
+        resistances: {
+            elemental: 0,
+            ranged: 0,
+            melee: 0,
+            physical: 0,
+            fire: 0,
+            water: 0,
+            nature: 0,
+            electric: 0,
+            ice: 0,
+            wind: 0,
+            light: 0,
+            cosmos: 0,
+            poison: 0
+        }
+    };
+
+    for (let i = 0, s = Object.entries(stats), { length } = s; i < length; i++) {
+        const [key, value] = s[i];
+        if (typeof value === "object") {
+            for (let j = 0, innerStats = Object.entries(value), l = innerStats.length; j < l; j++) {
+                const [ke, val] = innerStats[j];
+                parsedStats[<"resistances"><unknown>key][<keyof typeof parsedStats.resistances>ke] = val;
+            }
+        } else parsedStats[<keyof typeof parsedStats>key] = <never>value;
+    }
+
     return {
-        type: (firstByte << 16) | (secondByte << 8) | thirdByte
+        type: (firstByte << 16) | (secondByte << 8) | thirdByte,
+        stats
     };
 }
 
@@ -126,7 +181,7 @@ function parseItemsAndTables(config: Config): Array<string> {
             amount: data.amount ?? 1,
             name: data.name,
             description: data.description,
-            data: mapItemMeta(data.meta)
+            data: mapItemMeta(data.stats, data.meta)
         });
     }
 
@@ -214,6 +269,7 @@ function parseItemsAndTables(config: Config): Array<string> {
                 def: 1,
                 armor: 0,
                 bonus: {
+                    atk: 0,
                     elemental: 0,
                     ranged: 0,
                     melee: 0,
