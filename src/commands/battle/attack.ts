@@ -1,5 +1,5 @@
 import { updatePlayerInventoryAndGetEmbed } from "#utils/embeds.js";
-import { calculateFinalDamage } from "#utils/battle.js";
+import { calculateDamage } from "#utils/battle.js";
 
 import * as BoardCache from "#models/board-cache.js";
 import * as Battle from "#models/battle.js";
@@ -43,7 +43,7 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
 
     await interaction.deferReply();
 
-    const { final: finalDmg } = calculateFinalDamage(playerStats, enemyStats);
+    const { final: finalDmg } = calculateDamage(ongoingBattle.attacker, ongoingBattle.defender, ongoingBattle.type);
 
     enemyStats.hp.current -= finalDmg;
     Stats.update(ongoingBattle.defender, enemyStats);
@@ -75,7 +75,7 @@ export async function attack(interaction: Interaction<MessageComponentData, Mess
                 return;
             }
 
-            const { final: mobDmg } = calculateFinalDamage(enemyStats, playerStats);
+            const { final: mobDmg } = calculateDamage(ongoingBattle.defender, ongoingBattle.attacker, Battle.BattleFlowType.Player);
 
             playerStats.hp.current -= mobDmg;
             Stats.update(memberId, playerStats);
