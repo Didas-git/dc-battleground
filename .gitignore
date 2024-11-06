@@ -1,8 +1,14 @@
+server/sqlite
+
 node_modules/
 dist/
 coverage/
 lily-cache/
 db/
+zig-out/
+
+.zig-cache/
+
 .env.*
 .DS_Store
 .obsidian
