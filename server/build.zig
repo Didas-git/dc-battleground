@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
         const tool = b.addExecutable(.{
             .name = "build_sqlite",
             .root_source_file = b.path("tools/build_sqlite.zig"),
-            .target = b.host,
+            .target = b.graph.host,
         });
 
         const tool_step = b.addRunArtifact(tool);
@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) void {
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
     const exe = b.addExecutable(.{
         .name = "server",
         .root_source_file = b.path("src/main.zig"),
@@ -24,9 +25,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const zuws = b.dependency("zuws", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     exe.linkLibC();
     exe.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
     exe.addIncludePath(b.path("sqlite"));
+    exe.root_module.addImport("zuws", zuws.module("zuws"));
     b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);

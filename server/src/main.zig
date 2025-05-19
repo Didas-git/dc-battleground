@@ -1,12 +1,23 @@
 const std = @import("std");
 const c = @cImport(@cInclude("sqlite3.h"));
+const uws = @import("zuws");
+
+const App = uws.App;
+const Request = uws.Request;
+const Response = uws.Response;
+
+fn hello(res: *Response, req: *Request) void {
+    _ = req;
+    const str = "Hello World!\n";
+    res.end(str, false);
+}
 
 const Statement = struct {
     stmt: ?*c.sqlite3_stmt,
 
     fn init(db: ?*c.sqlite3, query: [:0]const u8) Statement {
         var stmt: ?*c.sqlite3_stmt = undefined;
-        const result = c.sqlite3_prepare(db, query, @intCast(query.len), &stmt, undefined);
+        const result = c.sqlite3_prepare(db.?, query, @intCast(query.len), &stmt, undefined);
 
         // TODO: Improve error handling, maybe cast it to a proper enum (?)
         if (result != c.SQLITE_OK) {}
@@ -46,6 +57,9 @@ const Statement = struct {
 };
 
 pub fn main() !void {
+    const app: App = try .init();
+    defer app.deinit();
+
     const flags = c.SQLITE_OPEN_CREATE | c.SQLITE_OPEN_READWRITE;
 
     var db: ?*c.sqlite3 = undefined;
@@ -56,4 +70,7 @@ pub fn main() !void {
 
     defer create_table.deinit();
     create_table.step();
+
+    try app.get("/hello", hello)
+        .listen(3000, null);
 }

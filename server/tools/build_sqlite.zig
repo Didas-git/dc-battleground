@@ -1,3 +1,4 @@
+//! TODO: Redo this entire thing
 const std = @import("std");
 
 pub fn main() !void {
@@ -28,10 +29,8 @@ pub fn main() !void {
     });
 
     // This doesnt work, i need to find a way to execute make within a child process
-    var child = std.ChildProcess.init(&.{"make sqlite3.c"}, std.heap.page_allocator);
+    var child = std.process.Child.init(&.{"make sqlite3.c"}, std.heap.page_allocator);
     child.stdin_behavior = .Ignore;
-    child.stdout_behavior = .Inherit;
-    child.stderr_behavior = .Inherit;
     child.cwd = temp_dir_path;
     child.uid = std.os.linux.geteuid();
 
