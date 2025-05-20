@@ -13,3 +13,6 @@ anyopaque
 anyerror
 
 deinit
+
+memcpy
+memset
