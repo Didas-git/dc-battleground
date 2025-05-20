@@ -30,9 +30,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.linkLibC();
-    exe.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
-    exe.addIncludePath(b.path("sqlite"));
+    const sqlite = b.addLibrary(.{
+        .name = "sqlite",
+        .root_module = b.addTranslateC(.{
+            .root_source_file = b.path("sqlite/sqlite3.h"),
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        }).createModule(),
+    });
+
+    sqlite.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
+
+    exe.root_module.addImport("sqlite", sqlite.root_module);
     exe.root_module.addImport("zuws", zuws.module("zuws"));
     b.installArtifact(exe);
 
