@@ -1,0 +1,15 @@
+comptime
+struct
+nosuspend
+usingnamespace
+callconv
+orelse
+errdefer
+
+usize
+isize
+anytype
+anyopaque
+anyerror
+
+deinit
