@@ -3,6 +3,8 @@ const std = @import("std");
 
 const Statement = @import("../Statement.zig");
 
+const random = std.crypto.random;
+
 const Board = @This();
 
 insert: struct {
@@ -76,6 +78,13 @@ pub fn deinit(self: *const Board) void {
     inline for (comptime std.meta.fieldNames(@TypeOf(self.insert))) |name| {
         @field(self.insert, name).deinit();
     }
+}
+
+pub fn generateRandomCoordinates(x: i32, y: i32) struct { x: i32, y: i32 } {
+    return .{
+        .x = random.intRangeAtMost(i32, -x, x),
+        .y = random.intRangeAtMost(i32, -x, y),
+    };
 }
 
 pub fn spawnPlayer(self: *const Board, member_id: [:0]const u8, x: i32, y: i32) void {
@@ -219,7 +228,7 @@ pub fn getPortalPosition(self: *const Board, guild_id: [:0]const u8, layer: u8, 
 }
 
 /// The allocator is necessary to hold onto the `id`
-/// Its up for the caller to deinit the memory using `Entity.deinit(allocator)`
+/// Its up for the caller to deinit the memory using `Entity.deinit(allocator)` or use an arena allocator
 pub fn getEntityInPosition(self: *const Board, allocator: std.mem.Allocator, layer: u8, x: i32, y: i32) !Entity {
     const query = self.get.entity;
     defer query.reset();
@@ -339,9 +348,32 @@ pub const Entity = union(EntityType) {
     }
 };
 
-pub fn generateRandomCoordinates(x: i32, y: i32) struct { x: i32, y: i32 } {
-    return .{
-        .x = std.crypto.random.intRangeAtMost(i32, x * -1, x),
-        .y = std.crypto.random.intRangeAtMost(i32, y * -1, y),
-    };
+/// Caller should use an arena allocator to be able to deinit all entities at once.
+pub fn scanForEntities(self: *const Board, allocator: std.mem.Allocator, center: PositionalData, comptime size: u16) ![]Entity {
+    const full_size = size * size;
+    var entities: [full_size]Entity = undefined;
+
+    const initial_x = center.x - (size / 2);
+    const initial_y = center.y + (size / 2);
+
+    var i: usize = 0;
+    var x = initial_x;
+    var y = initial_y;
+    var entity_count: usize = 0;
+    while (i < full_size) : (i += 1) {
+        if (i % size == 0) {
+            x = initial_x;
+            y -= 1;
+        }
+
+        const entity = try self.getEntityInPosition(allocator, center.layer, x, y);
+        if (entity != .Empty) {
+            entities[entity_count] = entity;
+            entity_count += 1;
+        }
+
+        x += 1;
+    }
+
+    return entities[0..entity_count];
 }
