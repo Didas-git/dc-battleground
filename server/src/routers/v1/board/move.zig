@@ -89,13 +89,15 @@ pub fn move(res: *Response, req: *Request) void {
             res.writeStatus("204 Player battle not implemented");
         },
         .LayerPortal => |portal| {
-            const next_layer = player.layer + portal.to;
-            const possible_new_layer = BoardLayer.getBoardLayerInfo(allocator, next_layer);
+            const next_layer: u8 = @intCast(@as(i16, player.layer) +| @intFromEnum(portal.to));
+            const possible_new_layer = BoardLayer.getBoardLayerInfo(allocator, next_layer) catch {
+                return handleFailedAllocation(res);
+            };
 
             if (possible_new_layer) |new_layer| {
-                defer new_layer.deinit();
+                defer new_layer.deinit(allocator);
                 const stringified_data = std.json.stringifyAlloc(allocator, NextMoveLayerData{
-                    .entity = portal,
+                    .entity = entity,
                     .direction = direction,
                     .layer = player.layer,
                     .x = x,

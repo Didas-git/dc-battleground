@@ -8,7 +8,7 @@ const Statement = Database.Statement;
 const BoardLayer = @This();
 
 queries: struct {
-    initialize: Statement,
+    search: Statement,
     get: Statement,
     create: Statement,
     delete: Statement,
@@ -20,10 +20,9 @@ pub const Data = struct {
     loot_table: ?[]const u8,
     x: u32,
     y: u32,
-    previous: ?u8,
-    next: ?u8,
+    has_next: bool,
 
-    pub fn deinit(self: *Data, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: Data, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
     }
 };
@@ -36,26 +35,23 @@ pub fn init(db: *Database) BoardLayer {
         \\loot_table TEXT,
         \\x INTEGER NOT NULL,
         \\y INTEGER NOT NULL,
-        \\previous INTEGER,
-        \\next INTEGER,
-        \\FOREIGN KEY(previous) REFERENCES BoardLayer(layer)
-        \\FOREIGN KEY(next) REFERENCES BoardLayer(layer)
+        \\has_next INTEGER NOT NULL
         \\)
     );
 
     return .{
         .queries = .{
-            .initialize = .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
-            .get = .init(db, "SELECT name, layer, x, y, previous, next FROM BoardLayer WHERE layer = :layer"),
+            .search = .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
+            .get = .init(db, "SELECT name, layer, x, y, has_next FROM BoardLayer WHERE layer = :layer"),
             .delete = .init(db, "DELETE FROM BoardLayer WHERE layer = :layer"),
-            .create = .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y, previous, next) VALUES (:layer, :name, :table, :x, :y, :previousLayer, :nextLayer)"),
+            .create = .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y, has_next) VALUES (:layer, :name, :table, :x, :y, :has_next)"),
         },
     };
 }
 
 // Use an arena allocator to free everything at once
 pub fn parseLayerSettings(self: *BoardLayer) void {
-    const get_query = self.queries.initialize;
+    const get_query = self.queries.search;
     const del_query = self.queries.delete;
 
     const len = settings.floors.len;
@@ -78,22 +74,20 @@ pub fn parseLayerSettings(self: *BoardLayer) void {
         const x = layer.size;
         const y = layer.size;
 
-        const previous_layer: ?u8 = if (i -| 1 == 0) null else i - 1;
-        const next_layer: ?u8 = if (i + 1 == 1) null else if (i + 1 >= len) null else i + 1;
+        const has_next: bool = i + 1 < len;
 
         self.createBoardLayer(
             i,
             layer.name,
             x,
             y,
-            previous_layer,
-            next_layer,
+            has_next,
         );
     }
 }
 
 // Caller must call `Data.deinit(allocator)`
-pub fn getBoardLayerInfo(self: *BoardLayer, allocator: std.mem.Allocator, layer: u8) !Data {
+pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, layer: u8) !?Data {
     const query = self.queries.get;
     defer query.reset();
 
@@ -111,12 +105,11 @@ pub fn getBoardLayerInfo(self: *BoardLayer, allocator: std.mem.Allocator, layer:
 
     return .{
         .name = new_memory,
-        .layer = query.intColumn(1),
+        .layer = @intCast(query.intColumn(1)),
         .loot_table = null,
         .x = @intCast(query.intColumn(2)),
         .y = @intCast(query.intColumn(3)),
-        .previous = query.intColumn(4),
-        .next = query.intColumn(5),
+        .has_next = query.intColumn(4) != 0,
     };
 }
 
@@ -126,8 +119,7 @@ pub fn createBoardLayer(
     name: []const u8,
     x: u32,
     y: u32,
-    previous_layer: ?u8,
-    next_layer: ?u8,
+    has_next: bool,
 ) void {
     const query = self.queries.create;
     defer query.reset();
@@ -137,8 +129,7 @@ pub fn createBoardLayer(
     query.bindNull(3);
     query.bindInt(4, x);
     query.bindInt(5, y);
-    if (previous_layer) |prev| query.bindInt(6, prev) else query.bindNull(6);
-    if (next_layer) |next| query.bindInt(7, next) else query.bindNull(7);
+    query.bindInt(6, @intFromBool(has_next));
 
     _ = query.step();
 }

@@ -248,10 +248,10 @@ pub fn getEntityInPosition(self: *const Board, allocator: std.mem.Allocator, lay
 
     return switch (entity_type) {
         .Empty => unreachable,
-        .Enemy => .{ .Enemy = .{ .id = new_memory[0..], .enemy_id = extra } },
-        .LayerPortal => .{ .LayerPortal = .{ .id = new_memory[0..], .to = @enumFromInt(extra) } },
+        .Enemy => .{ .Enemy = .{ .id = new_memory, .enemy_id = extra } },
+        .LayerPortal => .{ .LayerPortal = .{ .id = new_memory, .to = @enumFromInt(extra) } },
         inline else => |e| {
-            return @unionInit(Entity, @tagName(e), .{ .id = new_memory[0..] });
+            return @unionInit(Entity, @tagName(e), .{ .id = new_memory });
         },
     };
 }
