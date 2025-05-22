@@ -1,7 +1,7 @@
-const sqlite = @import("sqlite");
 const std = @import("std");
 
-const Statement = @import("../Statement.zig");
+const Database = @import("../sqlite/Database.zig");
+const Statement = Database.Statement;
 
 const random = std.crypto.random;
 
@@ -36,8 +36,8 @@ pub const PositionalData = struct {
     y: i32,
 };
 
-pub fn init(db: ?*sqlite.sqlite3) Board {
-    const create_table = Statement.init(db,
+pub fn init(db: *Database) Board {
+    db.exec(
         \\CREATE TABLE IF NOT EXISTS Board (
         \\id TEXT PRIMARY KEY,
         \\type INTEGER NOT NULL,
@@ -48,28 +48,25 @@ pub fn init(db: ?*sqlite.sqlite3) Board {
         \\)
     );
 
-    defer create_table.deinit();
-    _ = create_table.step();
-
     return .{
         .insert = .{
-            .player = Statement.init(db, "INSERT INTO Board (id, type, layer, x, y) VALUES (:id, :type, 1, :x, :y)"),
-            .generic = Statement.init(db, "INSERT INTO Board (id, type, layer, x, y, extra) VALUES (:id, :type, :layer, :x, :y, :extra)"),
+            .player = .init(db, "INSERT INTO Board (id, type, layer, x, y) VALUES (:id, :type, 1, :x, :y)"),
+            .generic = .init(db, "INSERT INTO Board (id, type, layer, x, y, extra) VALUES (:id, :type, :layer, :x, :y, :extra)"),
         },
         .get = .{
-            .player = Statement.init(db, "SELECT layer, x, y FROM Board WHERE id = :id"),
-            .portal = Statement.init(db, "SELECT layer, x, y FROM Board WHERE layer = :layer AND id LIKE :id AND extra = :to"),
-            .entity = Statement.init(db, "SELECT type, id, extra FROM Board WHERE layer = :layer AND x = :x AND y = :y"),
+            .player = .init(db, "SELECT layer, x, y FROM Board WHERE id = :id"),
+            .portal = .init(db, "SELECT layer, x, y FROM Board WHERE layer = :layer AND id LIKE :id AND extra = :to"),
+            .entity = .init(db, "SELECT type, id, extra FROM Board WHERE layer = :layer AND x = :x AND y = :y"),
         },
         .update = .{
             .player = .{
-                .position = Statement.init(db, "UPDATE Board SET x = :x, y = :y WHERE id = :id"),
-                .layer = Statement.init(db, "UPDATE Board SET layer = :layer WHERE id = :id"),
+                .position = .init(db, "UPDATE Board SET x = :x, y = :y WHERE id = :id"),
+                .layer = .init(db, "UPDATE Board SET layer = :layer WHERE id = :id"),
             },
         },
         .delete = .{
-            .player = Statement.init(db, "DELETE FROM Board WHERE id = :id"),
-            .entity = Statement.init(db, "DELETE FROM Board WHERE layer = :layer AND x = :x AND y = :y"),
+            .player = .init(db, "DELETE FROM Board WHERE id = :id"),
+            .entity = .init(db, "DELETE FROM Board WHERE layer = :layer AND x = :x AND y = :y"),
         },
     };
 }
@@ -140,7 +137,7 @@ pub fn insertLayerPortal(self: *const Board, layer_id: [:0]const u8, layer: u8, 
     _ = query.step();
 }
 
-pub fn updatePlayerPosition(self: *const Board, member_id: [:0]const u8, x: i32, y: i32) bool {
+pub fn updatePlayerPosition(self: *const Board, member_id: []const u8, x: i32, y: i32) bool {
     const query = self.update.player.position;
     defer query.reset();
 
@@ -173,7 +170,7 @@ pub fn changePlayerLayer(self: *const Board, member_id: [:0]const u8, layer: u8)
     return false;
 }
 
-pub fn getPlayerPosition(self: *const Board, member_id: [:0]const u8) ?PositionalData {
+pub fn getPlayerPosition(self: *const Board, member_id: []const u8) ?PositionalData {
     const query = self.get.player;
     defer query.reset();
 
@@ -246,15 +243,15 @@ pub fn getEntityInPosition(self: *const Board, allocator: std.mem.Allocator, lay
     const extra = query.intColumn(2);
 
     const id_len = std.mem.len(id);
-    const new_memory = try allocator.allocSentinel(u8, id_len, 0);
-    @memcpy(new_memory, id[0..id_len :0]);
+    const new_memory = try allocator.alloc(u8, id_len);
+    @memcpy(new_memory, id[0..id_len]);
 
     return switch (entity_type) {
         .Empty => unreachable,
-        .Enemy => .{ .Enemy = .{ .id = new_memory, .enemy_id = extra } },
-        .LayerPortal => .{ .LayerPortal = .{ .id = new_memory, .to = @enumFromInt(extra) } },
+        .Enemy => .{ .Enemy = .{ .id = new_memory[0..], .enemy_id = extra } },
+        .LayerPortal => .{ .LayerPortal = .{ .id = new_memory[0..], .to = @enumFromInt(extra) } },
         inline else => |e| {
-            return @unionInit(Entity, @tagName(e), .{ .id = new_memory });
+            return @unionInit(Entity, @tagName(e), .{ .id = new_memory[0..] });
         },
     };
 }
@@ -315,7 +312,7 @@ pub const LayerPortalDirection = enum(i2) {
     forwards = 1,
 };
 
-const EntityType = enum {
+pub const EntityType = enum {
     Empty,
     Player,
     Enemy,
@@ -326,24 +323,25 @@ const EntityType = enum {
 pub const Entity = union(EntityType) {
     Empty: void,
     Player: struct {
-        id: [:0]const u8,
+        id: []const u8,
     },
     Enemy: struct {
-        id: [:0]const u8,
+        id: []const u8,
         /// Can never be 0
         enemy_id: i64,
     },
     Chest: struct {
-        id: [:0]const u8,
+        id: []const u8,
     },
     LayerPortal: struct {
-        id: [:0]const u8,
+        id: []const u8,
         to: LayerPortalDirection,
     },
 
-    pub fn deinit(self: *const Board, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: Entity, allocator: std.mem.Allocator) void {
         switch (self) {
-            inline else => |e| allocator.destroy(&e.id),
+            .Empty => {},
+            inline else => |e| allocator.free(e.id),
         }
     }
 };

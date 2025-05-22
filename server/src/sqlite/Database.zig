@@ -1,0 +1,46 @@
+const sqlite = @import("sqlite");
+
+const Database = @This();
+
+pub const Statement = @import("./Statement.zig");
+
+db: ?*sqlite.sqlite3,
+
+pub const DatabaseInitOptions = struct {
+    readonly: bool = false,
+    auto_create: bool = true,
+    /// Interpret the filename as a URI
+    is_uri: bool = false,
+    /// Open the db as an in memory db
+    in_memory: bool = false,
+    /// Allow symlinks as your filename
+    follow: bool = false,
+};
+
+pub fn init(name: [*c]const u8, options: DatabaseInitOptions) !Database {
+    var db: ?*sqlite.sqlite3 = undefined;
+
+    var flags = if (options.readonly) sqlite.SQLITE_OPEN_READONLY else sqlite.SQLITE_OPEN_READWRITE;
+    if (options.auto_create) flags |= sqlite.SQLITE_OPEN_CREATE;
+    if (options.is_uri) flags |= sqlite.SQLITE_OPEN_URI;
+    if (options.in_memory) flags |= sqlite.SQLITE_OPEN_MEMORY;
+    if (!options.follow) flags |= sqlite.SQLITE_OPEN_NOFOLLOW;
+
+    if (sqlite.sqlite3_open_v2(name, &db, flags, null) != sqlite.SQLITE_OK) return error.FailedToOpenDatabase;
+
+    return .{
+        .db = db,
+    };
+}
+
+pub fn deinit(self: *const Database) void {
+    _ = sqlite.sqlite3_close_v2(self.db);
+}
+
+/// Please don't use this for `SELECT` as it wont return anything
+pub fn exec(self: *const Database, query: [:0]const u8) void {
+    const result = sqlite.sqlite3_exec(self.db, query, null, null, null);
+
+    // TODO: Improve error handling
+    if (result != sqlite.SQLITE_OK) {}
+}

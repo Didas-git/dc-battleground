@@ -10,4 +10,8 @@ const Settings = struct {
         chest: f64,
         mob: f64,
     },
+    floors: [4]struct {
+        name: []const u8,
+        size: u32,
+    },
 };

@@ -1,20 +1,22 @@
 const sqlite = @import("sqlite");
 const std = @import("std");
 
+const Database = @import("./Database.zig");
+
 const Statement = @This();
 
-stmt: ?*sqlite.sqlite3_stmt,
-db: ?*sqlite.sqlite3,
+stmt: *sqlite.sqlite3_stmt,
+db: *sqlite.sqlite3,
 
-pub fn init(db: ?*sqlite.sqlite3, query: [:0]const u8) Statement {
+pub fn init(db: *Database, query: [:0]const u8) Statement {
     var stmt: ?*sqlite.sqlite3_stmt = undefined;
-    const result = sqlite.sqlite3_prepare(db.?, query, @intCast(query.len), &stmt, undefined);
+    const result = sqlite.sqlite3_prepare_v2(db.db.?, query, @intCast(query.len), &stmt, undefined);
 
     // TODO: Improve error handling, maybe cast it to a proper enum (?)
     if (result != sqlite.SQLITE_OK) {}
     return .{
-        .stmt = stmt,
-        .db = db,
+        .stmt = stmt.?,
+        .db = db.db.?,
     };
 }
 
@@ -49,9 +51,16 @@ pub fn deinit(self: *const Statement) void {
     if (result != sqlite.SQLITE_OK) {}
 }
 
-pub fn bindText(self: *const Statement, index: u8, text: [:0]const u8) void {
+pub fn bindNull(self: *const Statement, index: u8) void {
+    const result = sqlite.sqlite3_bind_null(self.stmt, @as(c_int, index));
+
+    // TODO: Improve error handling
+    if (result != sqlite.SQLITE_OK) {}
+}
+
+pub fn bindText(self: *const Statement, index: u8, text: []const u8) void {
     // TODO: Check if transient really is the best option for us
-    const result = sqlite.sqlite3_bind_text(self.stmt, @as(c_int, index), text, @as(c_int, @intCast(text.len)), sqlite.SQLITE_TRANSIENT);
+    const result = sqlite.sqlite3_bind_text(self.stmt, @as(c_int, index), text.ptr, @as(c_int, @intCast(text.len)), sqlite.SQLITE_TRANSIENT);
 
     // TODO: Improve error handling
     if (result != sqlite.SQLITE_OK) {}
