@@ -50,4 +50,27 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the application");
     run_step.dependOn(&run_exe.step);
+
+    const generate_graph = b.addExecutable(.{
+        .name = "gen",
+        .root_source_file = b.path("./tools/generate-graph.zig"),
+        .target = target,
+    });
+
+    generate_graph.root_module.addAnonymousImport("player", .{ .root_source_file = b.path("./src/models/Player.zig") });
+    b.installArtifact(generate_graph);
+    const gen_step = b.addRunArtifact(generate_graph);
+
+    const view = b.addExecutable(.{
+        .name = "view",
+        .root_source_file = b.path("./tools/visualize-graph.zig"),
+        .target = target,
+    });
+
+    view.root_module.addImport("zuws", zuws.module("zuws"));
+    b.installArtifact(view);
+    const view_exe = b.addRunArtifact(view);
+    view_exe.step.dependOn(&gen_step.step);
+    const view_step = b.step("view-graph", "View all levels in a graph hosted at localhost:8000");
+    view_step.dependOn(&view_exe.step);
 }

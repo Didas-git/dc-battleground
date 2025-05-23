@@ -15,6 +15,7 @@ zig-out/
 .dccache
 
 generated-tables.ts
+server/tools/index.html
 
 *.jsonc
 *.db
