@@ -34,49 +34,26 @@ fn t(l: f64, u: f64, n: f64, x: f64) f64 {
 
 pub fn getNextLevelXP(_x: u16) u64 {
     const x: f64 = @floatFromInt(_x);
-    if (x == 0) {
-        return 0;
-    }
-    if (1 <= x and x < 200) {
-        return @intFromFloat(@round(q(500, 50000, 199, x - 1)));
-    }
-    if (200 <= x and x < 300) {
-        return @intFromFloat(@round(q(50000, 200000, 100, x - 200)));
-    }
-    if (300 <= x and x < 400) {
-        return @intFromFloat(@round(t(200000, 150000, 100, x - 300)));
-    }
-    if (400 <= x and x < 499) {
-        return @intFromFloat(@round(t(150000, 100000, 99, x - 400)));
-    }
-    if (499 <= x and x < 500) {
-        return @intFromFloat(@round(t(100000, 300000, 1, x - 499)));
-    }
-    if (500 <= x and x < 1500) {
-        return @intFromFloat(@round(q(300000, 2500000, 1000, x - 500)));
-    }
-    if (1500 <= x and x < 1700) {
-        return 2500000;
-    }
-    if (1700 <= x and x < 1999) {
-        return @intFromFloat(@round(linear(2500000, 200000000, 299, x - 1700)));
-    }
-    if (1999 <= x and x < 2000) {
-        return 200000000;
-    }
-    if (2000 <= x and x < 2001) {
-        return @intFromFloat(@round(linear(200000000, 1000000000, 1, x - 2000)));
-    }
-    if (2001 <= x and x < 2150) {
-        return 1000000000;
-    }
-    if (2150 <= x and x < 2900) {
-        return @intFromFloat(@round(q(1000000000, 30000000000, 750, x - 2150)));
-    }
-    if (2900 <= x and x < 3000) {
-        return @intFromFloat(@round(q(30000000000, 1000000000000, 100, x - 2900)));
-    }
 
-    // x == 3000
-    return 1000000000000;
+    const val: f64 = switch (_x) {
+        0 => 0,
+        1...199 => q(500, 50000, 199, x - 1),
+        200...299 => q(50000, 200000, 100, x - 200),
+        300...399 => t(200000, 150000, 100, x - 300),
+        400...498 => t(150000, 100000, 99, x - 400),
+        499 => t(100000, 300000, 1, x - 499),
+        500...1499 => q(300000, 2500000, 1000, x - 500),
+        1500...1699 => 2500000,
+        1700...1998 => linear(2500000, 200000000, 299, x - 1700),
+        // When put this way this 2 lines should probably be merged lol
+        1999 => 200000000,
+        2000 => linear(200000000, 1000000000, 1, x - 2000),
+        2001...2149 => 1000000000,
+        2150...2899 => q(1000000000, 30000000000, 750, x - 2150),
+        2900...2999 => q(30000000000, 1000000000000, 100, x - 2900),
+        3000 => 1000000000000,
+        else => unreachable,
+    };
+
+    return @intFromFloat(@round(val));
 }
