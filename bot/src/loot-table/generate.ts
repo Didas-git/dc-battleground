@@ -9,7 +9,7 @@ import type { LootTableJSON, ItemJSON, EnemyJSON } from "./types.js";
 
 import type * as Stats from "#models/stats.js";
 
-const PATH = join(import.meta.dir, `${import.meta.file.endsWith(".ts") ? "" : "../"}../../config`);
+const PATH = join(import.meta.dir, `${import.meta.file.endsWith(".ts") ? "" : "../"}../../../config`);
 const TOP_LEVEL_CONFIG_FILES = ["floors.json"];
 
 interface Config {
