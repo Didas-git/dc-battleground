@@ -32,6 +32,10 @@ pub fn main() !void {
 
     BoardLayer.parseLayerSettings();
 
+    Board.spawnPlayer("didas", 0, 0);
+    Board.insertLayerPortal("test_portal", 1, 1, 0, .forwards);
+    BoardCache.set("maybe", "didas");
+
     // Enable later in prod
     // db.exec("PRAGMA journal_mode = WAL");
     // db.exec("PRAGMA synchronous = NORMAL");

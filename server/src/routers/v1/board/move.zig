@@ -3,19 +3,17 @@ const std = @import("std");
 
 const db = @import("../../../main.zig");
 
-const EntityType = @import("../../../models/Board.zig").EntityType;
-
 const NextMoveData = struct {
-    entity: EntityType,
-    direction: Direction,
+    entity: u8,
+    direction: u8,
     layer: u8,
     x: i32,
     y: i32,
 };
 
 const NextMoveLayerData = struct {
-    entity: EntityType,
-    direction: Direction,
+    entity: u8,
+    direction: u8,
     layer: u8,
     x: i32,
     y: i32,
@@ -96,9 +94,10 @@ pub fn move(res: *Response, req: *Request) void {
 
             if (possible_new_layer) |new_layer| {
                 defer new_layer.deinit(allocator);
+                // TODO: Use HBP instead of JSON
                 const stringified_data = std.json.stringifyAlloc(allocator, NextMoveLayerData{
-                    .entity = entity,
-                    .direction = direction,
+                    .entity = @intFromEnum(entity),
+                    .direction = @intFromEnum(direction),
                     .layer = player.layer,
                     .x = x,
                     .y = y,
@@ -110,17 +109,18 @@ pub fn move(res: *Response, req: *Request) void {
                 };
 
                 res.writeStatus("308 Next Action");
-                res.end(stringified_data[0.. :0], true);
+                res.writeHeader("Content-Type", "application/json; charset=utf8");
+                res.end(stringified_data, true);
                 return;
             } else {
                 // This should never happen
                 res.writeStatus("503 This portal should not exist");
             }
         },
-        else => |e| {
+        else => {
             const stringified_data = std.json.stringifyAlloc(allocator, NextMoveData{
-                .entity = e,
-                .direction = direction,
+                .entity = @intFromEnum(entity),
+                .direction = @intFromEnum(direction),
                 .layer = player.layer,
                 .x = x,
                 .y = y,
@@ -129,7 +129,8 @@ pub fn move(res: *Response, req: *Request) void {
             };
 
             res.writeStatus("308 Next Action");
-            res.end(stringified_data[0.. :0], true);
+            res.writeHeader("Content-Type", "application/json; charset=utf8");
+            res.end(stringified_data, true);
             return;
         },
     }
