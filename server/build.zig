@@ -42,8 +42,15 @@ pub fn build(b: *std.Build) void {
 
     sqlite.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
 
+    const globals = b.createModule(.{
+        .root_source_file = b.path("src/globals.zig"),
+    });
+
+    globals.addImport("sqlite", sqlite.root_module);
+
     exe.root_module.addImport("sqlite", sqlite.root_module);
     exe.root_module.addImport("zuws", zuws.module("zuws"));
+    exe.root_module.addImport("globals", globals);
     b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);

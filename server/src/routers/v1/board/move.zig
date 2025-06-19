@@ -1,7 +1,10 @@
+const globals = @import("globals");
 const zuws = @import("zuws");
 const std = @import("std");
 
-const db = @import("../../../main.zig");
+const App = zuws.App;
+const Request = zuws.Request;
+const Response = zuws.Response;
 
 const NextMoveData = struct {
     entity: u8,
@@ -22,13 +25,6 @@ const NextMoveLayerData = struct {
     },
 };
 
-const App = zuws.App;
-const Request = zuws.Request;
-const Response = zuws.Response;
-
-var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
-const allocator = gpa.allocator();
-
 const Direction = enum {
     left,
     up,
@@ -37,9 +33,11 @@ const Direction = enum {
 };
 
 pub fn move(res: *Response, req: *Request) void {
-    const Board = db.Board;
-    const BoardCache = db.BoardCache;
-    const BoardLayer = db.BoardLayer;
+    const Board = globals.Board;
+    const BoardCache = globals.BoardCache;
+    const BoardLayer = globals.BoardLayer;
+
+    const allocator = globals.allocator;
 
     const member_id = req.getParameter(0);
     const cache_id = req.getParameter(1);
@@ -63,7 +61,7 @@ pub fn move(res: *Response, req: *Request) void {
     }
 
     const player = Board.getPlayerPosition(member_id) orelse {
-        res.writeStatus("404 Not Found");
+        res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
     };
