@@ -42,15 +42,41 @@ pub fn build(b: *std.Build) void {
 
     sqlite.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
 
+    const sqlite_abstractions = b.createModule(.{
+        .root_source_file = b.path("src/sqlite/Database.zig"),
+    });
+
+    sqlite_abstractions.addImport("sqlite", sqlite.root_module);
+
     const globals = b.createModule(.{
         .root_source_file = b.path("src/globals.zig"),
     });
 
-    globals.addImport("sqlite", sqlite.root_module);
+    const settings = b.createModule(.{
+        .root_source_file = b.path("src/settings.zig"),
+    });
 
-    exe.root_module.addImport("sqlite", sqlite.root_module);
+    const models = b.createModule(.{
+        .root_source_file = b.path("src/models/models.zig"),
+    });
+
+    models.addImport("sqlite", sqlite_abstractions);
+    models.addImport("settings", settings);
+    models.addImport("globals", globals);
+
+    globals.addImport("models", models);
+
+    const utils = b.createModule(.{
+        .root_source_file = b.path("src/utils.zig"),
+    });
+
+    utils.addImport("zuws", zuws.module("zuws"));
+
     exe.root_module.addImport("zuws", zuws.module("zuws"));
+    exe.root_module.addImport("sqlite", sqlite_abstractions);
     exe.root_module.addImport("globals", globals);
+    exe.root_module.addImport("models", models);
+    exe.root_module.addImport("utils", utils);
     b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);

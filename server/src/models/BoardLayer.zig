@@ -1,8 +1,8 @@
+const Database = @import("sqlite");
 const std = @import("std");
 
-const settings = @import("../settings.zig").settings;
+const settings = @import("settings").settings;
 
-const Database = @import("../sqlite/Database.zig");
 const Statement = Database.Statement;
 
 const BoardLayer = @This();
@@ -18,8 +18,8 @@ pub const Data = struct {
     layer: u8,
     name: []const u8,
     loot_table: ?[]const u8,
-    x: u32,
-    y: u32,
+    x: i32,
+    y: i32,
     has_next: bool,
 
     pub fn deinit(self: Data, allocator: std.mem.Allocator) void {

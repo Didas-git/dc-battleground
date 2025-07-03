@@ -1,3 +1,4 @@
+const Database = @import("sqlite");
 const zuws = @import("zuws");
 const std = @import("std");
 
@@ -14,17 +15,17 @@ pub fn main() !void {
         app.deinit();
     }
 
-    globals.db = try .init("test.db", .{});
-    defer globals.db.deinit();
+    var db: Database = try .init("test.db", .{});
+    defer db.deinit();
 
-    globals.Board = .init(&globals.db);
-    globals.BoardCache = .init(&globals.db);
-    globals.BoardLayer = .init(&globals.db);
+    globals.Board = .init(&db);
+    globals.Player = .init(&db);
+    globals.BoardCache = .init(&db);
+    globals.BoardLayer = .init(&db);
 
     globals.BoardLayer.parseLayerSettings();
 
-    globals.Board.spawnPlayer("didas", 0, 0);
-    globals.Board.insertLayerPortal("test_portal", 1, 1, 0, .forwards);
+    globals.Board.insertLayerPortal("test_guild", "test_portal", 1, 1, 0, .forwards);
     globals.BoardCache.set("maybe", "didas");
 
     // Enable later in prod
@@ -32,5 +33,5 @@ pub fn main() !void {
     // globals.db.exec("PRAGMA synchronous = NORMAL");
 
     app.comptimeGroup(&api);
-    try app.listen(3000, null);
+    try app.listen(3001, null);
 }

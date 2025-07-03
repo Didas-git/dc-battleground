@@ -1,7 +1,6 @@
-const sqlite = @import("sqlite");
+const Database = @import("sqlite");
 const std = @import("std");
 
-const Database = @import("../sqlite/Database.zig");
 const Statement = Database.Statement;
 
 const random = std.crypto.random;
@@ -30,11 +29,11 @@ pub fn init(db: *Database) BoardCache {
 
     return .{
         .queries = .{
-            .set = Statement.init(db, "INSERT INTO BoardCache (id, member_id, added_at) VALUES (:id, :memberId, :addedAt)"),
-            .get = Statement.init(db, "SELECT member_id, added_at FROM BoardCache WHERE id = :id"),
-            .update = Statement.init(db, "UPDATE BoardCache SET added_at = :addedAt WHERE id = :id"),
-            .get_member = Statement.init(db, "SELECT id, added_at FROM BoardCache WHERE member_id = :memberId"),
-            .delete = Statement.init(db, "DELETE FROM BoardCache WHERE member_id = :memberId"),
+            .set = .init(db, "INSERT INTO BoardCache (id, member_id, added_at) VALUES (:id, :memberId, :addedAt)"),
+            .get = .init(db, "SELECT member_id, added_at FROM BoardCache WHERE id = :id"),
+            .update = .init(db, "UPDATE BoardCache SET added_at = :addedAt WHERE id = :id"),
+            .get_member = .init(db, "SELECT id, added_at FROM BoardCache WHERE member_id = :memberId"),
+            .delete = .init(db, "DELETE FROM BoardCache WHERE member_id = :memberId"),
         },
     };
 }
@@ -58,7 +57,6 @@ pub fn get(self: *const BoardCache, allocator: std.mem.Allocator, cache_id: []co
     query.bindText(1, cache_id);
 
     const found = query.step();
-
     if (!found) return null;
 
     const member_id = query.textColumn(0);

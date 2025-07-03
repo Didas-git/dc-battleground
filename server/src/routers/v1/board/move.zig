@@ -1,4 +1,5 @@
 const globals = @import("globals");
+const utils = @import("utils");
 const zuws = @import("zuws");
 const std = @import("std");
 
@@ -39,9 +40,10 @@ pub fn move(res: *Response, req: *Request) void {
 
     const allocator = globals.allocator;
 
-    const member_id = req.getParameter(0);
-    const cache_id = req.getParameter(1);
-    const direction_string = req.getParameter(2);
+    const guild_id = req.getParameter(0);
+    const member_id = req.getParameter(1);
+    const cache_id = req.getParameter(2);
+    const direction_string = req.getParameter(3);
     const direction: Direction = @enumFromInt(std.fmt.parseInt(u8, direction_string, 10) catch {
         res.writeStatus("400 Malformed direction");
         res.endWithoutBody(true);
@@ -49,7 +51,7 @@ pub fn move(res: *Response, req: *Request) void {
     });
 
     const cache_entry = BoardCache.get(allocator, cache_id) catch {
-        return handleFailedAllocation(res);
+        return utils.handleFailedAllocation(res);
     };
 
     if (cache_entry) |entry| {
@@ -60,7 +62,7 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     }
 
-    const player = Board.getPlayerPosition(member_id) orelse {
+    const player = Board.getPlayerPosition(guild_id, member_id) orelse {
         res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
@@ -68,8 +70,8 @@ pub fn move(res: *Response, req: *Request) void {
 
     const x, const y = calculateCoordinates(player.x, player.y, direction);
 
-    const entity = Board.getEntityInPosition(allocator, player.layer, x, y) catch {
-        return handleFailedAllocation(res);
+    const entity = Board.getEntityInPosition(allocator, guild_id, player.layer, x, y) catch {
+        return utils.handleFailedAllocation(res);
     };
     defer entity.deinit(allocator);
 
@@ -77,7 +79,7 @@ pub fn move(res: *Response, req: *Request) void {
         .Empty => {
             // TODO: Handle possible player missing
             // Tho realistically this race condition should never happen
-            _ = Board.updatePlayerPosition(member_id, x, y);
+            _ = Board.updatePlayerPosition(guild_id, member_id, x, y);
             BoardCache.update(cache_id);
             res.writeStatus("200 Moved");
         },
@@ -87,7 +89,7 @@ pub fn move(res: *Response, req: *Request) void {
         .LayerPortal => |portal| {
             const next_layer: u8 = @intCast(@as(i16, player.layer) +| @intFromEnum(portal.to));
             const possible_new_layer = BoardLayer.getBoardLayerInfo(allocator, next_layer) catch {
-                return handleFailedAllocation(res);
+                return utils.handleFailedAllocation(res);
             };
 
             if (possible_new_layer) |new_layer| {
@@ -103,7 +105,7 @@ pub fn move(res: *Response, req: *Request) void {
                         .name = new_layer.name,
                     },
                 }, .{}) catch {
-                    return handleFailedAllocation(res);
+                    return utils.handleFailedAllocation(res);
                 };
 
                 res.writeStatus("308 Next Action");
@@ -123,7 +125,7 @@ pub fn move(res: *Response, req: *Request) void {
                 .x = x,
                 .y = y,
             }, .{}) catch {
-                return handleFailedAllocation(res);
+                return utils.handleFailedAllocation(res);
             };
 
             res.writeStatus("308 Next Action");
@@ -143,9 +145,4 @@ fn calculateCoordinates(x: i32, y: i32, direction: Direction) struct { i32, i32 
         .down => .{ x, y - 1 },
         .right => .{ x + 1, y },
     };
-}
-
-fn handleFailedAllocation(res: *Response) void {
-    res.writeStatus("500 Allocator shit the bed");
-    res.endWithoutBody(true);
 }
