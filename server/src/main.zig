@@ -25,13 +25,13 @@ pub fn main() !void {
 
     globals.BoardLayer.parseLayerSettings();
 
-    globals.Board.insertLayerPortal("test_guild", "test_portal", 1, 1, 0, .forwards);
+    globals.Board.insertLayerPortal("test_guild", "test_portal", 1, 3, 0, .forwards);
     globals.BoardCache.set("maybe", "didas");
 
     // Enable later in prod
-    // globals.db.exec("PRAGMA journal_mode = WAL");
-    // globals.db.exec("PRAGMA synchronous = NORMAL");
+    // db.exec("PRAGMA journal_mode = WAL");
+    // db.exec("PRAGMA synchronous = NORMAL");
 
     app.comptimeGroup(&api);
-    try app.listen(3001, null);
+    try app.listen(3000, null);
 }

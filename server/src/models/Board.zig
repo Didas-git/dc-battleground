@@ -135,7 +135,15 @@ pub fn generateChest(self: *const Board, guild_id: []const u8, chest_id: []const
     _ = query.step();
 }
 
-pub fn generateEnemy(self: *const Board, guild_id: []const u8, enemy_id: []const u8, layer: u8, x: i32, y: i32, identifier: u16) void {
+pub fn generateEnemy(
+    self: *const Board,
+    guild_id: []const u8,
+    enemy_id: []const u8,
+    layer: u8,
+    x: i32,
+    y: i32,
+    identifier: u16,
+) void {
     const query = self.insert.generic;
     defer query.reset();
 
@@ -150,7 +158,15 @@ pub fn generateEnemy(self: *const Board, guild_id: []const u8, enemy_id: []const
     _ = query.step();
 }
 
-pub fn insertLayerPortal(self: *const Board, guild_id: []const u8, layer_id: []const u8, layer: u8, x: i32, y: i32, to: LayerPortalDirection) void {
+pub fn insertLayerPortal(
+    self: *const Board,
+    guild_id: []const u8,
+    layer_id: []const u8,
+    layer: u8,
+    x: i32,
+    y: i32,
+    to: LayerPortalDirection,
+) void {
     const query = self.insert.generic;
     defer query.reset();
 
@@ -250,7 +266,14 @@ pub fn getPortalPosition(self: *const Board, guild_id: []const u8, layer: u8, di
 
 /// The allocator is necessary to hold onto the `id`
 /// Its up for the caller to deinit the memory using `Entity.deinit(allocator)` or use an arena allocator
-pub fn getEntityInPosition(self: *const Board, allocator: std.mem.Allocator, guild_id: []const u8, layer: u8, x: i32, y: i32) !Entity {
+pub fn getEntityInPosition(
+    self: *const Board,
+    allocator: std.mem.Allocator,
+    guild_id: []const u8,
+    layer: u8,
+    x: i32,
+    y: i32,
+) !Entity {
     const query = self.get.entity;
     defer query.reset();
 
@@ -319,18 +342,6 @@ pub const ChestRarity = enum {
             .Legendary => "Legendary",
         };
     }
-
-    pub fn getBoardTile(id: u8) []const u8 {
-        return switch (id) {
-            0 => "⬛", // Empty
-            1 => "🟩", // Player (Self)
-            2 => "🟥", // Enemy
-            3 => "🟦", // Chest
-            4 => "🔳", // Layer Entrance
-            99 => "🟪", // Player (Other)
-            else => unreachable,
-        };
-    }
 };
 
 pub const LayerPortalDirection = enum(i2) {
@@ -370,34 +381,67 @@ pub const Entity = union(EntityType) {
             inline else => |e| allocator.free(e.id),
         }
     }
+
+    pub fn getBoardTile(self: Entity) []const u8 {
+        return switch (self) {
+            .Empty => "⬛",
+            .Player => "🟩",
+            .Enemy => "🟥",
+            .Chest => "🟦",
+            .LayerPortal => "🔳",
+        };
+    }
+
+    pub fn getBoardTileFromInt(id: u8) []const u8 {
+        return switch (id) {
+            0 => "⬛", // Empty
+            1 => "🟩", // Player (Self)
+            2 => "🟥", // Enemy
+            3 => "🟦", // Chest
+            4 => "🔳", // Layer Entrance
+            99 => "🟪", // Player (Other)
+            else => unreachable,
+        };
+    }
 };
 
 /// Caller should use an arena allocator to be able to deinit all entities at once.
-pub fn scanForEntities(self: *const Board, allocator: std.mem.Allocator, guild_id: []const u8, center: PositionalData, comptime size: u16) ![]Entity {
-    const full_size = size * size;
-    var entities: [full_size]Entity = undefined;
+pub fn scanFromCenter(
+    self: *const Board,
+    allocator: std.mem.Allocator,
+    guild_id: []const u8,
+    member_id: []const u8,
+    center: PositionalData,
+    size: u16,
+) ![][]const u8 {
+    var board: std.ArrayList([]const u8) = .init(allocator);
 
-    const initial_x = center.x - (size / 2);
-    const initial_y = center.y + (size / 2);
+    const full_size = size * size;
+    const initial_x: i32 = center.x - (size / 2);
+    const initial_y: i32 = center.y + (std.math.divCeil(u16, size, 2) catch unreachable);
 
     var i: usize = 0;
     var x = initial_x;
     var y = initial_y;
-    var entity_count: usize = 0;
     while (i < full_size) : (i += 1) {
         if (i % size == 0) {
+            try board.append("\n");
             x = initial_x;
             y -= 1;
         }
 
         const entity = try self.getEntityInPosition(allocator, guild_id, center.layer, x, y);
-        if (entity != .Empty) {
-            entities[entity_count] = entity;
-            entity_count += 1;
+        switch (entity) {
+            .Player => |player| {
+                try board.append(if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99));
+            },
+            else => {
+                try board.append(entity.getBoardTile());
+            },
         }
 
         x += 1;
     }
 
-    return entities[0..entity_count];
+    return board.toOwnedSlice();
 }

@@ -71,12 +71,12 @@ pub fn get(self: *const BoardCache, allocator: std.mem.Allocator, cache_id: []co
     };
 }
 
-pub fn update(self: *const BoardCache, message_id: []const u8) void {
+pub fn update(self: *const BoardCache, cache_id: []const u8) void {
     const query = self.queries.update;
     defer query.reset();
 
     query.bindInt(1, std.time.milliTimestamp());
-    query.bindText(2, message_id);
+    query.bindText(2, cache_id);
 
     _ = query.step();
 }

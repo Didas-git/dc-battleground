@@ -26,6 +26,7 @@ pub fn create(res: *Response, req: *Request) void {
     const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ guild_id, member_id }) catch {
         return utils.handleFailedAllocation(res);
     };
+    defer globals.allocator.free(player_id);
 
     Player.createProfile(player_id, name, class);
     const origin = Board.spawnPlayer(guild_id, member_id) catch {
