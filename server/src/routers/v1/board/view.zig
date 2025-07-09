@@ -33,16 +33,16 @@ pub fn view(res: *Response, req: *Request) void {
 
     var arena = std.heap.ArenaAllocator.init(globals.allocator);
     defer arena.deinit();
+
     const allocator = arena.allocator();
 
     const entities = Board.scanFromCenter(allocator, guild_id, member_id, position, view_size) catch {
         return utils.handleFailedAllocation(res);
     };
 
-    const str = std.mem.concat(globals.allocator, u8, entities) catch {
+    const str = std.mem.concat(allocator, u8, entities) catch {
         return utils.handleFailedAllocation(res);
     };
-    defer globals.allocator.free(str);
 
     res.writeStatusCode(.OK);
     res.end(str, true);

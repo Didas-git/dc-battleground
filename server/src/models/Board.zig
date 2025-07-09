@@ -410,9 +410,9 @@ pub fn scanFromCenter(
     center: PositionalData,
     size: u16,
 ) ![][]const u8 {
-    var board: std.ArrayList([]const u8) = .init(allocator);
-
     const full_size = size * size;
+    var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size);
+
     const initial_x: i32 = center.x - (size / 2);
     const initial_y: i32 = center.y + (std.math.divCeil(u16, size, 2) catch unreachable);
 
