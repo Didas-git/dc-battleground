@@ -20,7 +20,6 @@ pub const Data = struct {
     loot_table: ?[]const u8,
     x: i32,
     y: i32,
-    has_next: bool,
 
     pub fn deinit(self: Data, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
@@ -34,17 +33,16 @@ pub fn init(db: *Database) BoardLayer {
         \\name TEXT NOT NULL,
         \\loot_table TEXT,
         \\x INTEGER NOT NULL,
-        \\y INTEGER NOT NULL,
-        \\has_next INTEGER NOT NULL
+        \\y INTEGER NOT NULL
         \\)
     );
 
     return .{
         .queries = .{
             .search = .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
-            .get = .init(db, "SELECT name, layer, x, y, has_next FROM BoardLayer WHERE layer = :layer"),
+            .get = .init(db, "SELECT name, layer, x, y FROM BoardLayer WHERE layer = :layer"),
             .delete = .init(db, "DELETE FROM BoardLayer WHERE layer = :layer"),
-            .create = .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y, has_next) VALUES (:layer, :name, :table, :x, :y, :has_next)"),
+            .create = .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y) VALUES (:layer, :name, :table, :x, :y)"),
         },
     };
 }
@@ -74,14 +72,11 @@ pub fn parseLayerSettings(self: *BoardLayer) void {
         const x = layer.size;
         const y = layer.size;
 
-        const has_next: bool = i + 1 < len;
-
         self.createBoardLayer(
             i,
             layer.name,
             x,
             y,
-            has_next,
         );
     }
 }
@@ -105,7 +100,6 @@ pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, 
         .loot_table = null,
         .x = @intCast(query.intColumn(2)),
         .y = @intCast(query.intColumn(3)),
-        .has_next = query.intColumn(4) != 0,
     };
 }
 
@@ -115,7 +109,6 @@ pub fn createBoardLayer(
     name: []const u8,
     x: u32,
     y: u32,
-    has_next: bool,
 ) void {
     const query = self.queries.create;
     defer query.reset();
@@ -125,12 +118,10 @@ pub fn createBoardLayer(
     query.bindNull(3);
     query.bindInt(4, x);
     query.bindInt(5, y);
-    query.bindInt(6, @intFromBool(has_next));
 
     _ = query.step();
 }
 
-pub fn calculateLayerSize(self: *BoardLayer, coordinates: Data) i32 {
-    _ = self;
+pub fn calculateLayerSize(coordinates: Data) i32 {
     return (coordinates.x - (coordinates.x * -1)) * (coordinates.y - (coordinates.y * -1));
 }

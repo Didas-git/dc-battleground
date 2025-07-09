@@ -3,6 +3,8 @@ const utils = @import("utils");
 const zuws = @import("zuws");
 const std = @import("std");
 
+const settings = @import("settings").settings;
+
 const App = zuws.App;
 const Request = zuws.Request;
 const Response = zuws.Response;
@@ -22,7 +24,7 @@ pub fn view(res: *Response, req: *Request) void {
                 return;
             };
         }
-        break :blk 11;
+        break :blk settings.board.view_size;
     };
 
     const position = Board.getPlayerPosition(guild_id, member_id) orelse {
@@ -43,6 +45,8 @@ pub fn view(res: *Response, req: *Request) void {
     const str = std.mem.concat(allocator, u8, entities) catch {
         return utils.handleFailedAllocation(res);
     };
+
+    std.debug.print("STR: {s}\n", .{str});
 
     res.writeStatusCode(.OK);
     res.end(str, true);

@@ -18,11 +18,8 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{
-        .name = "server",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+    const settings = b.createModule(.{
+        .root_source_file = b.path("settings/settings.zig"),
     });
 
     const zuws = b.dependency("zuws", .{
@@ -52,10 +49,6 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/globals.zig"),
     });
 
-    const settings = b.createModule(.{
-        .root_source_file = b.path("src/settings.zig"),
-    });
-
     const models = b.createModule(.{
         .root_source_file = b.path("src/models/models.zig"),
     });
@@ -72,11 +65,27 @@ pub fn build(b: *std.Build) void {
 
     utils.addImport("zuws", zuws.module("zuws"));
 
-    exe.root_module.addImport("zuws", zuws.module("zuws"));
-    exe.root_module.addImport("sqlite", sqlite);
-    exe.root_module.addImport("globals", globals);
-    exe.root_module.addImport("models", models);
-    exe.root_module.addImport("utils", utils);
+    const exe_mod = b.createModule(
+        .{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "zuws", .module = zuws.module("zuws") },
+                .{ .name = "settings", .module = settings },
+                .{ .name = "sqlite", .module = sqlite },
+                .{ .name = "globals", .module = globals },
+                .{ .name = "models", .module = models },
+                .{ .name = "utils", .module = utils },
+            },
+        },
+    );
+
+    const exe = b.addExecutable(.{
+        .name = "server",
+        .root_module = exe_mod,
+    });
+
     b.installArtifact(exe);
 
     const run_exe = b.addRunArtifact(exe);

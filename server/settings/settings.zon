@@ -8,6 +8,16 @@
         .chest = 0.001,
         .mob = 0.005,
     },
+    .map = .{
+        .board = .{
+            .empty = "⬛",
+            .player = "🟩",
+            .enemy = "🟥",
+            .chest = "🟦",
+            .layer = "🔳",
+            .enemy_player = "🟪",
+        },
+    },
     .floors = .{
         .{
             .name = "Base",

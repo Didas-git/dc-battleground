@@ -2,6 +2,8 @@ const Database = @import("sqlite");
 const globals = @import("globals");
 const std = @import("std");
 
+const settings = @import("settings").settings;
+
 const Statement = Database.Statement;
 const random = std.crypto.random;
 
@@ -39,43 +41,38 @@ pub const PositionalData = struct {
 pub fn init(db: *Database) Board {
     db.exec(
         \\CREATE TABLE IF NOT EXISTS Board (
-        \\guild_id TEXT NOT NULL,
+        \\server_id TEXT NOT NULL,
         \\id TEXT NOT NULL,
         \\type INTEGER NOT NULL,
         \\layer INTEGER NOT NULL,
         \\x INTEGER NOT NULL,
         \\y INTEGER NOT NULL,
-        \\extra INTEGER
+        \\extra INTEGER,
+        \\PRIMARY KEY (server_id, id)
         \\)
     );
 
     return .{
         .insert = .{
-            .player = .init(db, "INSERT INTO Board (guild_id, id, type, layer, x, y) VALUES (:guild_id, :id, :type, 1, :x, :y)"),
-            .generic = .init(db, "INSERT INTO Board (guild_id, id, type, layer, x, y, extra) VALUES (:guild_id, :id, :type, :layer, :x, :y, :extra)"),
+            .player = .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y) VALUES (:server_id, :id, :type, 1, :x, :y)"),
+            .generic = .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
         },
         .get = .{
-            .player = .init(db, "SELECT layer, x, y FROM Board WHERE guild_id = :guild_id AND id = :id"),
-            .portal = .init(db, "SELECT layer, x, y FROM Board WHERE guild_id = :guild_id AND layer = :layer AND extra = :to"),
-            .entity = .init(db, "SELECT type, id, extra FROM Board WHERE guild_id = :guild_id AND layer = :layer AND x = :x AND y = :y"),
+            .player = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
+            .portal = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
+            .entity = .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
         },
         .update = .{
             .player = .{
-                .position = .init(db, "UPDATE Board SET x = :x, y = :y WHERE guild_id = :guild_id AND id = :id"),
-                .layer = .init(db, "UPDATE Board SET layer = :layer WHERE guild_id = :guild_id AND id = :id"),
+                .position = .init(db, "UPDATE Board SET x = :x, y = :y WHERE server_id = :server_id AND id = :id"),
+                .layer = .init(db, "UPDATE Board SET layer = :layer WHERE server_id = :server_id AND id = :id"),
             },
         },
         .delete = .{
-            .player = .init(db, "DELETE FROM Board WHERE guild_id = :guild_id AND id = :id"),
-            .entity = .init(db, "DELETE FROM Board WHERE guild_id = :guild_id AND layer = :layer AND x = :x AND y = :y"),
+            .player = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND id = :id"),
+            .entity = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
         },
     };
-}
-
-pub fn deinit(self: *const Board) void {
-    inline for (comptime std.meta.fieldNames(@TypeOf(self.insert))) |name| {
-        @field(self.insert, name).deinit();
-    }
 }
 
 pub fn generateRandomCoordinates(x: i32, y: i32) struct { x: i32, y: i32 } {
@@ -85,7 +82,7 @@ pub fn generateRandomCoordinates(x: i32, y: i32) struct { x: i32, y: i32 } {
     };
 }
 
-pub fn spawnPlayer(self: *const Board, guild_id: []const u8, member_id: []const u8) !PositionalData {
+pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const u8) !PositionalData {
     const BoardLayer = globals.BoardLayer;
     const query = self.insert.player;
     defer query.reset();
@@ -98,7 +95,7 @@ pub fn spawnPlayer(self: *const Board, guild_id: []const u8, member_id: []const 
 
     while (true) {
         const coordinates = generateRandomCoordinates(limits.x, limits.y);
-        const entity = try self.getEntityInPosition(globals.allocator, guild_id, 1, coordinates.x, coordinates.y);
+        const entity = try self.getEntityInPosition(globals.allocator, server_id, 1, coordinates.x, coordinates.y);
         if (entity == .Empty) {
             x = coordinates.x;
             y = coordinates.y;
@@ -106,7 +103,7 @@ pub fn spawnPlayer(self: *const Board, guild_id: []const u8, member_id: []const 
         }
     }
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, member_id);
     query.bindInt(3, @intFromEnum(Entity.Player));
     query.bindInt(4, x);
@@ -121,11 +118,11 @@ pub fn spawnPlayer(self: *const Board, guild_id: []const u8, member_id: []const 
     };
 }
 
-pub fn generateChest(self: *const Board, guild_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) void {
+pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) void {
     const query = self.insert.generic;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, chest_id);
     query.bindInt(3, @intFromEnum(Entity.Chest));
     query.bindInt(4, layer);
@@ -137,7 +134,7 @@ pub fn generateChest(self: *const Board, guild_id: []const u8, chest_id: []const
 
 pub fn generateEnemy(
     self: *const Board,
-    guild_id: []const u8,
+    server_id: []const u8,
     enemy_id: []const u8,
     layer: u8,
     x: i32,
@@ -147,7 +144,7 @@ pub fn generateEnemy(
     const query = self.insert.generic;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, enemy_id);
     query.bindInt(3, @intFromEnum(Entity.Enemy));
     query.bindInt(4, layer);
@@ -160,7 +157,7 @@ pub fn generateEnemy(
 
 pub fn insertLayerPortal(
     self: *const Board,
-    guild_id: []const u8,
+    server_id: []const u8,
     layer_id: []const u8,
     layer: u8,
     x: i32,
@@ -170,7 +167,7 @@ pub fn insertLayerPortal(
     const query = self.insert.generic;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, layer_id);
     query.bindInt(3, @intFromEnum(Entity.LayerPortal));
     query.bindInt(4, layer);
@@ -181,13 +178,13 @@ pub fn insertLayerPortal(
     _ = query.step();
 }
 
-pub fn updatePlayerPosition(self: *const Board, guild_id: []const u8, member_id: []const u8, x: i32, y: i32) bool {
+pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i32, y: i32) bool {
     const query = self.update.player.position;
     defer query.reset();
 
     query.bindInt(1, x);
     query.bindInt(2, y);
-    query.bindText(3, guild_id);
+    query.bindText(3, server_id);
     query.bindText(4, member_id);
 
     _ = query.step();
@@ -199,12 +196,12 @@ pub fn updatePlayerPosition(self: *const Board, guild_id: []const u8, member_id:
     return false;
 }
 
-pub fn changePlayerLayer(self: *const Board, guild_id: []const u8, member_id: []const u8, layer: u8) bool {
+pub fn changePlayerLayer(self: *const Board, server_id: []const u8, member_id: []const u8, layer: u8) bool {
     const query = self.update.player.layer;
     defer query.reset();
 
     query.bindInt(1, layer);
-    query.bindText(2, guild_id);
+    query.bindText(2, server_id);
     query.bindText(3, member_id);
 
     _ = query.step();
@@ -216,11 +213,11 @@ pub fn changePlayerLayer(self: *const Board, guild_id: []const u8, member_id: []
     return false;
 }
 
-pub fn getPlayerPosition(self: *const Board, guild_id: []const u8, member_id: []const u8) ?PositionalData {
+pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8) ?PositionalData {
     const query = self.get.player;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, member_id);
 
     const found = query.step();
@@ -235,21 +232,21 @@ pub fn getPlayerPosition(self: *const Board, guild_id: []const u8, member_id: []
 }
 
 // TODO: Rework as deleteUsingID or something similar
-pub fn deletePlayer(self: *const Board, guild_id: []const u8, member_id: []const u8) void {
+pub fn deletePlayer(self: *const Board, server_id: []const u8, member_id: []const u8) void {
     const query = self.delete.player;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindText(2, member_id);
 
     _ = query.step();
 }
 
-pub fn getPortalPosition(self: *const Board, guild_id: []const u8, layer: u8, direction: LayerPortalDirection) ?PositionalData {
+pub fn getPortalPosition(self: *const Board, server_id: []const u8, layer: u8, direction: LayerPortalDirection) ?PositionalData {
     const query = self.get.portal;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindInt(2, layer);
     query.bindInt(3, @intFromEnum(direction));
 
@@ -269,7 +266,7 @@ pub fn getPortalPosition(self: *const Board, guild_id: []const u8, layer: u8, di
 pub fn getEntityInPosition(
     self: *const Board,
     allocator: std.mem.Allocator,
-    guild_id: []const u8,
+    server_id: []const u8,
     layer: u8,
     x: i32,
     y: i32,
@@ -277,7 +274,7 @@ pub fn getEntityInPosition(
     const query = self.get.entity;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindInt(2, layer);
     query.bindInt(3, x);
     query.bindInt(4, y);
@@ -300,11 +297,11 @@ pub fn getEntityInPosition(
     };
 }
 
-pub fn deleteEntityInPosition(self: *const Board, guild_id: []const u8, layer: u8, x: i32, y: i32) void {
+pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: u8, x: i32, y: i32) void {
     const query = self.delete.entity;
     defer query.reset();
 
-    query.bindText(1, guild_id);
+    query.bindText(1, server_id);
     query.bindInt(2, layer);
     query.bindInt(3, x);
     query.bindInt(4, y);
@@ -380,22 +377,22 @@ pub const Entity = union(EntityType) {
 
     pub fn getBoardTile(self: Entity) []const u8 {
         return switch (self) {
-            .Empty => "⬛",
-            .Player => "🟩",
-            .Enemy => "🟥",
-            .Chest => "🟦",
-            .LayerPortal => "🔳",
+            .Empty => comptime settings.map.board.empty,
+            .Player => comptime settings.map.board.player,
+            .Enemy => comptime settings.map.board.enemy,
+            .Chest => comptime settings.map.board.chest,
+            .LayerPortal => comptime settings.map.board.layer,
         };
     }
 
     pub fn getBoardTileFromInt(id: u8) []const u8 {
         return switch (id) {
-            0 => "⬛", // Empty
-            1 => "🟩", // Player (Self)
-            2 => "🟥", // Enemy
-            3 => "🟦", // Chest
-            4 => "🔳", // Layer Entrance
-            99 => "🟪", // Player (Other)
+            0 => comptime settings.map.board.empty,
+            1 => comptime settings.map.board.player,
+            2 => comptime settings.map.board.enemy,
+            3 => comptime settings.map.board.chest,
+            4 => comptime settings.map.board.layer,
+            99 => comptime settings.map.board.enemy_player,
             else => unreachable,
         };
     }
@@ -405,28 +402,28 @@ pub const Entity = union(EntityType) {
 pub fn scanFromCenter(
     self: *const Board,
     allocator: std.mem.Allocator,
-    guild_id: []const u8,
+    server_id: []const u8,
     member_id: []const u8,
     center: PositionalData,
     size: u16,
 ) ![][]const u8 {
     const full_size = size * size;
-    var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size);
+    var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size + size - 1);
 
     const initial_x: i32 = center.x - (size / 2);
-    const initial_y: i32 = center.y + (std.math.divCeil(u16, size, 2) catch unreachable);
+    const initial_y: i32 = center.y + (size / 2);
 
     var i: usize = 0;
     var x = initial_x;
     var y = initial_y;
     while (i < full_size) : (i += 1) {
-        if (i % size == 0) {
+        if (i % size == 0 and i != 0) {
             try board.append("\n");
             x = initial_x;
             y -= 1;
         }
 
-        const entity = try self.getEntityInPosition(allocator, guild_id, center.layer, x, y);
+        const entity = try self.getEntityInPosition(allocator, server_id, center.layer, x, y);
         switch (entity) {
             .Player => |player| {
                 try board.append(if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99));
