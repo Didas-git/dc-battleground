@@ -1,19 +1,19 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    const cwd = std.fs.cwd();
-    const exists = if (cwd.access("sqlite/sqlite3.h", .{})) |_| true else |_| false;
+    // const cwd = std.fs.cwd();
+    // const exists = if (cwd.access("sqlite/sqlite3.h", .{})) |_| true else |_| false;
 
-    if (!exists) {
-        const tool = b.addExecutable(.{
-            .name = "build_sqlite",
-            .root_source_file = b.path("tools/build_sqlite.zig"),
-            .target = b.graph.host,
-        });
+    // if (!exists) {
+    //     const tool = b.addExecutable(.{
+    //         .name = "build_sqlite",
+    //         .root_source_file = b.path("tools/build_sqlite.zig"),
+    //         .target = b.graph.host,
+    //     });
 
-        const tool_step = b.addRunArtifact(tool);
-        b.getInstallStep().dependOn(&tool_step.step);
-    }
+    //     const tool_step = b.addRunArtifact(tool);
+    //     b.getInstallStep().dependOn(&tool_step.step);
+    // }
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -30,8 +30,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const sqlite = b.addLibrary(.{
-        .name = "sqlite",
+    const sqlite_c = b.addLibrary(.{
+        .name = "libsqlite",
         .root_module = b.addTranslateC(.{
             .root_source_file = b.path("sqlite/sqlite3.h"),
             .target = target,
@@ -40,13 +40,13 @@ pub fn build(b: *std.Build) void {
         }).createModule(),
     });
 
-    sqlite.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
+    sqlite_c.addCSourceFile(.{ .file = b.path("sqlite/sqlite3.c") });
 
-    const sqlite_abstractions = b.createModule(.{
-        .root_source_file = b.path("src/sqlite/Database.zig"),
+    const sqlite = b.createModule(.{
+        .root_source_file = b.path("sqlite/Database.zig"),
     });
 
-    sqlite_abstractions.addImport("sqlite", sqlite.root_module);
+    sqlite.addImport("sqlite", sqlite_c.root_module);
 
     const globals = b.createModule(.{
         .root_source_file = b.path("src/globals.zig"),
@@ -60,7 +60,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/models/models.zig"),
     });
 
-    models.addImport("sqlite", sqlite_abstractions);
+    models.addImport("sqlite", sqlite);
     models.addImport("settings", settings);
     models.addImport("globals", globals);
 
@@ -73,7 +73,7 @@ pub fn build(b: *std.Build) void {
     utils.addImport("zuws", zuws.module("zuws"));
 
     exe.root_module.addImport("zuws", zuws.module("zuws"));
-    exe.root_module.addImport("sqlite", sqlite_abstractions);
+    exe.root_module.addImport("sqlite", sqlite);
     exe.root_module.addImport("globals", globals);
     exe.root_module.addImport("models", models);
     exe.root_module.addImport("utils", utils);

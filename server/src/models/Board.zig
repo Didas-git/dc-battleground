@@ -287,19 +287,15 @@ pub fn getEntityInPosition(
     if (!found) return .{ .Empty = {} };
 
     const entity_type: EntityType = @enumFromInt(query.intColumn(0));
-    const id = query.textColumn(1);
+    const id = try query.textColumn(allocator, 1);
     const extra = query.intColumn(2);
-
-    const id_len = std.mem.len(id);
-    const new_memory = try allocator.alloc(u8, id_len);
-    @memcpy(new_memory, id[0..id_len]);
 
     return switch (entity_type) {
         .Empty => unreachable,
-        .Enemy => .{ .Enemy = .{ .id = new_memory, .enemy_id = extra } },
-        .LayerPortal => .{ .LayerPortal = .{ .id = new_memory, .to = @enumFromInt(extra) } },
+        .Enemy => .{ .Enemy = .{ .id = id, .enemy_id = extra } },
+        .LayerPortal => .{ .LayerPortal = .{ .id = id, .to = @enumFromInt(extra) } },
         inline else => |e| {
-            return @unionInit(Entity, @tagName(e), .{ .id = new_memory });
+            return @unionInit(Entity, @tagName(e), .{ .id = id });
         },
     };
 }

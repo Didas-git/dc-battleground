@@ -97,14 +97,10 @@ pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, 
 
     if (!found) return null;
 
-    const name = query.textColumn(0);
-
-    const id_len = std.mem.len(name);
-    const new_memory = try allocator.alloc(u8, id_len);
-    @memcpy(new_memory, name[0..id_len]);
+    const name = try query.textColumn(allocator, 0);
 
     return .{
-        .name = new_memory,
+        .name = name,
         .layer = @intCast(query.intColumn(1)),
         .loot_table = null,
         .x = @intCast(query.intColumn(2)),

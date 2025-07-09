@@ -89,8 +89,11 @@ pub fn bindFloat(self: *const Statement, index: u8, float: f64) void {
     if (result != sqlite.SQLITE_OK) {}
 }
 
-pub fn textColumn(self: *const Statement, column: u8) [*c]const u8 {
-    return sqlite.sqlite3_column_text(self.stmt, @as(c_int, column));
+pub fn textColumn(self: *const Statement, allocator: std.mem.Allocator, column: u8) ![]const u8 {
+    const text = sqlite.sqlite3_column_text(self.stmt, @as(c_int, column));
+    const len: usize = @intCast(sqlite.sqlite3_column_bytes(self.stmt, @as(c_int, column)));
+
+    return try allocator.dupe(u8, text[0..len]);
 }
 
 pub fn intColumn(self: *const Statement, column: u8) i64 {

@@ -59,14 +59,10 @@ pub fn get(self: *const BoardCache, allocator: std.mem.Allocator, cache_id: []co
     const found = query.step();
     if (!found) return null;
 
-    const member_id = query.textColumn(0);
-
-    const id_len = std.mem.len(member_id);
-    const new_memory = try allocator.alloc(u8, id_len);
-    @memcpy(new_memory, member_id[0..id_len]);
+    const member_id = try query.textColumn(allocator, 0);
 
     return .{
-        .member_id = new_memory,
+        .member_id = member_id,
         .added_at = query.intColumn(1),
     };
 }
