@@ -1,0 +1,22 @@
+meta {
+  name: Move
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/v1/board/position/:server_id/:member_id/:cache_id/:direction
+  body: none
+  auth: inherit
+}
+
+params:path {
+  server_id: test_server
+  member_id: 000
+  cache_id: test_cache
+  direction: 0
+}
+
+settings {
+  encodeUrl: true
+}
