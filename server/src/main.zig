@@ -1,6 +1,7 @@
 const Database = @import("sqlite");
 const zuws = @import("zuws");
 const std = @import("std");
+const builtin = @import("builtin");
 
 const api = @import("./routers/api.zig").api;
 
@@ -25,8 +26,9 @@ pub fn main() !void {
 
     globals.BoardLayer.parseLayerSettings();
 
-    globals.Board.insertLayerPortal("test_guild", "test_portal", 1, 3, 0, .forwards);
-    globals.BoardCache.set("maybe", "didas");
+    if (comptime builtin.mode == .Debug) {
+        insertTestData();
+    }
 
     // Enable later in prod
     // db.exec("PRAGMA journal_mode = WAL");
@@ -34,4 +36,9 @@ pub fn main() !void {
 
     app.comptimeGroup(&api);
     try app.listen(3000, null);
+}
+
+fn insertTestData() void {
+    globals.Board.insertLayerPortal("test_server", "test_portal", 1, 3, 0, .forwards);
+    globals.BoardCache.set("test_cache", "didas");
 }
