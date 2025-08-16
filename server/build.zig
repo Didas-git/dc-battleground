@@ -49,6 +49,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/globals.zig"),
     });
 
+    globals.addImport("sqlite", sqlite);
+
     const models = b.createModule(.{
         .root_source_file = b.path("src/models/models.zig"),
     });

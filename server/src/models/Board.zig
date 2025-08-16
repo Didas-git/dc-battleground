@@ -44,7 +44,7 @@ pub const LayerPortalDirection = enum(i2) {
     forwards = 1,
 };
 
-pub const EntityType = enum {
+pub const EntityType = enum(u8) {
     Empty,
     Player,
     Enemy,
@@ -151,6 +151,7 @@ pub fn init(db: *Database) Board {
             .player = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
             .portal = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
             .entity = .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
+            .all = .init(db, "SELECT x, y FROM BOARD WHERE server_id = :server_id AND layer = :layer AND type = 1"),
         },
         .update = .{
             .player = .{

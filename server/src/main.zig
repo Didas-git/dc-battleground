@@ -19,6 +19,7 @@ pub fn main() !void {
     var db: Database = try .init("test.db", .{});
     defer db.deinit();
 
+    globals.db = db;
     globals.Board = .init(&db);
     globals.Player = .init(&db);
     globals.BoardCache = .init(&db);
