@@ -12,7 +12,7 @@ queries: struct {
     get: struct {
         level: Statement,
         class: Statement,
-        guilds: Statement,
+        servers: Statement,
     },
     update: struct {
         xp: Statement,
@@ -52,7 +52,7 @@ pub fn init(db: *Database) Player {
             .get = .{
                 .level = .init(db, "SELECT level, xp FROM Player WHERE id = :id"),
                 .class = .init(db, "SELECT class FROM Player WHERE id = :id"),
-                .guilds = .init(db, "SELECT class FROM Player WHERE id LIKE :id"),
+                .servers = .init(db, "SELECT class FROM Player WHERE id LIKE :id"),
             },
             .update = .{
                 .xp = .init(db, "UPDATE Player SET level = :level, xp = :xp WHERE id = :id"),

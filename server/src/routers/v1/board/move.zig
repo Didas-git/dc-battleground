@@ -40,15 +40,19 @@ pub fn move(res: *Response, req: *Request) void {
 
     const allocator = globals.allocator;
 
-    const guild_id = req.getParameter(0);
+    const server_id = req.getParameter(0);
     const member_id = req.getParameter(1);
     const cache_id = req.getParameter(2);
     const direction_string = req.getParameter(3);
-    const direction: Direction = @enumFromInt(std.fmt.parseInt(u8, direction_string, 10) catch {
+    const direction = std.meta.intToEnum(Direction, std.fmt.parseInt(u8, direction_string, 10) catch {
         res.writeStatus("400 Malformed direction");
         res.endWithoutBody(true);
         return;
-    });
+    }) catch {
+        res.writeStatus("400 Invalid Direction");
+        res.endWithoutBody(true);
+        return;
+    };
 
     const cache_entry = BoardCache.get(allocator, cache_id) catch {
         return utils.handleFailedAllocation(res);
@@ -62,7 +66,7 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     }
 
-    const player = Board.getPlayerPosition(guild_id, member_id) orelse {
+    const player = Board.getPlayerPosition(server_id, member_id) orelse {
         res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
@@ -70,7 +74,7 @@ pub fn move(res: *Response, req: *Request) void {
 
     const x, const y = calculateCoordinates(player.x, player.y, direction);
 
-    const entity = Board.getEntityInPosition(allocator, guild_id, player.layer, x, y) catch {
+    const entity = Board.getEntityInPosition(allocator, server_id, player.layer, x, y) catch {
         return utils.handleFailedAllocation(res);
     };
     defer entity.deinit(allocator);
@@ -79,7 +83,7 @@ pub fn move(res: *Response, req: *Request) void {
         .Empty => {
             // TODO: Handle possible player missing
             // Tho realistically this race condition should never happen
-            _ = Board.updatePlayerPosition(guild_id, member_id, x, y);
+            _ = Board.updatePlayerPosition(server_id, member_id, x, y);
             BoardCache.update(cache_id);
             res.writeStatus("200 Moved");
         },
@@ -135,7 +139,12 @@ pub fn move(res: *Response, req: *Request) void {
         },
     }
 
-    res.endWithoutBody(true);
+    var buff: [24]u8 = undefined;
+    const str = std.fmt.bufPrint(&buff, "{d},{d}", .{ x, y }) catch {
+        return utils.handleFailedAllocation(res);
+    };
+
+    res.end(str, true);
 }
 
 fn calculateCoordinates(x: i32, y: i32, direction: Direction) struct { i32, i32 } {

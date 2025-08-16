@@ -12,7 +12,7 @@ const Response = zuws.Response;
 pub fn view(res: *Response, req: *Request) void {
     const Board = globals.Board;
 
-    const guild_id = req.getParameter(0);
+    const server_id = req.getParameter(0);
     const member_id = req.getParameter(1);
 
     const view_size_header = req.getHeader("view-size");
@@ -27,7 +27,7 @@ pub fn view(res: *Response, req: *Request) void {
         break :blk settings.board.view_size;
     };
 
-    const position = Board.getPlayerPosition(guild_id, member_id) orelse {
+    const position = Board.getPlayerPosition(server_id, member_id) orelse {
         res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
@@ -38,15 +38,13 @@ pub fn view(res: *Response, req: *Request) void {
 
     const allocator = arena.allocator();
 
-    const entities = Board.scanFromCenter(allocator, guild_id, member_id, position, view_size) catch {
+    const entities = Board.scanFromCenter(allocator, server_id, member_id, position, view_size) catch {
         return utils.handleFailedAllocation(res);
     };
 
     const str = std.mem.concat(allocator, u8, entities) catch {
         return utils.handleFailedAllocation(res);
     };
-
-    std.debug.print("STR: {s}\n", .{str});
 
     res.writeStatusCode(.OK);
     res.end(str, true);

@@ -13,7 +13,7 @@ pub fn create(res: *Response, req: *Request) void {
     const Player = globals.Player;
     const Board = globals.Board;
 
-    const guild_id = req.getParameter(0);
+    const server_id = req.getParameter(0);
     const member_id = req.getParameter(1);
     const name = req.getParameter(2);
     const class_string = req.getParameter(3);
@@ -23,13 +23,13 @@ pub fn create(res: *Response, req: *Request) void {
         return;
     });
 
-    const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ guild_id, member_id }) catch {
+    const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ server_id, member_id }) catch {
         return utils.handleFailedAllocation(res);
     };
     defer globals.allocator.free(player_id);
 
     Player.createProfile(player_id, name, class);
-    const origin = Board.spawnPlayer(guild_id, member_id) catch {
+    const origin = Board.spawnPlayer(server_id, member_id) catch {
         return utils.handleFailedAllocation(res);
     };
 
