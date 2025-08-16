@@ -74,7 +74,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     var full_size: u64 = comptime size * size;
     const arr: std.ArrayList(Entity) = try .initCapacity(globals.allocator, full_size);
 
-    Board.wipeLayer(server_id, layer);
+    try Board.wipeLayer(server_id, layer);
 
     const layer_info = try BoardLayer.getBoardLayerInfo(globals.allocator, layer) orelse return error.NoLayerInfo;
     const layer_size = Layer.calculateLayerSize(layer_info);
@@ -96,7 +96,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
             entity = try Board.getEntityInPosition(globals.allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
         }
 
-        Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
+        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
     }
 
     for (chest_quantity) |_| {
@@ -125,9 +125,9 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
         const coordinates = calculateCoordinates(j);
         switch (entity) {
             // TODO: Pre generate chest rarities using the identifier/extra property
-            .Chest => Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y),
+            .Chest => try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y),
             // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-            .Enemy => Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0),
+            .Enemy => try Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0),
             else => unreachable,
         }
     }
