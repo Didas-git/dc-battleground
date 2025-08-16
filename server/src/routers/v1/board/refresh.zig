@@ -69,7 +69,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     const Board = globals.Board;
     const BoardLayer = globals.BoardLayer;
 
-    Board.wipeLayer(server_id, layer);
+    try Board.wipeLayer(server_id, layer);
 
     const layer_info = try BoardLayer.getBoardLayerInfo(globals.allocator, layer) orelse return error.NoLayerInfo;
     const layer_size = Layer.calculateLayerSize(layer_info);
@@ -79,12 +79,12 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
 
     if (layer > 1) {
         const coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
+        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
         const coordinates = try getCoordinates(server_id, &layer_info);
-        Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
+        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
     }
 
     var timer = try std.time.Timer.start();
@@ -92,7 +92,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     while (i < chest_quantity) : (i += 1) {
         const coordinates = try getCoordinates(server_id, &layer_info);
         // TODO: Pre generate chest rarities using the identifier/extra property
-        Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y);
+        try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y);
     }
 
     const chest_time = timer.lap();
@@ -101,7 +101,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     while (i < mob_quantity) : (i += 1) {
         const coordinates = try getCoordinates(server_id, &layer_info);
         // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-        Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0);
+        try Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0);
     }
 
     const mob_time = timer.lap();

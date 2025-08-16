@@ -128,8 +128,8 @@ pub const ChestRarity = enum {
     }
 };
 
-pub fn init(db: *Database) Board {
-    db.exec(
+pub fn init(db: *Database) !Board {
+    _ = try db.exec(
         \\CREATE TABLE IF NOT EXISTS Board (
         \\server_id TEXT NOT NULL,
         \\id TEXT NOT NULL,
@@ -144,24 +144,24 @@ pub fn init(db: *Database) Board {
 
     return .{
         .insert = .{
-            .player = .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y) VALUES (:server_id, :id, :type, 1, :x, :y)"),
-            .generic = .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
+            .player = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y) VALUES (:server_id, :id, :type, 1, :x, :y)"),
+            .generic = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
         },
         .get = .{
-            .player = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
-            .portal = .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
-            .entity = .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
+            .player = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
+            .portal = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
+            .entity = try .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
         },
         .update = .{
             .player = .{
-                .position = .init(db, "UPDATE Board SET x = :x, y = :y WHERE server_id = :server_id AND id = :id"),
-                .layer = .init(db, "UPDATE Board SET layer = :layer WHERE server_id = :server_id AND id = :id"),
+                .position = try .init(db, "UPDATE Board SET x = :x, y = :y WHERE server_id = :server_id AND id = :id"),
+                .layer = try .init(db, "UPDATE Board SET layer = :layer WHERE server_id = :server_id AND id = :id"),
             },
         },
         .delete = .{
-            .player = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND id = :id"),
-            .entity = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
-            .all = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND type NOT 1"),
+            .player = try .init(db, "DELETE FROM Board WHERE server_id = :server_id AND id = :id"),
+            .entity = try .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
+            .all = try .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND type != 1"),
         },
     };
 }
@@ -178,7 +178,7 @@ pub fn generateRandomCoordinates(x: i32, y: i32) Coordinates {
 pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const u8) !PositionalData {
     const BoardLayer = globals.BoardLayer;
     const query = self.insert.player;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
     // TODO: Optimize spawn algorithm
     var x: i32 = 0;
@@ -196,13 +196,13 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
         }
     }
 
-    query.bindText(1, server_id);
-    query.bindText(2, member_id);
-    query.bindInt(3, @intFromEnum(Entity.Player));
-    query.bindInt(4, x);
-    query.bindInt(5, y);
+    try query.bindText(1, server_id);
+    try query.bindText(2, member_id);
+    try query.bindInt(3, @intFromEnum(Entity.Player));
+    try query.bindInt(4, x);
+    try query.bindInt(5, y);
 
-    _ = query.step();
+    _ = try query.step();
 
     return .{
         .layer = 1,
@@ -211,18 +211,18 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     };
 }
 
-pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) void {
+pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) !void {
     const query = self.insert.generic;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindText(2, chest_id);
-    query.bindInt(3, @intFromEnum(Entity.Chest));
-    query.bindInt(4, layer);
-    query.bindInt(5, x);
-    query.bindInt(6, y);
+    try query.bindText(1, server_id);
+    try query.bindText(2, chest_id);
+    try query.bindInt(3, @intFromEnum(Entity.Chest));
+    try query.bindInt(4, layer);
+    try query.bindInt(5, x);
+    try query.bindInt(6, y);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
 pub fn generateEnemy(
@@ -233,19 +233,19 @@ pub fn generateEnemy(
     x: i32,
     y: i32,
     identifier: u16,
-) void {
+) !void {
     const query = self.insert.generic;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindText(2, enemy_id);
-    query.bindInt(3, @intFromEnum(Entity.Enemy));
-    query.bindInt(4, layer);
-    query.bindInt(5, x);
-    query.bindInt(6, y);
-    query.bindInt(7, identifier);
+    try query.bindText(1, server_id);
+    try query.bindText(2, enemy_id);
+    try query.bindInt(3, @intFromEnum(Entity.Enemy));
+    try query.bindInt(4, layer);
+    try query.bindInt(5, x);
+    try query.bindInt(6, y);
+    try query.bindInt(7, identifier);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
 pub fn insertLayerPortal(
@@ -256,31 +256,31 @@ pub fn insertLayerPortal(
     x: i32,
     y: i32,
     to: LayerPortalDirection,
-) void {
+) !void {
     const query = self.insert.generic;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindText(2, layer_id);
-    query.bindInt(3, @intFromEnum(Entity.LayerPortal));
-    query.bindInt(4, layer);
-    query.bindInt(5, x);
-    query.bindInt(6, y);
-    query.bindInt(7, @intFromEnum(to));
+    try query.bindText(1, server_id);
+    try query.bindText(2, layer_id);
+    try query.bindInt(3, @intFromEnum(Entity.LayerPortal));
+    try query.bindInt(4, layer);
+    try query.bindInt(5, x);
+    try query.bindInt(6, y);
+    try query.bindInt(7, @intFromEnum(to));
 
-    _ = query.step();
+    _ = try query.step();
 }
 
-pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i32, y: i32) bool {
+pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i32, y: i32) !bool {
     const query = self.update.player.position;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindInt(1, x);
-    query.bindInt(2, y);
-    query.bindText(3, server_id);
-    query.bindText(4, member_id);
+    try query.bindInt(1, x);
+    try query.bindInt(2, y);
+    try query.bindText(3, server_id);
+    try query.bindText(4, member_id);
 
-    _ = query.step();
+    _ = try query.step();
 
     if (query.changes() > 0) {
         return true;
@@ -289,15 +289,15 @@ pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id
     return false;
 }
 
-pub fn changePlayerLayer(self: *const Board, server_id: []const u8, member_id: []const u8, layer: u8) bool {
+pub fn changePlayerLayer(self: *const Board, server_id: []const u8, member_id: []const u8, layer: u8) !bool {
     const query = self.update.player.layer;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindInt(1, layer);
-    query.bindText(2, server_id);
-    query.bindText(3, member_id);
+    try query.bindInt(1, layer);
+    try query.bindText(2, server_id);
+    try query.bindText(3, member_id);
 
-    _ = query.step();
+    _ = try query.step();
 
     if (query.changes() > 0) {
         return true;
@@ -306,16 +306,15 @@ pub fn changePlayerLayer(self: *const Board, server_id: []const u8, member_id: [
     return false;
 }
 
-pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8) ?PositionalData {
+pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8) !?PositionalData {
     const query = self.get.player;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindText(2, member_id);
+    try query.bindText(1, server_id);
+    try query.bindText(2, member_id);
 
-    const found = query.step();
-
-    if (!found) return null;
+    const result = try query.step();
+    if (result != .row) return null;
 
     return .{
         .layer = @intCast(query.intColumn(0)),
@@ -325,27 +324,26 @@ pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: [
 }
 
 // TODO: Rework as deleteUsingID or something similar
-pub fn deletePlayer(self: *const Board, server_id: []const u8, member_id: []const u8) void {
+pub fn deletePlayer(self: *const Board, server_id: []const u8, member_id: []const u8) !void {
     const query = self.delete.player;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindText(2, member_id);
+    try query.bindText(1, server_id);
+    try query.bindText(2, member_id);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
-pub fn getPortalPosition(self: *const Board, server_id: []const u8, layer: u8, direction: LayerPortalDirection) ?PositionalData {
+pub fn getPortalPosition(self: *const Board, server_id: []const u8, layer: u8, direction: LayerPortalDirection) !?PositionalData {
     const query = self.get.portal;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindInt(2, layer);
-    query.bindInt(3, @intFromEnum(direction));
+    try query.bindText(1, server_id);
+    try query.bindInt(2, layer);
+    try query.bindInt(3, @intFromEnum(direction));
 
-    const found = query.step();
-
-    if (!found) return null;
+    const result = try query.step();
+    if (result != .row) return null;
 
     return .{
         .layer = @intCast(query.intColumn(0)),
@@ -365,16 +363,15 @@ pub fn getEntityInPosition(
     y: i32,
 ) !Entity {
     const query = self.get.entity;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindInt(2, layer);
-    query.bindInt(3, x);
-    query.bindInt(4, y);
+    try query.bindText(1, server_id);
+    try query.bindInt(2, layer);
+    try query.bindInt(3, x);
+    try query.bindInt(4, y);
 
-    const found = query.step();
-
-    if (!found) return .{ .Empty = {} };
+    const result = try query.step();
+    if (result != .row) return .{ .Empty = {} };
 
     const entity_type: EntityType = @enumFromInt(query.intColumn(0));
     const id = try query.textColumn(allocator, 1);
@@ -390,26 +387,26 @@ pub fn getEntityInPosition(
     };
 }
 
-pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: u8, x: i32, y: i32) void {
+pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: u8, x: i32, y: i32) !void {
     const query = self.delete.entity;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindInt(2, layer);
-    query.bindInt(3, x);
-    query.bindInt(4, y);
+    try query.bindText(1, server_id);
+    try query.bindInt(2, layer);
+    try query.bindInt(3, x);
+    try query.bindInt(4, y);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
-pub fn wipeLayer(self: *const Board, server_id: []const u8, layer: u8) void {
+pub fn wipeLayer(self: *const Board, server_id: []const u8, layer: u8) !void {
     const query = self.delete.entity;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindText(1, server_id);
-    query.bindInt(2, layer);
+    try query.bindText(1, server_id);
+    try query.bindInt(2, layer);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
 /// Caller should use an arena allocator to be able to deinit all entities at once.

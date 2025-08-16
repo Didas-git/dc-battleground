@@ -27,7 +27,11 @@ pub fn view(res: *Response, req: *Request) void {
         break :blk settings.board.view_size;
     };
 
-    const position = Board.getPlayerPosition(server_id, member_id) orelse {
+    const position = Board.getPlayerPosition(server_id, member_id) catch {
+        res.writeStatusCode(.InternalServerError);
+        res.endWithoutBody(true);
+        return;
+    } orelse {
         res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
