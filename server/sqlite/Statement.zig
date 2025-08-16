@@ -49,18 +49,18 @@ pub fn deinit(self: *const Statement) ErrorCodes!OkCodes {
     return parseResultCode(result);
 }
 
-pub fn bindNull(self: *const Statement, index: u8) ErrorCodes!OkCodes {
+pub fn bindNull(self: *const Statement, index: u8) ErrorCodes!void {
     const result = sqlite.sqlite3_bind_null(self.stmt, @as(c_int, index));
-    return parseResultCode(result);
+    _ = try parseResultCode(result);
 }
 
-pub fn bindText(self: *const Statement, index: u8, text: []const u8) ErrorCodes!OkCodes {
+pub fn bindText(self: *const Statement, index: u8, text: []const u8) ErrorCodes!void {
     // TODO: Check if transient really is the best option for us
     const result = sqlite.sqlite3_bind_text(self.stmt, @as(c_int, index), text.ptr, @as(c_int, @intCast(text.len)), sqlite.SQLITE_TRANSIENT);
-    return parseResultCode(result);
+    _ = try parseResultCode(result);
 }
 
-pub fn bindNumber(self: *const Statement, T: type, index: u8, number: T) ErrorCodes!OkCodes {
+pub fn bindNumber(self: *const Statement, T: type, index: u8, number: T) ErrorCodes!void {
     return switch (@typeInfo(T)) {
         // TODO: Integers and floats bigger than 64bits should be bound as blob
         .int, .comptime_int => self.bindInt(index, @as(i64, number)),
@@ -69,14 +69,14 @@ pub fn bindNumber(self: *const Statement, T: type, index: u8, number: T) ErrorCo
     };
 }
 
-pub fn bindInt(self: *const Statement, index: u8, int: i64) ErrorCodes!OkCodes {
+pub fn bindInt(self: *const Statement, index: u8, int: i64) ErrorCodes!void {
     const result = sqlite.sqlite3_bind_int64(self.stmt, @as(c_int, index), int);
-    return parseResultCode(result);
+    _ = try parseResultCode(result);
 }
 
-pub fn bindFloat(self: *const Statement, index: u8, float: f64) ErrorCodes!OkCodes {
+pub fn bindFloat(self: *const Statement, index: u8, float: f64) ErrorCodes!void {
     const result = sqlite.sqlite3_bind_double(self.stmt, @as(c_int, index), float);
-    return parseResultCode(result);
+    _ = try parseResultCode(result);
 }
 
 pub fn textColumn(self: *const Statement, allocator: std.mem.Allocator, column: u8) ![]const u8 {
