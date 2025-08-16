@@ -377,22 +377,22 @@ pub const Entity = union(EntityType) {
 
     pub fn getBoardTile(self: Entity) []const u8 {
         return switch (self) {
-            .Empty => comptime settings.map.board.empty,
-            .Player => comptime settings.map.board.player,
-            .Enemy => comptime settings.map.board.enemy,
-            .Chest => comptime settings.map.board.chest,
-            .LayerPortal => comptime settings.map.board.layer,
+            .Empty => comptime settings.board.entity_map.empty,
+            .Player => comptime settings.board.entity_map.player,
+            .Enemy => comptime settings.board.entity_map.enemy,
+            .Chest => comptime settings.board.entity_map.chest,
+            .LayerPortal => comptime settings.board.entity_map.layer,
         };
     }
 
     pub fn getBoardTileFromInt(id: u8) []const u8 {
         return switch (id) {
-            0 => comptime settings.map.board.empty,
-            1 => comptime settings.map.board.player,
-            2 => comptime settings.map.board.enemy,
-            3 => comptime settings.map.board.chest,
-            4 => comptime settings.map.board.layer,
-            99 => comptime settings.map.board.enemy_player,
+            0 => comptime settings.board.entity_map.empty,
+            1 => comptime settings.board.entity_map.player,
+            2 => comptime settings.board.entity_map.enemy,
+            3 => comptime settings.board.entity_map.chest,
+            4 => comptime settings.board.entity_map.layer,
+            99 => comptime settings.board.entity_map.enemy_player,
             else => unreachable,
         };
     }

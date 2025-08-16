@@ -3,13 +3,7 @@
     .board = .{
         .view_size = 11,
         .scan_size = 60,
-    },
-    .refresh = .{
-        .chest = 0.001,
-        .mob = 0.005,
-    },
-    .map = .{
-        .board = .{
+        .entity_map = .{
             .empty = "⬛",
             .player = "🟩",
             .enemy = "🟥",
@@ -17,6 +11,10 @@
             .layer = "🔳",
             .enemy_player = "🟪",
         },
+    },
+    .refresh = .{
+        .chest = 0.001,
+        .mob = 0.005,
     },
     .floors = .{
         .{

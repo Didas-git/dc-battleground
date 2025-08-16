@@ -5,13 +5,7 @@ const Settings = struct {
     board: struct {
         view_size: u16,
         scan_size: u16,
-    },
-    refresh: struct {
-        chest: f64,
-        mob: f64,
-    },
-    map: struct {
-        board: struct {
+        entity_map: struct {
             empty: []const u8,
             player: []const u8,
             enemy: []const u8,
@@ -19,6 +13,10 @@ const Settings = struct {
             layer: []const u8,
             enemy_player: []const u8,
         },
+    },
+    refresh: struct {
+        chest: f64,
+        mob: f64,
     },
     floors: [4]struct {
         name: []const u8,
