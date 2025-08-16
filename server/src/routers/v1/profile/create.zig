@@ -17,11 +17,15 @@ pub fn create(res: *Response, req: *Request) void {
     const member_id = req.getParameter(1);
     const name = req.getParameter(2);
     const class_string = req.getParameter(3);
-    const class: Class = @enumFromInt(std.fmt.parseInt(u8, class_string, 10) catch {
+    const class = std.meta.intToEnum(Class, std.fmt.parseInt(u8, class_string, 10) catch {
         res.writeStatus("400 Malformed class");
         res.endWithoutBody(true);
         return;
-    });
+    }) catch {
+        res.writeStatus("400 Invalid class");
+        res.endWithoutBody(true);
+        return;
+    };
 
     const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ server_id, member_id }) catch {
         return utils.handleFailedAllocation(res);

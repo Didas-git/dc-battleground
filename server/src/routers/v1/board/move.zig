@@ -111,6 +111,7 @@ pub fn move(res: *Response, req: *Request) void {
                 }, .{}) catch {
                     return utils.handleFailedAllocation(res);
                 };
+                defer allocator.free(stringified_data);
 
                 res.writeStatus("308 Next Action");
                 res.writeHeader("Content-Type", "application/json; charset=utf8");
@@ -131,6 +132,7 @@ pub fn move(res: *Response, req: *Request) void {
             }, .{}) catch {
                 return utils.handleFailedAllocation(res);
             };
+            defer allocator.free(stringified_data);
 
             res.writeStatus("308 Next Action");
             res.writeHeader("Content-Type", "application/json; charset=utf8");
