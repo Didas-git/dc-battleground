@@ -10,6 +10,7 @@ queries: struct {
     create: Statement,
     delete: Statement,
     get: struct {
+        all: Statement,
         level: Statement,
         class: Statement,
         servers: Statement,
@@ -19,10 +20,38 @@ queries: struct {
     },
 },
 
+pub const Profile = struct {
+    name: []const u8,
+    class: Class,
+    xp: XP,
+
+    pub fn deinit(self: *Profile, allocator: std.mem.Allocator) void {
+        allocator.free(self.name);
+    }
+};
+
 // pub const Data = struct {
 //     // name: []const u8, // TODO: Is this really needed?
 //     class: Class,
 // };
+
+pub const Class = enum {
+    none,
+    mage,
+    warrior,
+
+    pub fn jsonStringify(self: Class, jw: anytype) !void {
+        return jw.write(@intFromEnum(self));
+    }
+
+    pub fn toString(self: Class) []const u8 {
+        return switch (self) {
+            .none => "#$#",
+            .mage => "Mage",
+            .warrior => "Warrior",
+        };
+    }
+};
 
 pub const XP = struct {
     level: u16,
@@ -36,9 +65,9 @@ pub fn init(db: *Database) Player {
         \\CREATE TABLE IF NOT EXISTS Player (
         \\id TEXT PRIMARY KEY,
         \\name TEXT NOT NULL,
+        \\class INTEGER NOT NULL,
         \\level INTEGER NOT NULL,
-        \\xp REAL NOT NULL,
-        \\class INTEGER NOT NULL
+        \\xp REAL NOT NULL
         \\)
     );
 
@@ -50,6 +79,7 @@ pub fn init(db: *Database) Player {
             .create = .init(db, "INSERT INTO Player (id, name, level, xp, class) VALUES (:id, :name, 0, 0, :class)"),
             .delete = .init(db, "DELETE FROM Player WHERE id = :id"),
             .get = .{
+                .all = .init(db, "SELECT name, class, level, xp FROM Player WHERE id = :id"),
                 .level = .init(db, "SELECT level, xp FROM Player WHERE id = :id"),
                 .class = .init(db, "SELECT class FROM Player WHERE id = :id"),
                 .servers = .init(db, "SELECT class FROM Player WHERE id LIKE :id"),
@@ -80,6 +110,43 @@ pub fn deleteProfile(self: *const Player, player_id: []const u8) void {
 
     _ = query.step();
 }
+
+pub fn getProfile(self: *const Player, allocator: std.mem.Allocator, player_id: []const u8) !?Profile {
+    const query = self.queries.get.all;
+    defer query.reset();
+
+    query.bindText(1, player_id);
+
+    const found = query.step();
+    if (!found) return null;
+
+    return .{
+        .name = try query.textColumn(allocator, 0),
+        .class = @enumFromInt(query.intColumn(1)),
+        .xp = .{
+            .level = @intCast(query.intColumn(2)),
+            .xp = query.floatColumn(3),
+        },
+    };
+}
+
+// TODO: Check how sqlite handles the return of multiple rows
+// pub fn getProfileInAllGuilds(self: *const Player, allocator: std.mem.Allocator, player_id: []const u8) !?[]Profile {
+//     const query = self.queries.get.servers;
+//     defer query.reset();
+
+//     var buff: [24]u8 = undefined;
+//     const len = player_id.len;
+
+//     buff[0] = ':';
+//     buff[1] = '%';
+//     @memcpy(buff[2 .. len + 2], player_id);
+
+//     query.bindText(1, buff[0 .. len + 2]);
+
+//     const found = query.step();
+//     if (!found) return null;
+// }
 
 pub fn getClass(self: *const Player, player_id: []const u8) ?Class {
     const query = self.queries.get.class;
@@ -137,20 +204,6 @@ pub fn getLevel(self: *const Player, player_id: []const u8) ?XP {
         .xp = xp,
     };
 }
-
-pub const Class = enum {
-    none,
-    mage,
-    warrior,
-
-    pub fn toString(self: *Class) [:0]const u8 {
-        return switch (self) {
-            .none => "#$#",
-            .mage => "Mage",
-            .warrior => "Warrior",
-        };
-    }
-};
 
 fn linear(l: f64, u: f64, n: f64, x: f64) f64 {
     return l + (u - l) / n * x;

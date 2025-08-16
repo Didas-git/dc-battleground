@@ -1,11 +1,11 @@
 meta {
-  name: Create
+  name: Display
   type: http
-  seq: 1
+  seq: 2
 }
 
-put {
-  url: http://localhost:3000/api/v1/profile/create/:server_id/:member_id/:name/:class
+get {
+  url: http://localhost:3000/api/v1/profile/display/:server_id/:member_id
   body: none
   auth: inherit
 }
@@ -13,8 +13,6 @@ put {
 params:path {
   server_id: test_server
   member_id: 000
-  name: DidaS
-  class: 1
 }
 
 settings {
