@@ -32,7 +32,12 @@ pub fn create(res: *Response, req: *Request) void {
     };
     defer globals.allocator.free(player_id);
 
-    Player.createProfile(player_id, name, class);
+    Player.createProfile(player_id, name, class) catch {
+        res.writeStatusCode(.InternalServerError);
+        res.endWithoutBody(true);
+        return;
+    };
+
     const origin = Board.spawnPlayer(server_id, member_id) catch {
         return utils.handleFailedAllocation(res);
     };

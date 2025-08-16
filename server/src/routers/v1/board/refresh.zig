@@ -84,7 +84,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
 
     if (layer > 1) {
         const coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
+        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {

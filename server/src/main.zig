@@ -20,15 +20,15 @@ pub fn main() !void {
     defer db.deinit();
 
     globals.db = db;
-    globals.Board = .init(&db);
-    globals.Player = .init(&db);
-    globals.BoardCache = .init(&db);
-    globals.BoardLayer = .init(&db);
+    globals.Board = try .init(&db);
+    globals.Player = try .init(&db);
+    globals.BoardCache = try .init(&db);
+    globals.BoardLayer = try .init(&db);
 
-    globals.BoardLayer.parseLayerSettings();
+    try globals.BoardLayer.parseLayerSettings();
 
     if (comptime builtin.mode == .Debug) {
-        insertTestData();
+        try insertTestData();
     }
 
     // Enable later in prod
@@ -39,7 +39,7 @@ pub fn main() !void {
     try app.listen(3000, null);
 }
 
-fn insertTestData() void {
-    globals.Board.insertLayerPortal("test_server", "test_portal", 1, 3, 0, .forwards);
-    globals.BoardCache.set("test_cache", "didas");
+fn insertTestData() !void {
+    try globals.Board.insertLayerPortal("test_server", "test_portal", 1, 3, 0, .forwards);
+    try globals.BoardCache.set("test_cache", "didas");
 }

@@ -66,7 +66,11 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     }
 
-    const player = Board.getPlayerPosition(server_id, member_id) orelse {
+    const player = Board.getPlayerPosition(server_id, member_id) catch {
+        res.writeStatusCode(.InternalServerError);
+        res.endWithoutBody(true);
+        return;
+    } orelse {
         res.writeStatusCode(.NotFound);
         res.endWithoutBody(true);
         return;
@@ -83,8 +87,16 @@ pub fn move(res: *Response, req: *Request) void {
         .Empty => {
             // TODO: Handle possible player missing
             // Tho realistically this race condition should never happen
-            _ = Board.updatePlayerPosition(server_id, member_id, x, y);
-            BoardCache.update(cache_id);
+            _ = Board.updatePlayerPosition(server_id, member_id, x, y) catch {
+                res.writeStatusCode(.InternalServerError);
+                res.endWithoutBody(true);
+                return;
+            };
+            BoardCache.update(cache_id) catch {
+                res.writeStatusCode(.InternalServerError);
+                res.endWithoutBody(true);
+                return;
+            };
             res.writeStatus("200 Moved");
         },
         .Player => {

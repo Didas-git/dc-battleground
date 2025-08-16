@@ -26,8 +26,8 @@ pub const Info = struct {
     }
 };
 
-pub fn init(db: *Database) BoardLayer {
-    db.exec(
+pub fn init(db: *Database) !BoardLayer {
+    _ = try db.exec(
         \\CREATE TABLE IF NOT EXISTS BoardLayer (
         \\layer INTEGER PRIMARY KEY,
         \\name TEXT NOT NULL,
@@ -39,16 +39,16 @@ pub fn init(db: *Database) BoardLayer {
 
     return .{
         .queries = .{
-            .search = .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
-            .get = .init(db, "SELECT name, layer, x, y FROM BoardLayer WHERE layer = :layer"),
-            .delete = .init(db, "DELETE FROM BoardLayer WHERE layer = :layer"),
-            .create = .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y) VALUES (:layer, :name, :table, :x, :y)"),
+            .search = try .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
+            .get = try .init(db, "SELECT name, layer, x, y FROM BoardLayer WHERE layer = :layer"),
+            .delete = try .init(db, "DELETE FROM BoardLayer WHERE layer = :layer"),
+            .create = try .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y) VALUES (:layer, :name, :table, :x, :y)"),
         },
     };
 }
 
 // Use an arena allocator to free everything at once
-pub fn parseLayerSettings(self: *BoardLayer) void {
+pub fn parseLayerSettings(self: *BoardLayer) !void {
     const get_query = self.queries.search;
     const del_query = self.queries.delete;
 
@@ -56,23 +56,23 @@ pub fn parseLayerSettings(self: *BoardLayer) void {
 
     var i: u8 = 0;
     while (true) : (i += 1) {
-        defer get_query.reset();
-        defer del_query.reset();
-        get_query.bindInt(1, i);
-        del_query.bindInt(1, i);
+        defer _ = get_query.reset() catch unreachable;
+        defer _ = del_query.reset() catch unreachable;
+        try get_query.bindInt(1, i);
+        try del_query.bindInt(1, i);
 
-        const found = get_query.step();
+        const result = try get_query.step();
         // There is probably a way to condensate this if statements
-        if (i >= len and !found) break;
-        _ = del_query.step();
-        if (i >= len and found) continue;
+        if (i >= len and result != .row) break;
+        _ = try del_query.step();
+        if (i >= len and result == .row) continue;
 
         const layer = settings.floors[i];
         // TODO: implement string splitting like in the js version
         const x = layer.size;
         const y = layer.size;
 
-        self.createBoardLayer(
+        try self.createBoardLayer(
             i,
             layer.name,
             x,
@@ -84,13 +84,12 @@ pub fn parseLayerSettings(self: *BoardLayer) void {
 // Caller must call `Data.deinit(allocator)`
 pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, layer: u8) !?Info {
     const query = self.queries.get;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindInt(1, layer);
+    try query.bindInt(1, layer);
 
-    const found = query.step();
-
-    if (!found) return null;
+    const result = try query.step();
+    if (result != .row) return null;
 
     const name = try query.textColumn(allocator, 0);
 
@@ -109,17 +108,17 @@ pub fn createBoardLayer(
     name: []const u8,
     x: u32,
     y: u32,
-) void {
+) !void {
     const query = self.queries.create;
-    defer query.reset();
+    defer _ = query.reset() catch unreachable;
 
-    query.bindInt(1, layer);
-    query.bindText(2, name);
-    query.bindNull(3);
-    query.bindInt(4, x);
-    query.bindInt(5, y);
+    try query.bindInt(1, layer);
+    try query.bindText(2, name);
+    try query.bindNull(3);
+    try query.bindInt(4, x);
+    try query.bindInt(5, y);
 
-    _ = query.step();
+    _ = try query.step();
 }
 
 pub fn calculateLayerSize(coordinates: Info) i32 {
