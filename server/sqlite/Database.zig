@@ -1,5 +1,10 @@
-const std = @import("std");
+const shared = @import("./shared.zig");
 const sqlite = @import("sqlite");
+const std = @import("std");
+
+const parseResultCode = shared.parseResultCode;
+const ErrorCodes = shared.ErrorCodes;
+const OkCodes = shared.OkCodes;
 
 const Database = @This();
 
@@ -39,9 +44,7 @@ pub fn deinit(self: *const Database) void {
 }
 
 /// Please don't use this for `SELECT` as it wont return anything
-pub fn exec(self: *const Database, query: [:0]const u8) void {
+pub fn exec(self: *const Database, query: [:0]const u8) ErrorCodes!OkCodes {
     const result = sqlite.sqlite3_exec(self.db, query, null, null, null);
-
-    // TODO: Improve error handling
-    if (result != sqlite.SQLITE_OK) {}
+    return parseResultCode(result);
 }
