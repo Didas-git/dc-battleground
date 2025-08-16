@@ -30,12 +30,102 @@ update: struct {
 delete: struct {
     player: Statement,
     entity: Statement,
+    all: Statement,
 },
 
 pub const PositionalData = struct {
     layer: u8,
     x: i32,
     y: i32,
+};
+
+pub const LayerPortalDirection = enum(i2) {
+    backwards = -1,
+    forwards = 1,
+};
+
+pub const EntityType = enum {
+    Empty,
+    Player,
+    Enemy,
+    Chest,
+    LayerPortal,
+};
+
+pub const Entity = union(EntityType) {
+    Empty: void,
+    Player: struct {
+        id: []const u8,
+    },
+    Enemy: struct {
+        id: []const u8,
+        /// Can never be 0
+        enemy_id: i64,
+    },
+    Chest: struct {
+        id: []const u8,
+    },
+    LayerPortal: struct {
+        id: []const u8,
+        to: LayerPortalDirection,
+    },
+
+    pub fn deinit(self: Entity, allocator: std.mem.Allocator) void {
+        switch (self) {
+            .Empty => {},
+            inline else => |e| allocator.free(e.id),
+        }
+    }
+
+    pub fn getBoardTile(self: Entity) []const u8 {
+        return switch (self) {
+            .Empty => comptime settings.board.entity_map.empty,
+            .Player => comptime settings.board.entity_map.player,
+            .Enemy => comptime settings.board.entity_map.enemy,
+            .Chest => comptime settings.board.entity_map.chest,
+            .LayerPortal => comptime settings.board.entity_map.layer,
+        };
+    }
+
+    pub fn getBoardTileFromInt(id: u8) []const u8 {
+        return switch (id) {
+            0 => comptime settings.board.entity_map.empty,
+            1 => comptime settings.board.entity_map.player,
+            2 => comptime settings.board.entity_map.enemy,
+            3 => comptime settings.board.entity_map.chest,
+            4 => comptime settings.board.entity_map.layer,
+            99 => comptime settings.board.entity_map.enemy_player,
+            else => unreachable,
+        };
+    }
+};
+
+pub const ChestRarity = enum {
+    Cursed,
+    Basic,
+    Normal,
+    Epic,
+    Legendary,
+
+    pub fn ratio(self: *ChestRarity) f64 {
+        return switch (self) {
+            .Cursed => 0.015,
+            .Basic => 0.3,
+            .Normal => 0.58,
+            .Epic => 0.1,
+            .Legendary => 0.005,
+        };
+    }
+
+    pub fn toString(self: *ChestRarity) []const u8 {
+        return switch (self) {
+            .Cursed => "Cursed",
+            .Basic => "Basic",
+            .Normal => "Normal",
+            .Epic => "Epic",
+            .Legendary => "Legendary",
+        };
+    }
 };
 
 pub fn init(db: *Database) Board {
@@ -71,11 +161,14 @@ pub fn init(db: *Database) Board {
         .delete = .{
             .player = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND id = :id"),
             .entity = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
+            .all = .init(db, "DELETE FROM Board WHERE server_id = :server_id AND layer = :layer AND type NOT 1"),
         },
     };
 }
 
-pub fn generateRandomCoordinates(x: i32, y: i32) struct { x: i32, y: i32 } {
+pub const Coordinates = struct { x: i32, y: i32 };
+
+pub fn generateRandomCoordinates(x: i32, y: i32) Coordinates {
     return .{
         .x = random.intRangeAtMost(i32, -x, x),
         .y = random.intRangeAtMost(i32, -y, y),
@@ -309,94 +402,15 @@ pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: 
     _ = query.step();
 }
 
-pub const ChestRarity = enum {
-    Cursed,
-    Basic,
-    Normal,
-    Epic,
-    Legendary,
+pub fn wipeLayer(self: *const Board, server_id: []const u8, layer: u8) void {
+    const query = self.delete.entity;
+    defer query.reset();
 
-    pub fn ratio(self: *ChestRarity) f64 {
-        return switch (self) {
-            .Cursed => 0.015,
-            .Basic => 0.3,
-            .Normal => 0.58,
-            .Epic => 0.1,
-            .Legendary => 0.005,
-        };
-    }
+    query.bindText(1, server_id);
+    query.bindInt(2, layer);
 
-    pub fn toString(self: *ChestRarity) []const u8 {
-        return switch (self) {
-            .Cursed => "Cursed",
-            .Basic => "Basic",
-            .Normal => "Normal",
-            .Epic => "Epic",
-            .Legendary => "Legendary",
-        };
-    }
-};
-
-pub const LayerPortalDirection = enum(i2) {
-    backwards = -1,
-    forwards = 1,
-};
-
-pub const EntityType = enum {
-    Empty,
-    Player,
-    Enemy,
-    Chest,
-    LayerPortal,
-};
-
-pub const Entity = union(EntityType) {
-    Empty: void,
-    Player: struct {
-        id: []const u8,
-    },
-    Enemy: struct {
-        id: []const u8,
-        /// Can never be 0
-        enemy_id: i64,
-    },
-    Chest: struct {
-        id: []const u8,
-    },
-    LayerPortal: struct {
-        id: []const u8,
-        to: LayerPortalDirection,
-    },
-
-    pub fn deinit(self: Entity, allocator: std.mem.Allocator) void {
-        switch (self) {
-            .Empty => {},
-            inline else => |e| allocator.free(e.id),
-        }
-    }
-
-    pub fn getBoardTile(self: Entity) []const u8 {
-        return switch (self) {
-            .Empty => comptime settings.board.entity_map.empty,
-            .Player => comptime settings.board.entity_map.player,
-            .Enemy => comptime settings.board.entity_map.enemy,
-            .Chest => comptime settings.board.entity_map.chest,
-            .LayerPortal => comptime settings.board.entity_map.layer,
-        };
-    }
-
-    pub fn getBoardTileFromInt(id: u8) []const u8 {
-        return switch (id) {
-            0 => comptime settings.board.entity_map.empty,
-            1 => comptime settings.board.entity_map.player,
-            2 => comptime settings.board.entity_map.enemy,
-            3 => comptime settings.board.entity_map.chest,
-            4 => comptime settings.board.entity_map.layer,
-            99 => comptime settings.board.entity_map.enemy_player,
-            else => unreachable,
-        };
-    }
-};
+    _ = query.step();
+}
 
 /// Caller should use an arena allocator to be able to deinit all entities at once.
 pub fn scanFromCenter(

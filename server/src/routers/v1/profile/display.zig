@@ -3,8 +3,6 @@ const utils = @import("utils");
 const zuws = @import("zuws");
 const std = @import("std");
 
-const Class = @import("models").Player.Class;
-
 const App = zuws.App;
 const Request = zuws.Request;
 const Response = zuws.Response;

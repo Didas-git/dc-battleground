@@ -14,14 +14,14 @@ queries: struct {
     delete: Statement,
 },
 
-pub const Data = struct {
+pub const Info = struct {
     layer: u8,
     name: []const u8,
     loot_table: ?[]const u8,
     x: i32,
     y: i32,
 
-    pub fn deinit(self: Data, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: Info, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
     }
 };
@@ -82,7 +82,7 @@ pub fn parseLayerSettings(self: *BoardLayer) void {
 }
 
 // Caller must call `Data.deinit(allocator)`
-pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, layer: u8) !?Data {
+pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, layer: u8) !?Info {
     const query = self.queries.get;
     defer query.reset();
 
@@ -122,6 +122,6 @@ pub fn createBoardLayer(
     _ = query.step();
 }
 
-pub fn calculateLayerSize(coordinates: Data) i32 {
+pub fn calculateLayerSize(coordinates: Info) i32 {
     return (coordinates.x - (coordinates.x * -1)) * (coordinates.y - (coordinates.y * -1));
 }

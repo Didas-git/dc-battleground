@@ -65,6 +65,10 @@ pub fn build(b: *std.Build) void {
 
     utils.addImport("zuws", zuws.module("zuws"));
 
+    const nanoid = b.createModule(.{
+        .root_source_file = b.path("./nanoid.zig"),
+    });
+
     const exe_mod = b.createModule(
         .{
             .root_source_file = b.path("src/main.zig"),
@@ -77,6 +81,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "globals", .module = globals },
                 .{ .name = "models", .module = models },
                 .{ .name = "utils", .module = utils },
+                .{ .name = "nanoid", .module = nanoid },
             },
         },
     );
