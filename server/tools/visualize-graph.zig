@@ -5,7 +5,7 @@ pub fn main() !void {
     const app: zuws.App = try .init();
     defer app.deinit();
 
-    try app.get("/*", struct {
+    app.get("/*", struct {
         fn f(res: *zuws.Response, req: *zuws.Request) void {
             _ = req;
             var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
@@ -18,4 +18,6 @@ pub fn main() !void {
             res.end(contents, true);
         }
     }.f).listen(8000, null);
+
+    app.run();
 }

@@ -151,7 +151,7 @@ pub fn init(db: *Database) !Board {
             .player = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
             .portal = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
             .entity = try .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
-            .all = try .init(db, "SELECT x, y FROM BOARD WHERE server_id = :server_id AND layer = :layer AND type = 1"),
+            // .all = try .init(db, "SELECT x, y FROM BOARD WHERE server_id = :server_id AND layer = :layer AND type = 1"),
         },
         .update = .{
             .player = .{
@@ -430,23 +430,19 @@ pub fn scanFromCenter(
     var y = initial_y;
     while (i < full_size) : (i += 1) {
         if (i % size == 0 and i != 0) {
-            try board.append("\n");
+            try board.append(allocator, "\n");
             x = initial_x;
             y -= 1;
         }
 
         const entity = try self.getEntityInPosition(allocator, server_id, center.layer, x, y);
-        switch (entity) {
-            .Player => |player| {
-                try board.append(if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99));
-            },
-            else => {
-                try board.append(entity.getBoardTile());
-            },
-        }
+        try board.append(allocator, switch (entity) {
+            .Player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99),
+            else => entity.getBoardTile(),
+        });
 
         x += 1;
     }
 
-    return board.toOwnedSlice();
+    return board.toOwnedSlice(allocator);
 }

@@ -28,7 +28,7 @@ pub fn display(res: *Response, req: *Request) void {
 
     defer player.deinit(globals.allocator);
 
-    const stringified_data = std.json.stringifyAlloc(globals.allocator, player, .{}) catch {
+    const stringified_data = std.json.Stringify.valueAlloc(globals.allocator, player, .{}) catch {
         return utils.handleFailedAllocation(res);
     };
     defer globals.allocator.free(stringified_data);

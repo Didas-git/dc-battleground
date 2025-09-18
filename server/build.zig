@@ -102,18 +102,27 @@ pub fn build(b: *std.Build) void {
 
     const generate_graph = b.addExecutable(.{
         .name = "gen",
-        .root_source_file = b.path("./tools/generate-graph.zig"),
-        .target = target,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("./tools/generate-graph.zig"),
+            .target = target,
+        }),
     });
 
-    generate_graph.root_module.addAnonymousImport("player", .{ .root_source_file = b.path("./src/models/Player.zig") });
+    generate_graph.root_module.addAnonymousImport("player", .{
+        .root_source_file = b.path("./src/models/Player.zig"),
+        .imports = &.{
+            .{ .name = "sqlite", .module = sqlite },
+        },
+    });
     b.installArtifact(generate_graph);
     const gen_step = b.addRunArtifact(generate_graph);
 
     const view = b.addExecutable(.{
         .name = "view",
-        .root_source_file = b.path("./tools/visualize-graph.zig"),
-        .target = target,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("./tools/visualize-graph.zig"),
+            .target = target,
+        }),
     });
 
     view.root_module.addImport("zuws", zuws.module("zuws"));

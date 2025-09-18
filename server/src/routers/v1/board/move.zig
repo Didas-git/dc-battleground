@@ -111,7 +111,7 @@ pub fn move(res: *Response, req: *Request) void {
             if (possible_new_layer) |new_layer| {
                 defer new_layer.deinit(allocator);
                 // TODO: Use HBP instead of JSON
-                const stringified_data = std.json.stringifyAlloc(allocator, NextMoveLayerData{
+                const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveLayerData{
                     .entity = @intFromEnum(entity),
                     .direction = @intFromEnum(direction),
                     .layer = player.layer,
@@ -135,7 +135,7 @@ pub fn move(res: *Response, req: *Request) void {
             }
         },
         else => {
-            const stringified_data = std.json.stringifyAlloc(allocator, NextMoveData{
+            const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveData{
                 .entity = @intFromEnum(entity),
                 .direction = @intFromEnum(direction),
                 .layer = player.layer,

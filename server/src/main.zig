@@ -36,7 +36,8 @@ pub fn main() !void {
     // db.exec("PRAGMA synchronous = NORMAL");
 
     app.comptimeGroup(&api);
-    try app.listen(3000, null);
+    app.listen(3000, null);
+    app.run();
 }
 
 fn insertTestData() !void {

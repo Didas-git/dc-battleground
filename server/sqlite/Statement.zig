@@ -14,7 +14,7 @@ db: *sqlite.sqlite3,
 
 pub fn init(db: *Database, query: [:0]const u8) ErrorCodes!Statement {
     var stmt: ?*sqlite.sqlite3_stmt = undefined;
-    const result = sqlite.sqlite3_prepare_v2(db.db.?, query, @intCast(query.len), &stmt, undefined);
+    const result = sqlite.sqlite3_prepare_v2(db.db.?, query, @intCast(query.len), &stmt, null);
 
     _ = try parseResultCode(result);
 

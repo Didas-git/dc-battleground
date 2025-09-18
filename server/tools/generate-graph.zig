@@ -2,10 +2,21 @@ const std = @import("std");
 const getXP = @import("player").getNextLevelXP;
 
 pub fn main() !void {
+    std.fs.cwd().access("tools/index.html", .{}) catch |err| {
+        switch (err) {
+            error.FileNotFound => {},
+            else => return err,
+        }
+    };
+
     const file = try std.fs.cwd().createFile("tools/index.html", .{});
     defer file.close();
 
-    try file.writeAll(
+    var buf: [128]u8 = undefined;
+    var writer = file.writer(&buf);
+    var io_writer = &writer.interface;
+
+    try io_writer.writeAll(
         \\<!DOCTYPE html>
         \\<html lang="en">
         \\<head>
@@ -20,15 +31,13 @@ pub fn main() !void {
         \\const customXp = [
     );
 
-    const writer = file.writer();
-
     var i: usize = 0;
     while (i <= 3000) : (i += 1) {
-        try std.fmt.formatInt(getXP(@intCast(i)), 10, .lower, .{}, writer);
-        if (i != 3000) try writer.writeAll(",");
+        try io_writer.printInt(getXP(@intCast(i)), 10, .lower, .{});
+        if (i != 3000) try io_writer.writeByte(',');
     }
 
-    try file.writeAll(
+    try io_writer.writeAll(
         \\];
         \\const trace1 = {
         \\    x: Array.from({ length: customXp.length }, (_, i) => i),
@@ -60,4 +69,6 @@ pub fn main() !void {
         \\</body>
         \\</html>
     );
+
+    try io_writer.flush();
 }

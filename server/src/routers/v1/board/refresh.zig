@@ -34,7 +34,7 @@ pub fn refresh(res: *Response, req: *Request) void {
         return;
     };
 
-    var generated: Generated = .{ .chests = 0, .mobs = 0 };
+    var generated: Generated = .{ .chests = 0, .mobs = 0, .took = 0 };
 
     if (layer == 0) {
         var i: u8 = 1;
@@ -57,7 +57,7 @@ pub fn refresh(res: *Response, req: *Request) void {
         };
     }
 
-    const stringified_data = std.json.stringifyAlloc(globals.allocator, generated, .{}) catch {
+    const stringified_data = std.json.Stringify.valueAlloc(globals.allocator, generated, .{}) catch {
         return utils.handleFailedAllocation(res);
     };
     defer globals.allocator.free(stringified_data);
@@ -69,14 +69,15 @@ pub fn refresh(res: *Response, req: *Request) void {
 pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     const Board = globals.Board;
     const BoardLayer = globals.BoardLayer;
+    const allocator = globals.allocator;
 
-    const size = comptime settings.floors[layer].size;
-    var full_size: u64 = comptime (size * 2) * (size * 2);
-    const arr: std.ArrayList(Entity) = try .initCapacity(globals.allocator, full_size);
+    const size = settings.floors[layer].size;
+    var full_size: u64 = (size * 2) * (size * 2);
+    var arr: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);
 
     try Board.wipeLayer(server_id, layer);
 
-    const layer_info = try BoardLayer.getBoardLayerInfo(globals.allocator, layer) orelse return error.NoLayerInfo;
+    const layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer) orelse return error.NoLayerInfo;
     const layer_size = Layer.calculateLayerSize(layer_info);
 
     const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
@@ -89,36 +90,36 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
 
     if (layer < comptime settings.floors.len - 1) {
         var coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        var entity = try Board.getEntityInPosition(globals.allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
+        var entity = try Board.getEntityInPosition(allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
         while (entity != .Empty) {
             coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-            entity.deinit(globals.allocator);
-            entity = try Board.getEntityInPosition(globals.allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
+            entity.deinit(allocator);
+            entity = try Board.getEntityInPosition(allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
         }
 
         try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
     }
 
-    for (chest_quantity) |_| {
-        try arr.append(.Chest);
+    for (0..chest_quantity) |_| {
+        try arr.append(allocator, .Chest);
         full_size -= 1;
     }
 
-    for (mob_quantity) |_| {
-        try arr.append(.Empty);
+    for (0..mob_quantity) |_| {
+        try arr.append(allocator, .Empty);
         full_size -= 1;
     }
 
     while (full_size > 0) : (full_size -= 1) {
-        try arr.append(.Empty);
+        try arr.append(allocator, .Empty);
     }
 
-    var buf = try arr.toOwnedSlice();
-    random.shuffle(Entity, &buf);
+    const buf = try arr.toOwnedSlice(allocator);
+    random.shuffle(Entity, buf);
 
     var timer = try std.time.Timer.start();
 
-    globals.db.exec("BEGIN TRANSACTION");
+    _ = try globals.db.exec("BEGIN TRANSACTION");
 
     for (buf, 0..) |entity, j| {
         if (entity == .Empty) continue;
@@ -132,7 +133,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
         }
     }
 
-    globals.db.exec("END TRANSACTION");
+    _ = try globals.db.exec("END TRANSACTION");
 
     const time = timer.lap();
 
@@ -146,6 +147,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
 fn calculateCoordinates(index: usize) Coordinates {
     _ = index;
     // TODO
+    return .{ .x = 0, .y = 0 };
 }
 
 fn handleNoLayerInfo(res: *Response) void {
