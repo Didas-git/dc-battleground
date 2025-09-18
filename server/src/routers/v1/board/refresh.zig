@@ -47,6 +47,7 @@ pub fn refresh(res: *Response, req: *Request) void {
             };
             generated.chests += gen.chests;
             generated.mobs += gen.mobs;
+            generated.took += gen.took;
         }
     } else {
         generated = refreshLayer(server_id, layer) catch |err| {
@@ -83,20 +84,15 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
     const mob_quantity: u64 = @intFromFloat(@round(settings.refresh.mob * @as(f64, @floatFromInt(layer_size))));
 
+    var timer = try std.time.Timer.start();
+
     if (layer > 1) {
-        const coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
+        const coordinates = try getCoordinates(allocator, layer_info, server_id);
         try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
-        var coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        var entity = try Board.getEntityInPosition(allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
-        while (entity != .Empty) {
-            coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-            entity.deinit(allocator);
-            entity = try Board.getEntityInPosition(allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
-        }
-
+        const coordinates = try getCoordinates(allocator, layer_info, server_id);
         try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
     }
 
@@ -106,7 +102,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     }
 
     for (0..mob_quantity) |_| {
-        try arr.append(allocator, .Empty);
+        try arr.append(allocator, .Enemy);
         full_size -= 1;
     }
 
@@ -116,8 +112,6 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
     const buf = try arr.toOwnedSlice(allocator);
     random.shuffle(Entity, buf);
-
-    var timer = try std.time.Timer.start();
 
     _ = try globals.db.exec("BEGIN TRANSACTION");
 
@@ -148,6 +142,20 @@ fn calculateCoordinates(index: usize) Coordinates {
     _ = index;
     // TODO
     return .{ .x = 0, .y = 0 };
+}
+
+fn getCoordinates(gpa: std.mem.Allocator, layer_info: LayerInfo, server_id: []const u8) !Coordinates {
+    const Board = globals.Board;
+
+    var coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
+    var entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
+    while (entity != .Empty) {
+        coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
+        entity.deinit(gpa);
+        entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
+    }
+
+    return coordinates;
 }
 
 fn handleNoLayerInfo(res: *Response) void {

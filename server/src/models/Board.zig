@@ -139,13 +139,14 @@ pub fn init(db: *Database) !Board {
         \\y INTEGER NOT NULL,
         \\extra INTEGER,
         \\PRIMARY KEY (server_id, id)
+        \\UNIQUE(layer,x,y)
         \\)
     );
 
     return .{
         .insert = .{
             .player = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y) VALUES (:server_id, :id, :type, 1, :x, :y)"),
-            .generic = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
+            .generic = try .init(db, "INSERT OR IGNORE INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
         },
         .get = .{
             .player = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
@@ -401,7 +402,7 @@ pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: 
 }
 
 pub fn wipeLayer(self: *const Board, server_id: []const u8, layer: u8) !void {
-    const query = self.delete.entity;
+    const query = self.delete.all;
     defer _ = query.reset() catch unreachable;
 
     try query.bindText(1, server_id);

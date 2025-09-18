@@ -28,7 +28,10 @@ pub fn main() !void {
     try globals.BoardLayer.parseLayerSettings();
 
     if (comptime builtin.mode == .Debug) {
-        try insertTestData();
+        insertTestData() catch |err| switch (err) {
+            Database.ErrorCodes.Constrain => {},
+            else => return err,
+        };
     }
 
     // Enable later in prod
