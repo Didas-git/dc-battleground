@@ -68,9 +68,7 @@ pub fn parseLayerSettings(self: *BoardLayer) !void {
         if (i >= len and result == .row) continue;
 
         const layer = settings.floors[i];
-        // TODO: implement string splitting like in the js version
-        const x = layer.size;
-        const y = layer.size;
+        const x, const y = getLayerSize(layer);
 
         try self.createBoardLayer(
             i,
@@ -121,6 +119,13 @@ pub fn createBoardLayer(
     _ = try query.step();
 }
 
-pub fn calculateLayerSize(coordinates: Info) i32 {
-    return (coordinates.x - (coordinates.x * -1)) * (coordinates.y - (coordinates.y * -1));
+pub fn calculateLayerSize(coordinates: Info) u128 {
+    return @intCast((coordinates.x - (coordinates.x * -1)) * (coordinates.y - (coordinates.y * -1)));
+}
+
+pub fn getLayerSize(layer: @TypeOf(settings.floors[0])) struct { u32, u32 } {
+    return switch (layer.size) {
+        .Uniform => |size| .{ size, size },
+        .NonUniform => |coords| .{ coords.x, coords.y },
+    };
 }

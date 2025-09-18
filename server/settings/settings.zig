@@ -20,6 +20,9 @@ const Settings = struct {
     },
     floors: [4]struct {
         name: []const u8,
-        size: u32,
+        size: union(enum) {
+            Uniform: u32,
+            NonUniform: struct { x: u32, y: u32 },
+        },
     },
 };
