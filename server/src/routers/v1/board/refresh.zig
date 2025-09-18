@@ -71,7 +71,7 @@ pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
     const BoardLayer = globals.BoardLayer;
 
     const size = comptime settings.floors[layer].size;
-    var full_size: u64 = comptime size * size;
+    var full_size: u64 = comptime (size * 2) * (size * 2);
     const arr: std.ArrayList(Entity) = try .initCapacity(globals.allocator, full_size);
 
     try Board.wipeLayer(server_id, layer);
