@@ -35,8 +35,8 @@ delete: struct {
 
 pub const PositionalData = struct {
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 };
 
 pub const LayerPortalDirection = enum(i2) {
@@ -168,12 +168,12 @@ pub fn init(db: *Database) !Board {
     };
 }
 
-pub const Coordinates = struct { x: i32, y: i32 };
+pub const Coordinates = struct { x: i64, y: i64 };
 
-pub fn generateRandomCoordinates(x: i32, y: i32) Coordinates {
+pub fn generateRandomCoordinates(x: i64, y: i64) Coordinates {
     return .{
-        .x = random.intRangeAtMost(i32, -x, x),
-        .y = random.intRangeAtMost(i32, -y, y),
+        .x = random.intRangeAtMost(i64, -x, x),
+        .y = random.intRangeAtMost(i64, -y, y),
     };
 }
 
@@ -183,8 +183,8 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     defer _ = query.reset() catch unreachable;
 
     // TODO: Optimize spawn algorithm
-    var x: i32 = 0;
-    var y: i32 = 0;
+    var x: i64 = 0;
+    var y: i64 = 0;
 
     const limits = (try BoardLayer.getBoardLayerInfo(globals.allocator, 1)).?;
 
@@ -213,7 +213,7 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     };
 }
 
-pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) !void {
+pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i64, y: i64) !void {
     const query = self.insert.generic;
     defer _ = query.reset() catch unreachable;
 
@@ -232,8 +232,8 @@ pub fn generateEnemy(
     server_id: []const u8,
     enemy_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
     identifier: u16,
 ) !void {
     const query = self.insert.generic;
@@ -255,8 +255,8 @@ pub fn insertLayerPortal(
     server_id: []const u8,
     layer_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
     to: LayerPortalDirection,
 ) !void {
     const query = self.insert.generic;
@@ -273,7 +273,7 @@ pub fn insertLayerPortal(
     _ = try query.step();
 }
 
-pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i32, y: i32) !bool {
+pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i64, y: i64) !bool {
     const query = self.update.player.position;
     defer _ = query.reset() catch unreachable;
 
@@ -361,8 +361,8 @@ pub fn getEntityInPosition(
     allocator: std.mem.Allocator,
     server_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 ) !Entity {
     const query = self.get.entity;
     defer _ = query.reset() catch unreachable;
@@ -423,8 +423,8 @@ pub fn scanFromCenter(
     const full_size = size * size;
     var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size + size - 1);
 
-    const initial_x: i32 = center.x - (size / 2);
-    const initial_y: i32 = center.y + (size / 2);
+    const initial_x: i64 = center.x - (size / 2);
+    const initial_y: i64 = center.y + (size / 2);
 
     var i: usize = 0;
     var x = initial_x;

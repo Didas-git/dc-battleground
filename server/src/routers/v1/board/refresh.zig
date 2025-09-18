@@ -72,10 +72,6 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     const BoardLayer = globals.BoardLayer;
     const allocator = globals.allocator;
 
-    const x, const y = Layer.getLayerSize(settings.floors[layer]);
-    var full_size: u64 = (x * 2) * (y * 2);
-    var arr: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);
-
     try Board.wipeLayer(server_id, layer);
 
     const layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer) orelse return error.NoLayerInfo;
@@ -83,6 +79,9 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
     const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
     const mob_quantity: u64 = @intFromFloat(@round(settings.refresh.mob * @as(f64, @floatFromInt(layer_size))));
+
+    var full_size: u64 = layer_size;
+    var arr: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);
 
     var timer = try std.time.Timer.start();
 
@@ -117,7 +116,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
     for (buf, 0..) |entity, j| {
         if (entity == .Empty) continue;
-        const coordinates = calculateCoordinates(j);
+        const coordinates = calculateCoordinates(@intCast(j), layer_info.x, layer_info.y);
         switch (entity) {
             // TODO: Pre generate chest rarities using the identifier/extra property
             .Chest => try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y),
@@ -138,10 +137,14 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     };
 }
 
-fn calculateCoordinates(index: usize) Coordinates {
-    _ = index;
-    // TODO
-    return .{ .x = 0, .y = 0 };
+fn calculateCoordinates(index: i64, max_x: i64, max_y: i64) Coordinates {
+    const min_x = -max_x;
+    const stride: i64 = max_x - min_x + 1;
+
+    const x = min_x + @mod(index, stride);
+    const y = max_y - @divTrunc(index, stride);
+
+    return .{ .x = x, .y = y };
 }
 
 fn getCoordinates(gpa: std.mem.Allocator, layer_info: LayerInfo, server_id: []const u8) !Coordinates {
