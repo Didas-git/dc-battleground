@@ -39,7 +39,7 @@ pub fn refresh(res: *Response, req: *Request) void {
     if (layer == 0) {
         var i: u8 = 1;
         while (i < settings.floors.len) : (i += 1) {
-            const gen = refresh_layer(server_id, i) catch |err| {
+            const gen = refreshLayer(server_id, i) catch |err| {
                 return switch (err) {
                     error.NoLayerInfo => handleNoLayerInfo(res),
                     else => utils.handleFailedAllocation(res),
@@ -49,7 +49,7 @@ pub fn refresh(res: *Response, req: *Request) void {
             generated.mobs += gen.mobs;
         }
     } else {
-        generated = refresh_layer(server_id, layer) catch |err| {
+        generated = refreshLayer(server_id, layer) catch |err| {
             return switch (err) {
                 error.NoLayerInfo => handleNoLayerInfo(res),
                 else => utils.handleFailedAllocation(res),
@@ -66,7 +66,7 @@ pub fn refresh(res: *Response, req: *Request) void {
     res.end(stringified_data, true);
 }
 
-pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
+pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     const Board = globals.Board;
     const BoardLayer = globals.BoardLayer;
     const allocator = globals.allocator;
