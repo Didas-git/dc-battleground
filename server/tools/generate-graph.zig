@@ -12,8 +12,7 @@ pub fn main() !void {
     const file = try std.fs.cwd().createFile("tools/index.html", .{});
     defer file.close();
 
-    var buf: [128]u8 = undefined;
-    var writer = file.writer(&buf);
+    var writer = file.writer(&.{});
     var io_writer = &writer.interface;
 
     try io_writer.writeAll(
