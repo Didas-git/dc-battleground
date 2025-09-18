@@ -37,13 +37,13 @@ pub fn init(db: *Database) !BoardCache {
 
 pub fn set(self: *const BoardCache, cache_id: []const u8, member_id: []const u8) !void {
     const query = self.queries.set;
-    defer _ = query.reset() catch unreachable;
 
     try query.bindText(1, cache_id);
     try query.bindText(2, member_id);
     try query.bindInt(3, std.time.milliTimestamp());
 
     _ = try query.step();
+    _ = try query.reset();
 }
 
 /// The caller should free `member_id`

@@ -30,11 +30,6 @@ pub const Profile = struct {
     }
 };
 
-// pub const Data = struct {
-//     // name: []const u8, // TODO: Is this really needed?
-//     class: Class,
-// };
-
 pub const Class = enum {
     none,
     mage,

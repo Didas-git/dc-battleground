@@ -11,16 +11,16 @@ const NextMoveData = struct {
     entity: u8,
     direction: u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 };
 
 const NextMoveLayerData = struct {
     entity: u8,
     direction: u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
     next_layer: struct {
         name: []const u8,
     },
@@ -111,7 +111,7 @@ pub fn move(res: *Response, req: *Request) void {
             if (possible_new_layer) |new_layer| {
                 defer new_layer.deinit(allocator);
                 // TODO: Use HBP instead of JSON
-                const stringified_data = std.json.stringifyAlloc(allocator, NextMoveLayerData{
+                const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveLayerData{
                     .entity = @intFromEnum(entity),
                     .direction = @intFromEnum(direction),
                     .layer = player.layer,
@@ -135,7 +135,7 @@ pub fn move(res: *Response, req: *Request) void {
             }
         },
         else => {
-            const stringified_data = std.json.stringifyAlloc(allocator, NextMoveData{
+            const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveData{
                 .entity = @intFromEnum(entity),
                 .direction = @intFromEnum(direction),
                 .layer = player.layer,
@@ -161,7 +161,7 @@ pub fn move(res: *Response, req: *Request) void {
     res.end(str, true);
 }
 
-fn calculateCoordinates(x: i32, y: i32, direction: Direction) struct { i32, i32 } {
+fn calculateCoordinates(x: i64, y: i64, direction: Direction) struct { i64, i64 } {
     return switch (direction) {
         .left => .{ x - 1, y },
         .up => .{ x, y + 1 },

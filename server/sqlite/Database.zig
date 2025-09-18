@@ -3,10 +3,10 @@ const sqlite = @import("sqlite");
 const std = @import("std");
 
 const parseResultCode = shared.parseResultCode;
-const ErrorCodes = shared.ErrorCodes;
-const OkCodes = shared.OkCodes;
+pub const ErrorCodes = shared.ErrorCodes;
+pub const OkCodes = shared.OkCodes;
 
-const Database = @This();
+pub const Database = @This();
 
 pub const Statement = @import("./Statement.zig");
 

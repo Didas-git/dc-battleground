@@ -18,8 +18,8 @@ pub const Info = struct {
     layer: u8,
     name: []const u8,
     loot_table: ?[]const u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 
     pub fn deinit(self: Info, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
@@ -68,9 +68,10 @@ pub fn parseLayerSettings(self: *BoardLayer) !void {
         if (i >= len and result == .row) continue;
 
         const layer = settings.floors[i];
-        // TODO: implement string splitting like in the js version
-        const x = layer.size;
-        const y = layer.size;
+        const x, const y = switch (layer.size) {
+            .Uniform => |size| .{ size, size },
+            .NonUniform => |coords| .{ coords.x, coords.y },
+        };
 
         try self.createBoardLayer(
             i,
@@ -97,8 +98,8 @@ pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, 
         .name = name,
         .layer = @intCast(query.intColumn(1)),
         .loot_table = null,
-        .x = @intCast(query.intColumn(2)),
-        .y = @intCast(query.intColumn(3)),
+        .x = query.intColumn(2),
+        .y = query.intColumn(3),
     };
 }
 
@@ -121,6 +122,6 @@ pub fn createBoardLayer(
     _ = try query.step();
 }
 
-pub fn calculateLayerSize(coordinates: Info) i32 {
-    return (coordinates.x - (coordinates.x * -1)) * (coordinates.y - (coordinates.y * -1));
+pub fn calculateLayerSize(coordinates: Info) u64 {
+    return @intCast((coordinates.x * 2 + 1) * (coordinates.y * 2 + 1));
 }

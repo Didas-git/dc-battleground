@@ -9,18 +9,21 @@ const settings = @import("settings").settings;
 
 const random = std.crypto.random;
 
+const _Board = models.Board;
 const App = zuws.App;
 const Request = zuws.Request;
 const Response = zuws.Response;
 const Layer = models.BoardLayer;
 const LayerInfo = Layer.Info;
-const Coordinates = models.Board.Coordinates;
+const Coordinates = _Board.Coordinates;
+const Entity = _Board.EntityType;
 
-const generateRandomCoordinates = models.Board.generateRandomCoordinates;
+const generateRandomCoordinates = _Board.generateRandomCoordinates;
 
 const Generated = struct {
-    chest: struct { count: u64, time: u64 },
-    mob: struct { count: u64, time: u64 },
+    chests: u64,
+    mobs: u64,
+    took: u64,
 };
 
 pub fn refresh(res: *Response, req: *Request) void {
@@ -31,24 +34,23 @@ pub fn refresh(res: *Response, req: *Request) void {
         return;
     };
 
-    var generated: Generated = .{ .chest = .{ .count = 0, .time = 0 }, .mob = .{ .count = 0, .time = 0 } };
+    var generated: Generated = .{ .chests = 0, .mobs = 0, .took = 0 };
 
     if (layer == 0) {
         var i: u8 = 1;
         while (i < settings.floors.len) : (i += 1) {
-            const gen = refresh_layer(server_id, i) catch |err| {
+            const gen = refreshLayer(server_id, i) catch |err| {
                 return switch (err) {
                     error.NoLayerInfo => handleNoLayerInfo(res),
                     else => utils.handleFailedAllocation(res),
                 };
             };
-            generated.chest.count += gen.chest.count;
-            generated.mob.count += gen.mob.count;
-            generated.chest.time += gen.chest.time;
-            generated.mob.time += gen.mob.time;
+            generated.chests += gen.chests;
+            generated.mobs += gen.mobs;
+            generated.took += gen.took;
         }
     } else {
-        generated = refresh_layer(server_id, layer) catch |err| {
+        generated = refreshLayer(server_id, layer) catch |err| {
             return switch (err) {
                 error.NoLayerInfo => handleNoLayerInfo(res),
                 else => utils.handleFailedAllocation(res),
@@ -56,7 +58,7 @@ pub fn refresh(res: *Response, req: *Request) void {
         };
     }
 
-    const stringified_data = std.json.stringifyAlloc(globals.allocator, generated, .{}) catch {
+    const stringified_data = std.json.Stringify.valueAlloc(globals.allocator, generated, .{}) catch {
         return utils.handleFailedAllocation(res);
     };
     defer globals.allocator.free(stringified_data);
@@ -65,62 +67,95 @@ pub fn refresh(res: *Response, req: *Request) void {
     res.end(stringified_data, true);
 }
 
-pub fn refresh_layer(server_id: []const u8, layer: u8) !Generated {
+pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     const Board = globals.Board;
     const BoardLayer = globals.BoardLayer;
+    const allocator = globals.allocator;
 
     try Board.wipeLayer(server_id, layer);
 
-    const layer_info = try BoardLayer.getBoardLayerInfo(globals.allocator, layer) orelse return error.NoLayerInfo;
+    const layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer) orelse return error.NoLayerInfo;
     const layer_size = Layer.calculateLayerSize(layer_info);
 
     const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
     const mob_quantity: u64 = @intFromFloat(@round(settings.refresh.mob * @as(f64, @floatFromInt(layer_size))));
 
+    var full_size: u64 = layer_size;
+    var arr: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);
+
+    var timer = try std.time.Timer.start();
+
     if (layer > 1) {
-        const coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
+        const coordinates = try getCoordinates(allocator, layer_info, server_id);
         try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
-        const coordinates = try getCoordinates(server_id, &layer_info);
+        const coordinates = try getCoordinates(allocator, layer_info, server_id);
         try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
     }
 
-    var timer = try std.time.Timer.start();
-    var i: usize = 0;
-    while (i < chest_quantity) : (i += 1) {
-        const coordinates = try getCoordinates(server_id, &layer_info);
-        // TODO: Pre generate chest rarities using the identifier/extra property
-        try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y);
+    for (0..chest_quantity) |_| {
+        try arr.append(allocator, .Chest);
+        full_size -= 1;
     }
 
-    const chest_time = timer.lap();
-
-    i = 0;
-    while (i < mob_quantity) : (i += 1) {
-        const coordinates = try getCoordinates(server_id, &layer_info);
-        // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-        try Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0);
+    for (0..mob_quantity) |_| {
+        try arr.append(allocator, .Enemy);
+        full_size -= 1;
     }
 
-    const mob_time = timer.lap();
+    while (full_size > 0) : (full_size -= 1) {
+        try arr.append(allocator, .Empty);
+    }
+
+    const buf = try arr.toOwnedSlice(allocator);
+    random.shuffle(Entity, buf);
+
+    _ = try globals.db.exec("BEGIN TRANSACTION");
+
+    for (buf, 0..) |entity, j| {
+        if (entity == .Empty) continue;
+        const coordinates = calculateCoordinates(@intCast(j), layer_info.x, layer_info.y);
+        switch (entity) {
+            // TODO: Pre generate chest rarities using the identifier/extra property
+            .Chest => try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y),
+            // TODO: Properly generate enemy, aka randomize identifier and extract id from that
+            .Enemy => try Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0),
+            else => unreachable,
+        }
+    }
+
+    _ = try globals.db.exec("END TRANSACTION");
+
+    const time = timer.lap();
 
     return .{
-        .chest = .{ .count = chest_quantity, .time = chest_time },
-        .mob = .{ .count = mob_quantity, .time = mob_time },
+        .chests = chest_quantity,
+        .mobs = mob_quantity,
+        .took = time,
     };
 }
 
-fn getCoordinates(server_id: []const u8, layer_info: *const LayerInfo) !Coordinates {
+fn calculateCoordinates(index: i64, max_x: i64, max_y: i64) Coordinates {
+    const min_x = -max_x;
+    const stride: i64 = max_x - min_x + 1;
+
+    const x = min_x + @mod(index, stride);
+    const y = max_y - @divTrunc(index, stride);
+
+    return .{ .x = x, .y = y };
+}
+
+fn getCoordinates(gpa: std.mem.Allocator, layer_info: LayerInfo, server_id: []const u8) !Coordinates {
     const Board = globals.Board;
 
     var coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-    var entity = try Board.getEntityInPosition(globals.allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
+    var entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
     while (entity != .Empty) {
         coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        entity.deinit(globals.allocator);
-        entity = try Board.getEntityInPosition(globals.allocator, server_id, layer_info.layer, coordinates.x, coordinates.y);
+        entity.deinit(gpa);
+        entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
     }
 
     return coordinates;

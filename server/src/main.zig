@@ -19,6 +19,7 @@ pub fn main() !void {
     var db: Database = try .init("test.db", .{});
     defer db.deinit();
 
+    globals.db = db;
     globals.Board = try .init(&db);
     globals.Player = try .init(&db);
     globals.BoardCache = try .init(&db);
@@ -27,7 +28,10 @@ pub fn main() !void {
     try globals.BoardLayer.parseLayerSettings();
 
     if (comptime builtin.mode == .Debug) {
-        try insertTestData();
+        insertTestData() catch |err| switch (err) {
+            Database.ErrorCodes.Constrain => {},
+            else => return err,
+        };
     }
 
     // Enable later in prod
@@ -35,7 +39,8 @@ pub fn main() !void {
     // db.exec("PRAGMA synchronous = NORMAL");
 
     app.comptimeGroup(&api);
-    try app.listen(3000, null);
+    app.listen(3000, null);
+    app.run();
 }
 
 fn insertTestData() !void {

@@ -35,8 +35,8 @@ delete: struct {
 
 pub const PositionalData = struct {
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 };
 
 pub const LayerPortalDirection = enum(i2) {
@@ -44,7 +44,7 @@ pub const LayerPortalDirection = enum(i2) {
     forwards = 1,
 };
 
-pub const EntityType = enum {
+pub const EntityType = enum(u8) {
     Empty,
     Player,
     Enemy,
@@ -139,18 +139,20 @@ pub fn init(db: *Database) !Board {
         \\y INTEGER NOT NULL,
         \\extra INTEGER,
         \\PRIMARY KEY (server_id, id)
+        \\UNIQUE(layer,x,y)
         \\)
     );
 
     return .{
         .insert = .{
             .player = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y) VALUES (:server_id, :id, :type, 1, :x, :y)"),
-            .generic = try .init(db, "INSERT INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
+            .generic = try .init(db, "INSERT OR IGNORE INTO Board (server_id, id, type, layer, x, y, extra) VALUES (:server_id, :id, :type, :layer, :x, :y, :extra)"),
         },
         .get = .{
             .player = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND id = :id"),
             .portal = try .init(db, "SELECT layer, x, y FROM Board WHERE server_id = :server_id AND layer = :layer AND extra = :to"),
             .entity = try .init(db, "SELECT type, id, extra FROM Board WHERE server_id = :server_id AND layer = :layer AND x = :x AND y = :y"),
+            // .all = try .init(db, "SELECT x, y FROM BOARD WHERE server_id = :server_id AND layer = :layer AND type = 1"),
         },
         .update = .{
             .player = .{
@@ -166,12 +168,12 @@ pub fn init(db: *Database) !Board {
     };
 }
 
-pub const Coordinates = struct { x: i32, y: i32 };
+pub const Coordinates = struct { x: i64, y: i64 };
 
-pub fn generateRandomCoordinates(x: i32, y: i32) Coordinates {
+pub fn generateRandomCoordinates(x: i64, y: i64) Coordinates {
     return .{
-        .x = random.intRangeAtMost(i32, -x, x),
-        .y = random.intRangeAtMost(i32, -y, y),
+        .x = random.intRangeAtMost(i64, -x, x),
+        .y = random.intRangeAtMost(i64, -y, y),
     };
 }
 
@@ -181,8 +183,8 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     defer _ = query.reset() catch unreachable;
 
     // TODO: Optimize spawn algorithm
-    var x: i32 = 0;
-    var y: i32 = 0;
+    var x: i64 = 0;
+    var y: i64 = 0;
 
     const limits = (try BoardLayer.getBoardLayerInfo(globals.allocator, 1)).?;
 
@@ -211,7 +213,7 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     };
 }
 
-pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i32, y: i32) !void {
+pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i64, y: i64) !void {
     const query = self.insert.generic;
     defer _ = query.reset() catch unreachable;
 
@@ -230,8 +232,8 @@ pub fn generateEnemy(
     server_id: []const u8,
     enemy_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
     identifier: u16,
 ) !void {
     const query = self.insert.generic;
@@ -253,8 +255,8 @@ pub fn insertLayerPortal(
     server_id: []const u8,
     layer_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
     to: LayerPortalDirection,
 ) !void {
     const query = self.insert.generic;
@@ -271,7 +273,7 @@ pub fn insertLayerPortal(
     _ = try query.step();
 }
 
-pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i32, y: i32) !bool {
+pub fn updatePlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8, x: i64, y: i64) !bool {
     const query = self.update.player.position;
     defer _ = query.reset() catch unreachable;
 
@@ -359,8 +361,8 @@ pub fn getEntityInPosition(
     allocator: std.mem.Allocator,
     server_id: []const u8,
     layer: u8,
-    x: i32,
-    y: i32,
+    x: i64,
+    y: i64,
 ) !Entity {
     const query = self.get.entity;
     defer _ = query.reset() catch unreachable;
@@ -400,7 +402,7 @@ pub fn deleteEntityInPosition(self: *const Board, server_id: []const u8, layer: 
 }
 
 pub fn wipeLayer(self: *const Board, server_id: []const u8, layer: u8) !void {
-    const query = self.delete.entity;
+    const query = self.delete.all;
     defer _ = query.reset() catch unreachable;
 
     try query.bindText(1, server_id);
@@ -421,31 +423,27 @@ pub fn scanFromCenter(
     const full_size = size * size;
     var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size + size - 1);
 
-    const initial_x: i32 = center.x - (size / 2);
-    const initial_y: i32 = center.y + (size / 2);
+    const initial_x: i64 = center.x - (size / 2);
+    const initial_y: i64 = center.y + (size / 2);
 
     var i: usize = 0;
     var x = initial_x;
     var y = initial_y;
     while (i < full_size) : (i += 1) {
         if (i % size == 0 and i != 0) {
-            try board.append("\n");
+            try board.append(allocator, "\n");
             x = initial_x;
             y -= 1;
         }
 
         const entity = try self.getEntityInPosition(allocator, server_id, center.layer, x, y);
-        switch (entity) {
-            .Player => |player| {
-                try board.append(if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99));
-            },
-            else => {
-                try board.append(entity.getBoardTile());
-            },
-        }
+        try board.append(allocator, switch (entity) {
+            .Player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99),
+            else => entity.getBoardTile(),
+        });
 
         x += 1;
     }
 
-    return board.toOwnedSlice();
+    return board.toOwnedSlice(allocator);
 }
