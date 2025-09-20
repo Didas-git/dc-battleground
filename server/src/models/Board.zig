@@ -1,5 +1,6 @@
 const Database = @import("sqlite");
 const globals = @import("globals");
+const nanoid = @import("nanoid");
 const std = @import("std");
 
 const settings = @import("settings").settings;
@@ -213,39 +214,21 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     };
 }
 
-pub fn generateChest(self: *const Board, server_id: []const u8, chest_id: []const u8, layer: u8, x: i64, y: i64) !void {
+pub fn generateEntity(self: *const Board, entity: EntityType, server_id: []const u8, layer: u8, x: i64, y: i64, extra: ?i64) !void {
     const query = self.insert.generic;
     defer _ = query.reset() catch unreachable;
 
     try query.bindText(1, server_id);
-    try query.bindText(2, chest_id);
-    try query.bindInt(3, @intFromEnum(Entity.Chest));
+    try query.bindText(2, &nanoid.generate(std.crypto.random));
+    try query.bindInt(3, entity);
     try query.bindInt(4, layer);
     try query.bindInt(5, x);
     try query.bindInt(6, y);
-
-    _ = try query.step();
-}
-
-pub fn generateEnemy(
-    self: *const Board,
-    server_id: []const u8,
-    enemy_id: []const u8,
-    layer: u8,
-    x: i64,
-    y: i64,
-    identifier: u16,
-) !void {
-    const query = self.insert.generic;
-    defer _ = query.reset() catch unreachable;
-
-    try query.bindText(1, server_id);
-    try query.bindText(2, enemy_id);
-    try query.bindInt(3, @intFromEnum(Entity.Enemy));
-    try query.bindInt(4, layer);
-    try query.bindInt(5, x);
-    try query.bindInt(6, y);
-    try query.bindInt(7, identifier);
+    if (extra) |meta| {
+        try query.bindInt(7, meta);
+    } else {
+        try query.bindNull(7);
+    }
 
     _ = try query.step();
 }

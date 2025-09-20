@@ -1,24 +1,23 @@
 const globals = @import("globals");
-const nanoid = @import("nanoid");
 const models = @import("models");
 const utils = @import("utils");
 const zuws = @import("zuws");
 const std = @import("std");
 
+const shared = @import("./shared.zig");
+
 const settings = @import("settings").settings;
 
 const random = std.crypto.random;
 
-const _Board = models.Board;
 const App = zuws.App;
+const _Board = models.Board;
+const LayerInfo = Layer.Info;
 const Request = zuws.Request;
 const Response = zuws.Response;
 const Layer = models.BoardLayer;
-const LayerInfo = Layer.Info;
-const Coordinates = _Board.Coordinates;
 const Entity = _Board.EntityType;
-
-const generateRandomCoordinates = _Board.generateRandomCoordinates;
+const Coordinates = _Board.Coordinates;
 
 const Generated = struct {
     chests: u64,
@@ -29,7 +28,7 @@ const Generated = struct {
 pub fn refresh(res: *Response, req: *Request) void {
     const server_id = req.getParameter(0);
     const layer = std.fmt.parseInt(u8, req.getParameter(1), 10) catch {
-        res.writeStatus("400 Malformed direction");
+        res.writeStatus("400 Malformed layer");
         res.endWithoutBody(true);
         return;
     };
@@ -41,7 +40,7 @@ pub fn refresh(res: *Response, req: *Request) void {
         while (i < settings.floors.len) : (i += 1) {
             const gen = refreshLayer(server_id, i) catch |err| {
                 return switch (err) {
-                    error.NoLayerInfo => handleNoLayerInfo(res),
+                    error.NoLayerInfo => shared.handleNoLayerInfo(res),
                     else => utils.handleFailedAllocation(res),
                 };
             };
@@ -52,7 +51,7 @@ pub fn refresh(res: *Response, req: *Request) void {
     } else {
         generated = refreshLayer(server_id, layer) catch |err| {
             return switch (err) {
-                error.NoLayerInfo => handleNoLayerInfo(res),
+                error.NoLayerInfo => shared.handleNoLayerInfo(res),
                 else => utils.handleFailedAllocation(res),
             };
         };
@@ -75,6 +74,8 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     try Board.wipeLayer(server_id, layer);
 
     const layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer) orelse return error.NoLayerInfo;
+    defer layer_info.deinit(allocator);
+
     const layer_size = Layer.calculateLayerSize(layer_info);
 
     const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
@@ -86,13 +87,21 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     var timer = try std.time.Timer.start();
 
     if (layer > 1) {
-        const coordinates = try getCoordinates(allocator, layer_info, server_id);
-        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .backwards);
+        const prev_layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer - 1) orelse return error.NoLayerInfo;
+        defer prev_layer_info.deinit(allocator);
+
+        const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
+        const id = try std.mem.join(allocator, "-", &.{ server_id, layer_info.name, "to", prev_layer_info.name });
+        try Board.insertLayerPortal(server_id, layer, id, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
-        const coordinates = try getCoordinates(allocator, layer_info, server_id);
-        try Board.insertLayerPortal(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, .forwards);
+        const next_layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer + 1) orelse return error.NoLayerInfo;
+        defer next_layer_info.deinit(allocator);
+
+        const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
+        const id = try std.mem.join(allocator, ":", &.{ server_id, layer_info.name, "to", next_layer_info.name });
+        try Board.insertLayerPortal(server_id, layer, id, coordinates.x, coordinates.y, .forwards);
     }
 
     for (0..chest_quantity) |_| {
@@ -119,9 +128,9 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
         const coordinates = calculateCoordinates(@intCast(j), layer_info.x, layer_info.y);
         switch (entity) {
             // TODO: Pre generate chest rarities using the identifier/extra property
-            .Chest => try Board.generateChest(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y),
+            .Chest => try Board.generateEntity(.Chest, server_id, layer, coordinates.x, coordinates.y, null),
             // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-            .Enemy => try Board.generateEnemy(server_id, &nanoid.generate(random), layer, coordinates.x, coordinates.y, 0),
+            .Enemy => try Board.generateEntity(.Enemy, server_id, layer, coordinates.x, coordinates.y, null),
             else => unreachable,
         }
     }
@@ -145,23 +154,4 @@ fn calculateCoordinates(index: i64, max_x: i64, max_y: i64) Coordinates {
     const y = max_y - @divTrunc(index, stride);
 
     return .{ .x = x, .y = y };
-}
-
-fn getCoordinates(gpa: std.mem.Allocator, layer_info: LayerInfo, server_id: []const u8) !Coordinates {
-    const Board = globals.Board;
-
-    var coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-    var entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
-    while (entity != .Empty) {
-        coordinates = generateRandomCoordinates(layer_info.x, layer_info.y);
-        entity.deinit(gpa);
-        entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
-    }
-
-    return coordinates;
-}
-
-fn handleNoLayerInfo(res: *Response) void {
-    res.writeStatusCode(.NotFound);
-    res.endWithoutBody(true);
 }

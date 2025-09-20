@@ -1,3 +1,4 @@
+//TODO: Make this file a shared util file with multiple common error handling
 const zuws = @import("zuws");
 
 const Response = zuws.Response;
