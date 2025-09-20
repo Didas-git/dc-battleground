@@ -5,7 +5,7 @@ meta {
 }
 
 put {
-  url: http://localhost:3000/api/v1/board/spawn/:server_id/:layer/:type/:amount
+  url: http://localhost:3000/api/v1/board/spawn/:server_id/:layer/:type
   body: none
   auth: inherit
 }
@@ -14,7 +14,10 @@ params:path {
   server_id: test_server
   layer: 1
   type: 3
-  amount: 100
+}
+
+headers {
+  spawn-amount: 100
 }
 
 settings {

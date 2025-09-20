@@ -29,8 +29,14 @@ pub fn spawn(res: *Response, req: *Request) void {
         res.endWithoutBody(true);
         return;
     };
-    const amount = std.fmt.parseInt(u32, req.getParameter(3), 10) catch {
-        res.writeStatus("400 Malformed amount");
+
+    const spawn_amount = req.getHeader("spawn-amount");
+    const amount = if (spawn_amount) |amt| std.fmt.parseInt(u32, amt, 10) catch {
+        res.writeStatus("400 Malformed Spawn-Amount Header");
+        res.endWithoutBody(true);
+        return;
+    } else {
+        res.writeStatus("400 Missing Spawn-Amount Header");
         res.endWithoutBody(true);
         return;
     };
