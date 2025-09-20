@@ -110,7 +110,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     }
 
     for (0..mob_quantity) |_| {
-        try arr.append(allocator, .Enemy);
+        try arr.append(allocator, .Mob);
         full_size -= 1;
     }
 
@@ -130,7 +130,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
             // TODO: Pre generate chest rarities using the identifier/extra property
             .Chest => try Board.generateEntity(.Chest, server_id, layer, coordinates.x, coordinates.y, null),
             // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-            .Enemy => try Board.generateEntity(.Enemy, server_id, layer, coordinates.x, coordinates.y, null),
+            .Mob => try Board.generateEntity(.Mob, server_id, layer, coordinates.x, coordinates.y, null),
             else => unreachable,
         }
     }

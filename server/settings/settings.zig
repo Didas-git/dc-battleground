@@ -8,7 +8,7 @@ const Settings = struct {
         entity_map: struct {
             empty: []const u8,
             player: []const u8,
-            enemy: []const u8,
+            mob: []const u8,
             chest: []const u8,
             layer: []const u8,
             enemy_player: []const u8,

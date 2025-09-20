@@ -48,7 +48,7 @@ pub const LayerPortalDirection = enum(i2) {
 pub const EntityType = enum(u8) {
     Empty,
     Player,
-    Enemy,
+    Mob,
     Chest,
     LayerPortal,
 };
@@ -58,10 +58,10 @@ pub const Entity = union(EntityType) {
     Player: struct {
         id: []const u8,
     },
-    Enemy: struct {
+    Mob: struct {
         id: []const u8,
         /// Can never be 0
-        enemy_id: i64,
+        mob_id: i64,
     },
     Chest: struct {
         id: []const u8,
@@ -82,7 +82,7 @@ pub const Entity = union(EntityType) {
         return switch (self) {
             .Empty => comptime settings.board.entity_map.empty,
             .Player => comptime settings.board.entity_map.player,
-            .Enemy => comptime settings.board.entity_map.enemy,
+            .Mob => comptime settings.board.entity_map.mob,
             .Chest => comptime settings.board.entity_map.chest,
             .LayerPortal => comptime settings.board.entity_map.layer,
         };
@@ -92,7 +92,7 @@ pub const Entity = union(EntityType) {
         return switch (id) {
             0 => comptime settings.board.entity_map.empty,
             1 => comptime settings.board.entity_map.player,
-            2 => comptime settings.board.entity_map.enemy,
+            2 => comptime settings.board.entity_map.mob,
             3 => comptime settings.board.entity_map.chest,
             4 => comptime settings.board.entity_map.layer,
             99 => comptime settings.board.entity_map.enemy_player,
@@ -364,7 +364,7 @@ pub fn getEntityInPosition(
 
     return switch (entity_type) {
         .Empty => unreachable,
-        .Enemy => .{ .Enemy = .{ .id = id, .enemy_id = extra } },
+        .Mob => .{ .Mob = .{ .id = id, .mob_id = extra } },
         .LayerPortal => .{ .LayerPortal = .{ .id = id, .to = @enumFromInt(extra) } },
         inline else => |e| {
             return @unionInit(Entity, @tagName(e), .{ .id = id });

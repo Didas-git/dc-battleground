@@ -48,7 +48,7 @@ pub fn spawn(res: *Response, req: *Request) void {
     }
 
     switch (entity_type) {
-        .Enemy, .Chest => |entity| {
+        .Mob, .Chest => |entity| {
             const layer_info = BoardLayer.getBoardLayerInfo(allocator, layer) catch {
                 return utils.handleFailedAllocation(res);
             } orelse {

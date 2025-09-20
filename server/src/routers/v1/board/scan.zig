@@ -53,7 +53,7 @@ pub fn scan(res: *Response, req: *Request) void {
     for (entities) |entity| {
         switch (entity) {
             .Chest => chest_count += 1,
-            .Enemy => mob_count += 1,
+            .Mob => mob_count += 1,
             .Player => |player| {
                 if (std.mem.eql(u8, member_id, player.id)) continue;
                 enemy_player_count += 1;
