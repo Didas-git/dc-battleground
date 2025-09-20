@@ -220,7 +220,7 @@ pub fn generateEntity(self: *const Board, entity: EntityType, server_id: []const
 
     try query.bindText(1, server_id);
     try query.bindText(2, &nanoid.generate(std.crypto.random));
-    try query.bindInt(3, entity);
+    try query.bindInt(3, @intFromEnum(entity));
     try query.bindInt(4, layer);
     try query.bindInt(5, x);
     try query.bindInt(6, y);
@@ -399,12 +399,11 @@ pub fn scanFromCenter(
     self: *const Board,
     allocator: std.mem.Allocator,
     server_id: []const u8,
-    member_id: []const u8,
     center: PositionalData,
     size: u16,
-) ![][]const u8 {
+) ![]Entity {
     const full_size = size * size;
-    var board: std.ArrayList([]const u8) = try .initCapacity(allocator, full_size + size - 1);
+    var board: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);
 
     const initial_x: i64 = center.x - (size / 2);
     const initial_y: i64 = center.y + (size / 2);
@@ -412,19 +411,14 @@ pub fn scanFromCenter(
     var i: usize = 0;
     var x = initial_x;
     var y = initial_y;
+
     while (i < full_size) : (i += 1) {
         if (i % size == 0 and i != 0) {
-            try board.append(allocator, "\n");
             x = initial_x;
             y -= 1;
         }
 
-        const entity = try self.getEntityInPosition(allocator, server_id, center.layer, x, y);
-        try board.append(allocator, switch (entity) {
-            .Player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else Entity.getBoardTileFromInt(99),
-            else => entity.getBoardTile(),
-        });
-
+        try board.append(allocator, try self.getEntityInPosition(allocator, server_id, center.layer, x, y));
         x += 1;
     }
 

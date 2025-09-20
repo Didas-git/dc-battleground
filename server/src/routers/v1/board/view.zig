@@ -1,4 +1,5 @@
 const globals = @import("globals");
+const models = @import("models");
 const utils = @import("utils");
 const zuws = @import("zuws");
 const std = @import("std");
@@ -42,11 +43,29 @@ pub fn view(res: *Response, req: *Request) void {
 
     const allocator = arena.allocator();
 
-    const entities = Board.scanFromCenter(allocator, server_id, member_id, position, view_size) catch {
+    const entities = Board.scanFromCenter(allocator, server_id, position, view_size) catch {
         return utils.handleFailedAllocation(res);
     };
 
-    const str = std.mem.concat(allocator, u8, entities) catch {
+    var mapped_entities = std.ArrayList([]const u8).initCapacity(allocator, view_size * view_size + view_size - 1) catch {
+        return utils.handleFailedAllocation(res);
+    };
+
+    for (entities, 0..) |entity, i| {
+        if (i % view_size == 0 and i != 0) {
+            mapped_entities.append(allocator, "\n") catch {
+                return utils.handleFailedAllocation(res);
+            };
+        }
+        mapped_entities.append(allocator, switch (entity) {
+            .Player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else models.Board.Entity.getBoardTileFromInt(99),
+            else => entity.getBoardTile(),
+        }) catch {
+            return utils.handleFailedAllocation(res);
+        };
+    }
+
+    const str = std.mem.concat(allocator, u8, mapped_entities.items) catch {
         return utils.handleFailedAllocation(res);
     };
 

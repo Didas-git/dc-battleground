@@ -4,7 +4,7 @@ pub const settings: Settings = @import("./settings.zon");
 const Settings = struct {
     board: struct {
         view_size: u16,
-        scan_size: u16,
+        scan_radius: u16,
         entity_map: struct {
             empty: []const u8,
             player: []const u8,

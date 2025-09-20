@@ -2,7 +2,7 @@
 .{
     .board = .{
         .view_size = 11,
-        .scan_size = 60,
+        .scan_radius = 60,
         .entity_map = .{
             .empty = "⬛",
             .player = "🟩",

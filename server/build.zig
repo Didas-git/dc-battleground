@@ -51,13 +51,19 @@ pub fn build(b: *std.Build) void {
 
     globals.addImport("sqlite", sqlite);
 
-    const models = b.createModule(.{
-        .root_source_file = b.path("src/models/models.zig"),
+    const nanoid = b.createModule(.{
+        .root_source_file = b.path("./nanoid.zig"),
     });
 
-    models.addImport("sqlite", sqlite);
-    models.addImport("settings", settings);
-    models.addImport("globals", globals);
+    const models = b.createModule(.{
+        .root_source_file = b.path("src/models/models.zig"),
+        .imports = &.{
+            .{ .name = "sqlite", .module = sqlite },
+            .{ .name = "settings", .module = settings },
+            .{ .name = "globals", .module = globals },
+            .{ .name = "nanoid", .module = nanoid },
+        },
+    });
 
     globals.addImport("models", models);
 
@@ -66,10 +72,6 @@ pub fn build(b: *std.Build) void {
     });
 
     utils.addImport("zuws", zuws.module("zuws"));
-
-    const nanoid = b.createModule(.{
-        .root_source_file = b.path("./nanoid.zig"),
-    });
 
     const exe_mod = b.createModule(
         .{
@@ -83,7 +85,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "globals", .module = globals },
                 .{ .name = "models", .module = models },
                 .{ .name = "utils", .module = utils },
-                .{ .name = "nanoid", .module = nanoid },
+                // .{ .name = "nanoid", .module = nanoid },
             },
         },
     );

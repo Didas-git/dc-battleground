@@ -9,6 +9,7 @@ const App = zuws.App;
 const Request = zuws.Request;
 const Response = zuws.Response;
 
+//TODO: Handle already existing profiles
 pub fn create(res: *Response, req: *Request) void {
     const Player = globals.Player;
     const Board = globals.Board;

@@ -92,7 +92,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
         const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
         const id = try std.mem.join(allocator, "-", &.{ server_id, layer_info.name, "to", prev_layer_info.name });
-        try Board.insertLayerPortal(server_id, layer, id, coordinates.x, coordinates.y, .backwards);
+        try Board.insertLayerPortal(server_id, id, layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
@@ -101,7 +101,7 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
         const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
         const id = try std.mem.join(allocator, ":", &.{ server_id, layer_info.name, "to", next_layer_info.name });
-        try Board.insertLayerPortal(server_id, layer, id, coordinates.x, coordinates.y, .forwards);
+        try Board.insertLayerPortal(server_id, id, layer, coordinates.x, coordinates.y, .forwards);
     }
 
     for (0..chest_quantity) |_| {
