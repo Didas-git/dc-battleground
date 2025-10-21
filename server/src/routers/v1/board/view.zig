@@ -25,7 +25,7 @@ pub fn view(res: *Response, req: *Request) void {
                 return;
             };
         }
-        break :blk settings.board.view_size;
+        break :blk comptime settings.board.view_size;
     };
 
     const position = Board.getPlayerPosition(server_id, member_id) catch {

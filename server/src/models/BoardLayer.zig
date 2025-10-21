@@ -1,7 +1,8 @@
 const Database = @import("sqlite");
 const std = @import("std");
 
-const settings = @import("settings").settings;
+const Settings = @import("settings");
+const settings = Settings.settings;
 
 const Statement = Database.Statement;
 
@@ -17,7 +18,7 @@ queries: struct {
 pub const Info = struct {
     layer: u8,
     name: []const u8,
-    loot_table: ?[]const u8,
+    refresh: Settings.Refresh,
     x: i64,
     y: i64,
 
@@ -31,7 +32,8 @@ pub fn init(db: *Database) !BoardLayer {
         \\CREATE TABLE IF NOT EXISTS BoardLayer (
         \\layer INTEGER PRIMARY KEY,
         \\name TEXT NOT NULL,
-        \\loot_table TEXT,
+        \\refresh_chest REAL NOT NULL,
+        \\refresh_mob REAL NOT NULL,
         \\x INTEGER NOT NULL,
         \\y INTEGER NOT NULL
         \\)
@@ -40,9 +42,9 @@ pub fn init(db: *Database) !BoardLayer {
     return .{
         .queries = .{
             .search = try .init(db, "SELECT layer FROM BoardLayer WHERE layer = :layer"),
-            .get = try .init(db, "SELECT name, layer, x, y FROM BoardLayer WHERE layer = :layer"),
+            .get = try .init(db, "SELECT name, layer, refresh_chest, refresh_mob, x, y FROM BoardLayer WHERE layer = :layer"),
             .delete = try .init(db, "DELETE FROM BoardLayer WHERE layer = :layer"),
-            .create = try .init(db, "INSERT INTO BoardLayer (layer, name, loot_table, x, y) VALUES (:layer, :name, :table, :x, :y)"),
+            .create = try .init(db, "INSERT INTO BoardLayer (layer, name, refresh_chest, refresh_mob, x, y) VALUES (:layer, :name, :chest, :mob, :x, :y)"),
         },
     };
 }
@@ -73,9 +75,13 @@ pub fn parseLayerSettings(self: *BoardLayer) !void {
             .NonUniform => |coords| .{ coords.x, coords.y },
         };
 
+        const refresh = if (layer.refresh) |r| r else settings.refresh;
+
         try self.createBoardLayer(
             i,
             layer.name,
+            refresh.chest,
+            refresh.mob,
             x,
             y,
         );
@@ -97,9 +103,12 @@ pub fn getBoardLayerInfo(self: *const BoardLayer, allocator: std.mem.Allocator, 
     return .{
         .name = name,
         .layer = @intCast(query.intColumn(1)),
-        .loot_table = null,
-        .x = query.intColumn(2),
-        .y = query.intColumn(3),
+        .refresh = .{
+            .chest = query.floatColumn(2),
+            .mob = query.floatColumn(3),
+        },
+        .x = query.intColumn(4),
+        .y = query.intColumn(5),
     };
 }
 
@@ -107,6 +116,8 @@ pub fn createBoardLayer(
     self: *BoardLayer,
     layer: u8,
     name: []const u8,
+    refresh_chest: f64,
+    refresh_mob: f64,
     x: u32,
     y: u32,
 ) !void {
@@ -115,9 +126,10 @@ pub fn createBoardLayer(
 
     try query.bindInt(1, layer);
     try query.bindText(2, name);
-    try query.bindNull(3);
-    try query.bindInt(4, x);
-    try query.bindInt(5, y);
+    try query.bindFloat(3, refresh_chest);
+    try query.bindFloat(4, refresh_mob);
+    try query.bindInt(5, x);
+    try query.bindInt(6, y);
 
     _ = try query.step();
 }

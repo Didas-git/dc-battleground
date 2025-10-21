@@ -37,7 +37,7 @@ pub fn refresh(res: *Response, req: *Request) void {
 
     if (layer == 0) {
         var i: u8 = 1;
-        while (i < settings.floors.len) : (i += 1) {
+        while (i < comptime settings.floors.len) : (i += 1) {
             const gen = refreshLayer(server_id, i) catch |err| {
                 return switch (err) {
                     error.NoLayerInfo => shared.handleNoLayerInfo(res),
@@ -78,8 +78,8 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
 
     const layer_size = Layer.calculateLayerSize(layer_info);
 
-    const chest_quantity: u64 = @intFromFloat(@round(settings.refresh.chest * @as(f64, @floatFromInt(layer_size))));
-    const mob_quantity: u64 = @intFromFloat(@round(settings.refresh.mob * @as(f64, @floatFromInt(layer_size))));
+    const chest_quantity: u64 = @intFromFloat(@round(layer_info.refresh.chest * @as(f64, @floatFromInt(layer_size))));
+    const mob_quantity: u64 = @intFromFloat(@round(layer_info.refresh.mob * @as(f64, @floatFromInt(layer_size))));
 
     var full_size: u64 = layer_size;
     var arr: std.ArrayList(Entity) = try .initCapacity(allocator, full_size);

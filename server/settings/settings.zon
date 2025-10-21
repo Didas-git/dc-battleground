@@ -6,7 +6,7 @@
         .entity_map = .{
             .empty = "⬛",
             .player = "🟩",
-            .enemy = "🟥",
+            .mob = "🟥",
             .chest = "🟦",
             .layer = "🔳",
             .enemy_player = "🟪",
@@ -20,19 +20,26 @@
         .{
             .name = "Base",
             .size = .{ .Uniform = 9 },
+            .refresh = null,
         },
         .{
             .name = "Greenwoods",
             .size = .{ .Uniform = 300 },
+            .refresh = null,
             // "enemy_table"= "greenwoods_enemy_pool"
         },
         .{
             .name = "Icefall",
             .size = .{ .NonUniform = .{ .x = 330, .y = 270 } },
+            .refresh = .{
+                .chest = 0.005,
+                .mob = 0.01,
+            },
         },
         .{
             .name = "Aitark",
             .size = .{ .Uniform = 300 },
+            .refresh = null,
         },
     },
 }

@@ -1,6 +1,11 @@
 // This is temporary and should be moved to the build script eventually
 pub const settings: Settings = @import("./settings.zon");
 
+pub const Refresh = struct {
+    chest: f64,
+    mob: f64,
+};
+
 const Settings = struct {
     board: struct {
         view_size: u16,
@@ -14,15 +19,13 @@ const Settings = struct {
             enemy_player: []const u8,
         },
     },
-    refresh: struct {
-        chest: f64,
-        mob: f64,
-    },
+    refresh: Refresh,
     floors: []const struct {
         name: []const u8,
         size: union(enum) {
             Uniform: u32,
             NonUniform: struct { x: u32, y: u32 },
         },
+        refresh: ?Refresh,
     },
 };

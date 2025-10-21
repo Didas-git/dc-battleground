@@ -24,7 +24,7 @@ pub fn scan(res: *Response, req: *Request) void {
                 return;
             };
         }
-        break :blk settings.board.scan_radius;
+        break :blk comptime settings.board.scan_radius;
     };
 
     const position = Board.getPlayerPosition(server_id, member_id) catch {
