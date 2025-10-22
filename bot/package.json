@@ -24,6 +24,10 @@
     "view-graph": "bun run build && bun dist/src/utils/level/visualize-graph.js"
   },
   "imports": {
+    "#bt": {
+      "dev": "./src/client.ts",
+      "default": "./dist/src/client.js"
+    },
     "#utils/*.js": {
       "dev": "./src/utils/*.ts",
       "default": "./dist/src/utils/*.js"
