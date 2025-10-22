@@ -1,5 +1,4 @@
-import * as Player from "#models/player.js";
-import * as Board from "#models/board.js";
+import * as Battleground from "#bt";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 import type { Embed } from "lilybird";
@@ -7,9 +6,9 @@ import type { Embed } from "lilybird";
 export async function scanBoard(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
 
-    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
-    const profile = Player.getProfile(memberId);
-    if (profile === null) {
+    const res = await Battleground.scanBoard(interaction.guildId, interaction.member.user.id, 130);
+
+    if (res[0] !== Battleground.ViewBoardStatus.Success) {
         await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });
         return;
     }
@@ -19,62 +18,46 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
     //     return;
     // }
 
-    const position = Board.getPlayerPosition(memberId);
-    if (position === null) {
-        await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });
-        return;
-    }
+    // TODO: Zig should return locations as well instead of just the count
 
-    await interaction.deferReply();
+    // for (let i = 0, { length } = entities; i < length; i++) {
+    //     const entity = entities[i];
 
-    const scanAmount = parseInt(process.env.BOARD_SCAN_SIZE);
-    const start = performance.now();
-    const entities = Board.scanForEntities(position, scanAmount);
-    const chests: Array<string> = [];
-    const mobs: Array<string> = [];
-    const players: Array<string> = [];
-    const moveSpots: Array<string> = [];
+    //     switch (entity.type) {
+    //         case Board.BoardEntityType.Chest: {
+    //             chests.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+    //             break;
+    //         }
+    //         case Board.BoardEntityType.Enemy: {
+    //             mobs.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+    //             break;
+    //         }
+    //         case Board.BoardEntityType.Player: {
+    //             if (entity.x === position.x && entity.y === position.y) break;
+    //             players.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+    //             break;
+    //         }
+    //         case Board.BoardEntityType.LayerEntrance: {
+    //             moveSpots.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
+    //             break;
+    //         }
+    //         default: break;
+    //     }
+    // }
 
-    for (let i = 0, { length } = entities; i < length; i++) {
-        const entity = entities[i];
-
-        switch (entity.type) {
-            case Board.BoardEntityType.Chest: {
-                chests.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
-                break;
-            }
-            case Board.BoardEntityType.Enemy: {
-                mobs.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
-                break;
-            }
-            case Board.BoardEntityType.Player: {
-                if (entity.x === position.x && entity.y === position.y) break;
-                players.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
-                break;
-            }
-            case Board.BoardEntityType.LayerEntrance: {
-                moveSpots.push(`  - \`X ${entity.x}\` | \`Y ${entity.y}\``);
-                break;
-            }
-            default: break;
-        }
-    }
-
-    const time = new Date(Date.UTC(0, 0, 0, 0, 0, 0, performance.now() - start));
-
-    profile.last_scan = Date.now();
-    Player.updateProfile(memberId, profile);
+    const [,str]: [number, string] = <never>res;
+    const [chests, mobs] = str.split(",");
+    console.log(str);
 
     const embed: Embed.Structure = {
-        title: `Found ${chests.length + mobs.length} entities`,
-        color: 0x0000ff,
-        description: `- Chests:\n${
-            chests.length > 0 ? chests.join("\n") : "  - None"}\n- Enemies:\n${
-            mobs.length > 0 ? mobs.join("\n") : "  - None"}\n- Players:\n${
-            players.length > 0 ? players.join("\n") : "  - None"}\n- Portals:\n${
-            moveSpots.length > 0 ? moveSpots.join("\n") : "  - None"}`,
-        footer: { text: `Took ${time.getUTCSeconds()}.${time.getUTCMilliseconds()} seconds\nScanned ${scanAmount * scanAmount} tiles` }
+        title: `Found ${(+chests) + (+mobs)} entities`,
+        color: 0x0000ff
+        // description: `- Chests:\n${
+        //     chests.length > 0 ? chests.join("\n") : "  - None"}\n- Enemies:\n${
+        //     mobs.length > 0 ? mobs.join("\n") : "  - None"}\n- Players:\n${
+        //     players.length > 0 ? players.join("\n") : "  - None"}\n- Portals:\n${
+        //     moveSpots.length > 0 ? moveSpots.join("\n") : "  - None"}`,
     };
 
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed] });
 }

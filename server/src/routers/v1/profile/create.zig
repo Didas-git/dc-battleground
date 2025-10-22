@@ -33,6 +33,7 @@ pub fn create(res: *Response, req: *Request) void {
     };
     defer globals.allocator.free(player_id);
 
+    // TODO: creating profile fails when the tile has something
     Player.createProfile(player_id, name, class) catch {
         res.writeStatusCode(.InternalServerError);
         res.endWithoutBody(true);

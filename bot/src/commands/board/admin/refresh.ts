@@ -1,14 +1,8 @@
-import { LootTableValueType } from "#loot-table/types.js";
 import { PermissionFlags } from "lilybird";
-import { randomUUID } from "node:crypto";
-import { db } from "../../../db.js";
 
-import * as LootTables from "#loot-table/generated-tables.js";
-import * as BoardLayer from "#models/board-layer.js";
-import * as Board from "#models/board.js";
+import * as Battleground from "#bt";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
-import type { LootTable } from "#loot-table/index.js";
 
 export async function boardReset(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
@@ -18,143 +12,35 @@ export async function boardReset(interaction: Interaction<ApplicationCommandData
         return;
     }
 
-    const layer = interaction.data.getInteger("layer") ?? -1;
+    const layer = interaction.data.getInteger("layer") ?? 0;
 
-    if (layer === 0) {
-        await interaction.reply({ content: "Layer 0 cannot be reset!", ephemeral: true });
-        return;
-    }
+    // TODO: Confirmation for full resets and partial ones as well
+    // if (layer === 0) {
+    //     await interaction.reply({ content: "Layer 0 cannot be reset!", ephemeral: true });
+    //     return;
+    // }
 
     await interaction.deferReply();
 
-    if (layer === -1) {
-        let totalChestQuantity = 0;
-        let totalMobQuantity = 0;
-        let totalChestTime = 0;
-        let totalMobTime = 0;
+    const res = await Battleground.refreshBoard(interaction.guildId, layer);
 
-        for (let i = 1; ;i++) {
-            const layerInfo = BoardLayer.getBoardLayerInfo(i);
-            if (layerInfo === null) break;
-            const { chest, mob } = refreshLayer(interaction.guildId, layerInfo);
-
-            totalChestQuantity += chest.quantity;
-            totalChestTime += chest.time;
-            totalMobQuantity += mob.quantity;
-            totalMobTime += mob.time;
-        }
-
-        const chestTime = new Date(Date.UTC(0, 0, 0, 0, 0, 0, totalChestTime));
-        const mobTime = new Date(Date.UTC(0, 0, 0, 0, 0, 0, totalMobTime));
+    if (res[0] === Battleground.RefreshStatus.Success) {
+        const [,stats]: [number, Battleground.RefreshStats] = <never>res;
         await interaction.editReply({
             embeds: [
                 {
                     color: 0xff00ef,
-                    title: "All layers were reset!",
-                    description: `A total of ${totalChestQuantity} chests were spawned!\nA total of ${totalMobQuantity} enemies were spawned!`,
+                    title: layer === 0 ? "Refreshed all layers!" : "Individual layer info not supported yet!", // `Layer ${layer} (${layerInfo.name}) reset!`,
+                    description: `There are ${stats.chests} new chests!\nThere are ${stats.mobs} new enemies!`,
                     footer: {
-                        text: `
-Chests Took ${chestTime.getUTCMinutes()}:${chestTime.getUTCSeconds()}.${chestTime.getUTCMilliseconds()} minutes.
-Mobs Took ${mobTime.getUTCMinutes()}:${mobTime.getUTCSeconds()}.${mobTime.getUTCMilliseconds()} minutes.`
+                        text: `Took ${stats.took}ns`
                     }
                 }
             ]
         });
-
         return;
     }
 
-    const layerInfo = BoardLayer.getBoardLayerInfo(layer);
-
-    if (layerInfo === null) {
-        await interaction.editReply({ content: `Layer ${layer} does not exist.` });
-        return;
-    }
-
-    const { chest, mob } = refreshLayer(interaction.guildId, layerInfo);
-    const chestTime = new Date(Date.UTC(0, 0, 0, 0, 0, 0, chest.time));
-    const mobTime = new Date(Date.UTC(0, 0, 0, 0, 0, 0, mob.time));
-
-    await interaction.editReply({
-        embeds: [
-            {
-                color: 0xff00ef,
-                title: `Layer ${layer} (${layerInfo.name}) reset!`,
-                description: `There are ${chest.quantity} new chests!\nThere are ${mob.quantity} new enemies!`,
-                footer: {
-                    text: `
-Chests Took ${chestTime.getUTCMinutes()}:${chestTime.getUTCSeconds()}.${chestTime.getUTCMilliseconds()} minutes.
-Mobs Took ${mobTime.getUTCMinutes()}:${mobTime.getUTCSeconds()}.${mobTime.getUTCMilliseconds()} minutes.`
-                }
-            }
-        ]
-    });
+    await interaction.editReply("Ah shit, it failed");
 }
 
-function refreshLayer(guildId: string, layerInfo: BoardLayer.BoardLayer): { chest: { quantity: number, time: number }, mob: { quantity: number, time: number } } {
-    db.query("DELETE FROM Board WHERE layer = $layer AND (type = $type1 OR type = $type2 OR type = $type3)").run({
-        layer: layerInfo.layer,
-        type1: Board.BoardEntityType.Chest,
-        type2: Board.BoardEntityType.Enemy,
-        type3: Board.BoardEntityType.LayerEntrance
-    });
-
-    const layerSize = BoardLayer.calculateLayerSize(layerInfo);
-    const chestQuantity = Math.round(parseFloat(process.env.CHEST_REFRESH_PERCENTAGE) * layerSize);
-    const mobQuantity = Math.round(parseFloat(process.env.MOB_REFRESH_PERCENTAGE) * layerSize);
-
-    let x = 0;
-    let y = 0;
-
-    if (layerInfo.previous !== null) {
-        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        Board.insertLayerEntrance(`${guildId}:${randomUUID()}`, layerInfo.layer, x, y, { to: -1 });
-    }
-
-    if (layerInfo.next !== null) {
-        ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        Board.insertLayerEntrance(`${guildId}:${randomUUID()}`, layerInfo.layer, x, y, { to: 1 });
-    }
-
-    const startChest = performance.now();
-
-    for (let i = 0; i < chestQuantity; i++) {
-        const entityId = `${guildId}:${randomUUID()}`;
-
-        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layerInfo.layer, x, y).type !== Board.BoardEntityType.Empty);
-
-        Board.generateChest(entityId, layerInfo.layer, x, y);
-    }
-
-    const endChest = performance.now();
-
-    if (layerInfo.loot_table === null) {
-        return {
-            chest: { quantity: chestQuantity, time: endChest - startChest },
-            mob: { quantity: 0, time: 0 }
-        };
-    }
-
-    const layerTable: new () => LootTable = LootTables[<never>layerInfo.loot_table];
-    const enemies = new layerTable().getResults(mobQuantity);
-
-    for (let i = 0; i < mobQuantity; i++) {
-        const entityId = `${guildId}:${randomUUID()}`;
-
-        do ({ x, y } = Board.generateRandomCoordinates(layerInfo.x, layerInfo.y));
-        while (Board.getEntityInPosition(layerInfo.layer, x, y).type !== Board.BoardEntityType.Empty);
-
-        const enemy = enemies[i];
-        if (enemy.type !== LootTableValueType.Enemy) throw new Error("Layer loot table contains a non-enemy value");
-
-        Board.generateEnemy(entityId, layerInfo.layer, x, y, enemy.value);
-    }
-
-    const endMob = performance.now();
-
-    return {
-        chest: { quantity: chestQuantity, time: endChest - startChest },
-        mob: { quantity: mobQuantity, time: endMob - endChest }
-    };
-}

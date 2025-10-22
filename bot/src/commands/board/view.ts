@@ -1,35 +1,35 @@
 import { MOVEMENT_ROW } from "#utils/components.js";
 import { makeBoardEmbed } from "#utils/embeds.js";
 
-import * as BoardCache from "#models/board-cache.js";
-import * as Battle from "#models/battle.js";
-import * as Board from "#models/board.js";
+import * as Battleground from "#bt";
 
 import type { ApplicationCommandData, Interaction } from "@lilybird/transformers";
 
 export async function viewBoard(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
 
-    const memberId = `${interaction.guildId}:${interaction.member.user.id}`;
-    const position = Board.getPlayerPosition(memberId);
-    if (position === null) {
+    const res = await Battleground.viewBoard(interaction.guildId, interaction.member.user.id);
+    if (res[0] !== Battleground.ViewBoardStatus.Success) {
         await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });
         return;
     }
 
-    const ongoingBattle = Battle.findFlowAsAttacker(memberId);
-    if (ongoingBattle !== null) {
-        await interaction.reply({ content: "You have an ongoing battle, finish it before going back to the board.", ephemeral: true });
-        return;
-    }
+    // TODO: Handle battles on the zig side
+
+    // const ongoingBattle = Battle.findFlowAsAttacker(memberId);
+    // if (ongoingBattle !== null) {
+    //     await interaction.reply({ content: "You have an ongoing battle, finish it before going back to the board.", ephemeral: true });
+    //     return;
+    // }
 
     await interaction.reply({
-        embeds: [await makeBoardEmbed(position, memberId)],
+        embeds: [makeBoardEmbed(<never>res[1])],
         components: [MOVEMENT_ROW]
     });
 
-    BoardCache.del(memberId);
-    const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
-    const cacheId = `${interaction.channelId}:${message.id}`;
-    BoardCache.set(cacheId, memberId);
+    // ?? i forgot what this was for
+    // BoardCache.del(memberId);
+    // const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
+    // const cacheId = `${interaction.channelId}:${message.id}`;
+    // BoardCache.set(cacheId, memberId);
 }

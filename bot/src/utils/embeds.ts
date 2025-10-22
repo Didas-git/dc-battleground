@@ -4,26 +4,17 @@ import * as BoardLayer from "#models/board-layer.js";
 import * as Player from "#models/player.js";
 import * as Board from "#models/board.js";
 import * as Item from "#models/item.js";
+import type * as Battleground from "#bt";
 
 import type { LootTableContent } from "#loot-table/types.js";
 import type { Embed } from "lilybird";
 
-export async function makeBoardEmbed(position: Board.BoardData, memberId: string, moveDirection?: string): Promise<Embed.Structure> {
-    const board = await Board.scanFromCenter(position, Board.BOARD_VIEW_SIZE, memberId, typeof moveDirection !== "undefined");
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { name } = BoardLayer.getBoardLayerInfo(position.layer)!;
-
-    let str = "";
-    for (let i = 0, { length } = board; i < length; i++) {
-        if (i % Board.BOARD_VIEW_SIZE === 0 && i !== 0) str += "\n";
-        str += Board.BOARD_MAPPINGS[board[i]];
-    }
-
+export function makeBoardEmbed(boardView: Battleground.BoardView, moveDirection?: string): Embed.Structure {
     return {
         title: "Board",
         color: 0x0000ff,
-        description: str,
-        footer: { text: `[${position.layer}]${name}: X: ${position.x} | Y: ${position.y} ${moveDirection ?? ""}` }
+        description: boardView.map,
+        footer: { text: `[${boardView.position.layer}]${boardView.position.name}: X: ${boardView.position.x} | Y: ${boardView.position.y} ${moveDirection ?? ""}` }
     };
 }
 

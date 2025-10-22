@@ -10,7 +10,6 @@ export async function profileCreate(interaction: Interaction<ApplicationCommandD
     if (!interaction.inGuild()) return;
 
     const res = await Battleground.profileDisplay(interaction.guildId, interaction.member.user.id);
-    console.log(res);
     if (res[0] === Battleground.ProfileStatus.Success) {
         await interaction.reply({ content: "You already have a profile.", ephemeral: true });
         return;
