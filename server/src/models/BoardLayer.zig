@@ -75,7 +75,7 @@ pub fn parseLayerSettings(self: *BoardLayer) !void {
             .NonUniform => |coords| .{ coords.x, coords.y },
         };
 
-        const refresh = if (layer.refresh) |r| r else settings.refresh;
+        const refresh = layer.refresh orelse settings.refresh;
 
         try self.createBoardLayer(
             i,

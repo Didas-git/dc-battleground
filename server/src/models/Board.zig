@@ -3,6 +3,8 @@ const globals = @import("globals");
 const nanoid = @import("nanoid");
 const std = @import("std");
 
+const _BoardLayer = @import("./BoardLayer.zig");
+
 const settings = @import("settings").settings;
 
 const Statement = Database.Statement;
@@ -36,6 +38,7 @@ delete: struct {
 
 pub const PositionalData = struct {
     layer: u8,
+    name: []const u8,
     x: i64,
     y: i64,
 };
@@ -209,6 +212,7 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
 
     return .{
         .layer = 1,
+        .name = settings.floors[1].name,
         .x = x,
         .y = y,
     };
@@ -291,7 +295,8 @@ pub fn changePlayerLayer(self: *const Board, server_id: []const u8, member_id: [
     return false;
 }
 
-pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: []const u8) !?PositionalData {
+pub fn getPlayerPosition(self: *const Board, allocator: std.mem.Allocator, server_id: []const u8, member_id: []const u8) !?PositionalData {
+    const BoardLayer = globals.BoardLayer;
     const query = self.get.player;
     defer _ = query.reset() catch unreachable;
 
@@ -301,8 +306,13 @@ pub fn getPlayerPosition(self: *const Board, server_id: []const u8, member_id: [
     const result = try query.step();
     if (result != .row) return null;
 
+    const layer: u8 = @intCast(query.intColumn(0));
+
+    const layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer) orelse return null;
+
     return .{
-        .layer = @intCast(query.intColumn(0)),
+        .layer = layer,
+        .name = layer_info.name,
         .x = @intCast(query.intColumn(1)),
         .y = @intCast(query.intColumn(2)),
     };

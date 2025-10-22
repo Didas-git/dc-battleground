@@ -27,7 +27,7 @@ pub fn scan(res: *Response, req: *Request) void {
         break :blk comptime settings.board.scan_radius;
     };
 
-    const position = Board.getPlayerPosition(server_id, member_id) catch {
+    const position = Board.getPlayerPosition(globals.allocator, server_id, member_id) catch {
         res.writeStatusCode(.InternalServerError);
         res.endWithoutBody(true);
         return;
@@ -36,6 +36,7 @@ pub fn scan(res: *Response, req: *Request) void {
         res.endWithoutBody(true);
         return;
     };
+    defer globals.allocator.free(position.name);
 
     var arena = std.heap.ArenaAllocator.init(globals.allocator);
     defer arena.deinit();

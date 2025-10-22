@@ -28,7 +28,7 @@ pub fn view(res: *Response, req: *Request) void {
         break :blk comptime settings.board.view_size;
     };
 
-    const position = Board.getPlayerPosition(server_id, member_id) catch {
+    const position = Board.getPlayerPosition(globals.allocator, server_id, member_id) catch {
         res.writeStatusCode(.InternalServerError);
         res.endWithoutBody(true);
         return;
@@ -37,6 +37,7 @@ pub fn view(res: *Response, req: *Request) void {
         res.endWithoutBody(true);
         return;
     };
+    defer globals.allocator.free(position.name);
 
     var arena = std.heap.ArenaAllocator.init(globals.allocator);
     defer arena.deinit();
@@ -69,6 +70,15 @@ pub fn view(res: *Response, req: *Request) void {
         return utils.handleFailedAllocation(res);
     };
 
+    const stringified_data = std.json.Stringify.valueAlloc(globals.allocator, .{
+        .position = position,
+        .map = str,
+    }, .{}) catch {
+        return utils.handleFailedAllocation(res);
+    };
+    defer globals.allocator.free(stringified_data);
+
     res.writeStatusCode(.OK);
-    res.end(str, true);
+    res.writeHeader("Content-Type", "application/json; charset=utf8");
+    res.end(stringified_data, true);
 }

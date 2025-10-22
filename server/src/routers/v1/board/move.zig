@@ -66,7 +66,7 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     }
 
-    const player = Board.getPlayerPosition(server_id, member_id) catch {
+    const position = Board.getPlayerPosition(allocator, server_id, member_id) catch {
         res.writeStatusCode(.InternalServerError);
         res.endWithoutBody(true);
         return;
@@ -75,10 +75,11 @@ pub fn move(res: *Response, req: *Request) void {
         res.endWithoutBody(true);
         return;
     };
+    defer allocator.free(position.name);
 
-    const x, const y = calculateCoordinates(player.x, player.y, direction);
+    const x, const y = calculateCoordinates(position.x, position.y, direction);
 
-    const entity = Board.getEntityInPosition(allocator, server_id, player.layer, x, y) catch {
+    const entity = Board.getEntityInPosition(allocator, server_id, position.layer, x, y) catch {
         return utils.handleFailedAllocation(res);
     };
     defer entity.deinit(allocator);
@@ -103,7 +104,7 @@ pub fn move(res: *Response, req: *Request) void {
             res.writeStatus("204 Player battle not implemented");
         },
         .layer_portal => |portal| {
-            const next_layer: u8 = @intCast(@as(i16, player.layer) +| @intFromEnum(portal.to));
+            const next_layer: u8 = @intCast(@as(i16, position.layer) +| @intFromEnum(portal.to));
             const possible_new_layer = BoardLayer.getBoardLayerInfo(allocator, next_layer) catch {
                 return utils.handleFailedAllocation(res);
             };
@@ -114,7 +115,7 @@ pub fn move(res: *Response, req: *Request) void {
                 const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveLayerData{
                     .entity = @intFromEnum(entity),
                     .direction = @intFromEnum(direction),
-                    .layer = player.layer,
+                    .layer = position.layer,
                     .x = x,
                     .y = y,
                     .next_layer = .{
@@ -138,7 +139,7 @@ pub fn move(res: *Response, req: *Request) void {
             const stringified_data = std.json.Stringify.valueAlloc(allocator, NextMoveData{
                 .entity = @intFromEnum(entity),
                 .direction = @intFromEnum(direction),
-                .layer = player.layer,
+                .layer = position.layer,
                 .x = x,
                 .y = y,
             }, .{}) catch {
