@@ -19,3 +19,5 @@ server/tools/index.html
 
 *.jsonc
 *.db
+
+logging.zig

@@ -15,7 +15,7 @@ pub fn getCoordinates(gpa: std.mem.Allocator, layer_info: LayerInfo, server_id: 
 
     var coordinates = _Board.generateRandomCoordinates(layer_info.x, layer_info.y);
     var entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);
-    while (entity != .Empty) {
+    while (entity != .empty) {
         coordinates = _Board.generateRandomCoordinates(layer_info.x, layer_info.y);
         entity.deinit(gpa);
         entity = try Board.getEntityInPosition(gpa, server_id, layer_info.layer, coordinates.x, coordinates.y);

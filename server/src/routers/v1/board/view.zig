@@ -58,7 +58,7 @@ pub fn view(res: *Response, req: *Request) void {
             };
         }
         mapped_entities.append(allocator, switch (entity) {
-            .Player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else models.Board.Entity.getBoardTileFromInt(99),
+            .player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else models.Board.Entity.getBoardTileFromInt(99),
             else => entity.getBoardTile(),
         }) catch {
             return utils.handleFailedAllocation(res);

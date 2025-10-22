@@ -46,45 +46,45 @@ pub const LayerPortalDirection = enum(i2) {
 };
 
 pub const EntityType = enum(u8) {
-    Empty,
-    Player,
-    Mob,
-    Chest,
-    LayerPortal,
+    empty,
+    player,
+    mob,
+    chest,
+    layer_portal,
 };
 
 pub const Entity = union(EntityType) {
-    Empty: void,
-    Player: struct {
+    empty: void,
+    player: struct {
         id: []const u8,
     },
-    Mob: struct {
+    mob: struct {
         id: []const u8,
         /// Can never be 0
         mob_id: i64,
     },
-    Chest: struct {
+    chest: struct {
         id: []const u8,
     },
-    LayerPortal: struct {
+    layer_portal: struct {
         id: []const u8,
         to: LayerPortalDirection,
     },
 
     pub fn deinit(self: Entity, allocator: std.mem.Allocator) void {
         switch (self) {
-            .Empty => {},
+            .empty => {},
             inline else => |e| allocator.free(e.id),
         }
     }
 
     pub fn getBoardTile(self: Entity) []const u8 {
         return switch (self) {
-            .Empty => comptime settings.board.entity_map.empty,
-            .Player => comptime settings.board.entity_map.player,
-            .Mob => comptime settings.board.entity_map.mob,
-            .Chest => comptime settings.board.entity_map.chest,
-            .LayerPortal => comptime settings.board.entity_map.layer,
+            .empty => comptime settings.board.entity_map.empty,
+            .player => comptime settings.board.entity_map.player,
+            .mob => comptime settings.board.entity_map.mob,
+            .chest => comptime settings.board.entity_map.chest,
+            .layer_portal => comptime settings.board.entity_map.layer,
         };
     }
 
@@ -192,7 +192,7 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
     while (true) {
         const coordinates = generateRandomCoordinates(limits.x, limits.y);
         const entity = try self.getEntityInPosition(globals.allocator, server_id, 1, coordinates.x, coordinates.y);
-        if (entity == .Empty) {
+        if (entity == .empty) {
             x = coordinates.x;
             y = coordinates.y;
             break;
@@ -201,7 +201,7 @@ pub fn spawnPlayer(self: *const Board, server_id: []const u8, member_id: []const
 
     try query.bindText(1, server_id);
     try query.bindText(2, member_id);
-    try query.bindInt(3, @intFromEnum(Entity.Player));
+    try query.bindInt(3, @intFromEnum(Entity.player));
     try query.bindInt(4, x);
     try query.bindInt(5, y);
 
@@ -247,7 +247,7 @@ pub fn insertLayerPortal(
 
     try query.bindText(1, server_id);
     try query.bindText(2, layer_id);
-    try query.bindInt(3, @intFromEnum(Entity.LayerPortal));
+    try query.bindInt(3, @intFromEnum(Entity.layer_portal));
     try query.bindInt(4, layer);
     try query.bindInt(5, x);
     try query.bindInt(6, y);
@@ -356,16 +356,16 @@ pub fn getEntityInPosition(
     try query.bindInt(4, y);
 
     const result = try query.step();
-    if (result != .row) return .{ .Empty = {} };
+    if (result != .row) return .{ .empty = {} };
 
     const entity_type: EntityType = @enumFromInt(query.intColumn(0));
     const id = try query.textColumn(allocator, 1);
     const extra = query.intColumn(2);
 
     return switch (entity_type) {
-        .Empty => unreachable,
-        .Mob => .{ .Mob = .{ .id = id, .mob_id = extra } },
-        .LayerPortal => .{ .LayerPortal = .{ .id = id, .to = @enumFromInt(extra) } },
+        .empty => unreachable,
+        .mob => .{ .mob = .{ .id = id, .mob_id = extra } },
+        .layer_portal => .{ .layer_portal = .{ .id = id, .to = @enumFromInt(extra) } },
         inline else => |e| {
             return @unionInit(Entity, @tagName(e), .{ .id = id });
         },

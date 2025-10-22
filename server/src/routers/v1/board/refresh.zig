@@ -105,17 +105,17 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     }
 
     for (0..chest_quantity) |_| {
-        try arr.append(allocator, .Chest);
+        try arr.append(allocator, .chest);
         full_size -= 1;
     }
 
     for (0..mob_quantity) |_| {
-        try arr.append(allocator, .Mob);
+        try arr.append(allocator, .mob);
         full_size -= 1;
     }
 
     while (full_size > 0) : (full_size -= 1) {
-        try arr.append(allocator, .Empty);
+        try arr.append(allocator, .empty);
     }
 
     const buf = try arr.toOwnedSlice(allocator);
@@ -124,13 +124,13 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
     _ = try globals.db.exec("BEGIN TRANSACTION");
 
     for (buf, 0..) |entity, j| {
-        if (entity == .Empty) continue;
+        if (entity == .empty) continue;
         const coordinates = calculateCoordinates(@intCast(j), layer_info.x, layer_info.y);
         switch (entity) {
             // TODO: Pre generate chest rarities using the identifier/extra property
-            .Chest => try Board.generateEntity(.Chest, server_id, layer, coordinates.x, coordinates.y, null),
+            .chest => try Board.generateEntity(.chest, server_id, layer, coordinates.x, coordinates.y, null),
             // TODO: Properly generate enemy, aka randomize identifier and extract id from that
-            .Mob => try Board.generateEntity(.Mob, server_id, layer, coordinates.x, coordinates.y, null),
+            .mob => try Board.generateEntity(.mob, server_id, layer, coordinates.x, coordinates.y, null),
             else => unreachable,
         }
     }

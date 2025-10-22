@@ -84,7 +84,7 @@ pub fn move(res: *Response, req: *Request) void {
     defer entity.deinit(allocator);
 
     switch (entity) {
-        .Empty => {
+        .empty => {
             // TODO: Handle possible player missing
             // Tho realistically this race condition should never happen
             _ = Board.updatePlayerPosition(server_id, member_id, x, y) catch {
@@ -99,10 +99,10 @@ pub fn move(res: *Response, req: *Request) void {
             };
             res.writeStatus("200 Moved");
         },
-        .Player => {
+        .player => {
             res.writeStatus("204 Player battle not implemented");
         },
-        .LayerPortal => |portal| {
+        .layer_portal => |portal| {
             const next_layer: u8 = @intCast(@as(i16, player.layer) +| @intFromEnum(portal.to));
             const possible_new_layer = BoardLayer.getBoardLayerInfo(allocator, next_layer) catch {
                 return utils.handleFailedAllocation(res);
