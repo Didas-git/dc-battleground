@@ -14,8 +14,18 @@ pub fn create(res: *Response, req: *Request) void {
     const Player = globals.Player;
     const Board = globals.Board;
 
-    const server_id = req.getParameter(0);
-    const member_id = req.getParameter(1);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
+        res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
     const name = req.getParameter(2);
     const class_string = req.getParameter(3);
     const class = std.meta.intToEnum(Class, std.fmt.parseInt(u8, class_string, 10) catch {
@@ -28,19 +38,14 @@ pub fn create(res: *Response, req: *Request) void {
         return;
     };
 
-    const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ server_id, member_id }) catch {
-        return utils.handleFailedAllocation(res);
-    };
-    defer globals.allocator.free(player_id);
-
     // TODO: creating profile fails when the tile has something
-    Player.createProfile(player_id, name, class) catch {
+    Player.createProfile(server_id, member_id, name, class) catch {
         res.writeStatusCode(.InternalServerError);
         res.endWithoutBody(true);
         return;
     };
 
-    const origin = Board.spawnPlayer(server_id, member_id) catch {
+    const origin = Board.spawnPlayer(globals.allocator, server_id, member_id) catch {
         return utils.handleFailedAllocation(res);
     };
 

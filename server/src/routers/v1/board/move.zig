@@ -40,9 +40,18 @@ pub fn move(res: *Response, req: *Request) void {
 
     const allocator = globals.allocator;
 
-    const server_id = req.getParameter(0);
-    const member_id = req.getParameter(1);
-    const cache_id = req.getParameter(2);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
+        res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
     const direction_string = req.getParameter(3);
     const direction = std.meta.intToEnum(Direction, std.fmt.parseInt(u8, direction_string, 10) catch {
         res.writeStatus("400 Malformed direction");
@@ -54,13 +63,11 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     };
 
-    const cache_entry = BoardCache.get(allocator, cache_id) catch {
+    const cache_entry = BoardCache.get(server_id, member_id) catch {
         return utils.handleFailedAllocation(res);
     };
 
-    if (cache_entry) |entry| {
-        defer allocator.free(entry.member_id);
-    } else {
+    if (cache_entry == null) {
         res.writeStatus("409 No Cache Entry");
         res.endWithoutBody(true);
         return;
@@ -79,10 +86,9 @@ pub fn move(res: *Response, req: *Request) void {
 
     const x, const y = calculateCoordinates(position.x, position.y, direction);
 
-    const entity = Board.getEntityInPosition(allocator, server_id, position.layer, x, y) catch {
+    const entity = Board.getEntityInPosition(server_id, position.layer, x, y) catch {
         return utils.handleFailedAllocation(res);
     };
-    defer entity.deinit(allocator);
 
     switch (entity) {
         .empty => {
@@ -93,11 +99,13 @@ pub fn move(res: *Response, req: *Request) void {
                 res.endWithoutBody(true);
                 return;
             };
-            BoardCache.update(cache_id) catch {
+
+            BoardCache.update(server_id, member_id) catch {
                 res.writeStatusCode(.InternalServerError);
                 res.endWithoutBody(true);
                 return;
             };
+
             res.writeStatus("200 Moved");
         },
         .player => {

@@ -12,8 +12,17 @@ const Response = zuws.Response;
 pub fn scan(res: *Response, req: *Request) void {
     const Board = globals.Board;
 
-    const server_id = req.getParameter(0);
-    const member_id = req.getParameter(1);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
+        res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
 
     const scanner_radius_header = req.getHeader("scanner-radius");
     const scanner_radius = blk: {
@@ -56,7 +65,7 @@ pub fn scan(res: *Response, req: *Request) void {
             .chest => chest_count += 1,
             .mob => mob_count += 1,
             .player => |player| {
-                if (std.mem.eql(u8, member_id, player.id)) continue;
+                if (member_id == player.id) continue;
                 enemy_player_count += 1;
             },
             else => continue,

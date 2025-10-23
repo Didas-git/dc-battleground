@@ -13,8 +13,17 @@ const Response = zuws.Response;
 pub fn view(res: *Response, req: *Request) void {
     const Board = globals.Board;
 
-    const server_id = req.getParameter(0);
-    const member_id = req.getParameter(1);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
+        res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
 
     const view_size_header = req.getHeader("view-size");
     const view_size = blk: {
@@ -59,7 +68,7 @@ pub fn view(res: *Response, req: *Request) void {
             };
         }
         mapped_entities.append(allocator, switch (entity) {
-            .player => |player| if (std.mem.eql(u8, member_id, player.id)) entity.getBoardTile() else models.Board.Entity.getBoardTileFromInt(99),
+            .player => |player| if (member_id == player.id) entity.getBoardTile() else models.Board.Entity.getBoardTileFromInt(99),
             else => entity.getBoardTile(),
         }) catch {
             return utils.handleFailedAllocation(res);

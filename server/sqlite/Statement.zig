@@ -74,6 +74,11 @@ pub fn bindInt(self: *const Statement, index: u8, int: i64) ErrorCodes!void {
     _ = try parseResultCode(result);
 }
 
+pub fn bindUInt(self: *const Statement, index: u8, int: u64) ErrorCodes!void {
+    const result = sqlite.sqlite3_bind_int64(self.stmt, @as(c_int, index), @bitCast(int));
+    _ = try parseResultCode(result);
+}
+
 pub fn bindFloat(self: *const Statement, index: u8, float: f64) ErrorCodes!void {
     const result = sqlite.sqlite3_bind_double(self.stmt, @as(c_int, index), float);
     _ = try parseResultCode(result);
@@ -88,6 +93,10 @@ pub fn textColumn(self: *const Statement, allocator: std.mem.Allocator, column: 
 
 pub fn intColumn(self: *const Statement, column: u8) i64 {
     return sqlite.sqlite3_column_int64(self.stmt, @as(c_int, column));
+}
+
+pub fn uIntColumn(self: *const Statement, column: u8) u64 {
+    return @bitCast(sqlite.sqlite3_column_int64(self.stmt, @as(c_int, column)));
 }
 
 pub fn floatColumn(self: *const Statement, column: u8) f64 {

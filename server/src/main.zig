@@ -44,6 +44,6 @@ pub fn main() !void {
 }
 
 fn insertTestData() !void {
-    try globals.Board.insertLayerPortal("test_server", "test_portal", 1, 3, 0, .forwards);
-    try globals.BoardCache.set("test_cache", "didas");
+    try globals.Board.insertLayerPortal(0x00, 1, 3, 0, .forwards);
+    try globals.BoardCache.set(0x00, 0x00);
 }

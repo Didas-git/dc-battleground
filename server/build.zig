@@ -51,17 +51,12 @@ pub fn build(b: *std.Build) void {
 
     globals.addImport("sqlite", sqlite);
 
-    const nanoid = b.createModule(.{
-        .root_source_file = b.path("./nanoid.zig"),
-    });
-
     const models = b.createModule(.{
         .root_source_file = b.path("src/models/models.zig"),
         .imports = &.{
             .{ .name = "sqlite", .module = sqlite },
             .{ .name = "settings", .module = settings },
             .{ .name = "globals", .module = globals },
-            .{ .name = "nanoid", .module = nanoid },
         },
     });
 
@@ -85,7 +80,6 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "globals", .module = globals },
                 .{ .name = "models", .module = models },
                 .{ .name = "utils", .module = utils },
-                // .{ .name = "nanoid", .module = nanoid },
             },
         },
     );

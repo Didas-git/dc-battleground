@@ -26,7 +26,12 @@ const Generated = struct {
 };
 
 pub fn refresh(res: *Response, req: *Request) void {
-    const server_id = req.getParameter(0);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
     const layer = std.fmt.parseInt(u8, req.getParameter(1), 10) catch {
         res.writeStatus("400 Malformed layer");
         res.endWithoutBody(true);
@@ -66,7 +71,7 @@ pub fn refresh(res: *Response, req: *Request) void {
     res.end(stringified_data, true);
 }
 
-pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
+pub fn refreshLayer(server_id: u64, layer: u8) !Generated {
     const Board = globals.Board;
     const BoardLayer = globals.BoardLayer;
     const allocator = globals.allocator;
@@ -90,18 +95,16 @@ pub fn refreshLayer(server_id: []const u8, layer: u8) !Generated {
         const prev_layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer - 1) orelse return error.NoLayerInfo;
         defer prev_layer_info.deinit(allocator);
 
-        const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
-        const id = try std.mem.join(allocator, "-", &.{ server_id, layer_info.name, "to", prev_layer_info.name });
-        try Board.insertLayerPortal(server_id, id, layer, coordinates.x, coordinates.y, .backwards);
+        const coordinates = try shared.getCoordinates(layer_info, server_id);
+        try Board.insertLayerPortal(server_id, layer, coordinates.x, coordinates.y, .backwards);
     }
 
     if (layer < comptime settings.floors.len - 1) {
         const next_layer_info = try BoardLayer.getBoardLayerInfo(allocator, layer + 1) orelse return error.NoLayerInfo;
         defer next_layer_info.deinit(allocator);
 
-        const coordinates = try shared.getCoordinates(allocator, layer_info, server_id);
-        const id = try std.mem.join(allocator, ":", &.{ server_id, layer_info.name, "to", next_layer_info.name });
-        try Board.insertLayerPortal(server_id, id, layer, coordinates.x, coordinates.y, .forwards);
+        const coordinates = try shared.getCoordinates(layer_info, server_id);
+        try Board.insertLayerPortal(server_id, layer, coordinates.x, coordinates.y, .forwards);
     }
 
     for (0..chest_quantity) |_| {

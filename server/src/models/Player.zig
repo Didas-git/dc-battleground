@@ -25,7 +25,7 @@ pub const Profile = struct {
     class: Class,
     xp: XP,
 
-    pub fn deinit(self: *Profile, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: Profile, allocator: std.mem.Allocator) void {
         allocator.free(self.name);
     }
 };
@@ -58,56 +58,61 @@ pub const XP = struct {
 pub fn init(db: *Database) !Player {
     _ = try db.exec(
         \\CREATE TABLE IF NOT EXISTS Player (
-        \\id TEXT PRIMARY KEY,
+        \\server_id INT NOT NULL,
+        \\id INT NOT NULL,
         \\name TEXT NOT NULL,
         \\class INTEGER NOT NULL,
         \\level INTEGER NOT NULL,
-        \\xp REAL NOT NULL
+        \\xp REAL NOT NULL,
+        \\PRIMARY KEY (server_id, id)
         \\)
     );
 
     return .{
         .queries = .{
-            .create = try .init(db, "INSERT INTO Player (id, name, level, xp, class) VALUES (:id, :name, 0, 0, :class)"),
-            .delete = try .init(db, "DELETE FROM Player WHERE id = :id"),
+            .create = try .init(db, "INSERT INTO Player (server_id, id, name, level, xp, class) VALUES (:server_id, :id, :name, 0, 0, :class)"),
+            .delete = try .init(db, "DELETE FROM Player WHERE server_id = :server_id AND id = :id"),
             .get = .{
-                .all = try .init(db, "SELECT name, class, level, xp FROM Player WHERE id = :id"),
-                .level = try .init(db, "SELECT level, xp FROM Player WHERE id = :id"),
-                .class = try .init(db, "SELECT class FROM Player WHERE id = :id"),
-                .servers = try .init(db, "SELECT class FROM Player WHERE id LIKE :id"),
+                .all = try .init(db, "SELECT name, class, level, xp FROM Player WHERE server_id = :server_id AND id = :id"),
+                .level = try .init(db, "SELECT level, xp FROM Player WHERE server_id = :server_id AND id = :id"),
+                .class = try .init(db, "SELECT class FROM Player WHERE server_id = :server_id AND id = :id"),
+                .servers = try .init(db, "SELECT class FROM Player WHERE id = :id"),
             },
             .update = .{
-                .xp = try .init(db, "UPDATE Player SET level = :level, xp = :xp WHERE id = :id"),
+                .xp = try .init(db, "UPDATE Player SET level = :level, xp = :xp WHERE server_id = :server_id AND id = :id"),
             },
         },
     };
 }
 
-pub fn createProfile(self: *const Player, player_id: []const u8, name: []const u8, class: Class) !void {
+pub fn createProfile(self: *const Player, server_id: u64, member_id: u64, name: []const u8, class: Class) !void {
     const query = self.queries.create;
     defer _ = query.reset() catch unreachable;
 
-    try query.bindText(1, player_id);
-    try query.bindText(2, name);
-    try query.bindInt(3, @intFromEnum(class));
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
+    try query.bindText(3, name);
+    try query.bindInt(4, @intFromEnum(class));
 
     _ = try query.step();
 }
 
-pub fn deleteProfile(self: *const Player, player_id: []const u8) !void {
+pub fn deleteProfile(self: *const Player, server_id: u64, member_id: u64) !void {
     const query = self.queries.delete;
     defer _ = query.reset() catch unreachable;
 
-    try query.bindText(1, player_id);
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
 
     _ = try query.step();
 }
 
-pub fn getProfile(self: *const Player, allocator: std.mem.Allocator, player_id: []const u8) !?Profile {
+pub fn getProfile(self: *const Player, allocator: std.mem.Allocator, server_id: u64, member_id: u64) !?Profile {
     const query = self.queries.get.all;
     defer _ = query.reset() catch unreachable;
 
-    try query.bindText(1, player_id);
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
 
     const result = try query.step();
     if (result != .row) return null;
@@ -140,11 +145,12 @@ pub fn getProfile(self: *const Player, allocator: std.mem.Allocator, player_id: 
 //     if (!found) return null;
 // }
 
-pub fn getClass(self: *const Player, player_id: []const u8) !?Class {
+pub fn getClass(self: *const Player, server_id: u64, member_id: u64) !?Class {
     const query = self.queries.get.class;
     defer _ = query.reset() catch unreachable;
 
-    try query.bindText(1, player_id);
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
 
     const result = try query.step();
     if (result != .row) return null;
@@ -153,7 +159,7 @@ pub fn getClass(self: *const Player, player_id: []const u8) !?Class {
     return @enumFromInt(class_int);
 }
 
-pub fn updatePlayerXP(self: *const Player, player_id: []const u8, current_xp: XP, amount: f64) !XP {
+pub fn updatePlayerXP(self: *const Player, server_id: u64, member_id: u64, current_xp: XP, amount: f64) !XP {
     const query = self.queries.update.xp;
     defer _ = query.reset() catch unreachable;
 
@@ -169,7 +175,8 @@ pub fn updatePlayerXP(self: *const Player, player_id: []const u8, current_xp: XP
 
     try query.bindInt(1, new_level);
     try query.bindFloat(2, new_xp);
-    try query.bindText(3, player_id);
+    try query.bindUInt(3, server_id);
+    try query.bindUInt(4, member_id);
 
     _ = try query.step();
 
@@ -179,11 +186,12 @@ pub fn updatePlayerXP(self: *const Player, player_id: []const u8, current_xp: XP
     };
 }
 
-pub fn getLevel(self: *const Player, player_id: []const u8) !?XP {
+pub fn getLevel(self: *const Player, server_id: u64, member_id: u64) !?XP {
     const query = self.queries.get.level;
     defer _ = query.reset() catch unreachable;
 
-    try query.bindText(1, player_id);
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
 
     const result = try query.step();
     if (result != .row) return null;

@@ -10,15 +10,19 @@ const Response = zuws.Response;
 pub fn display(res: *Response, req: *Request) void {
     const Player = globals.Player;
 
-    const server_id = req.getParameter(0);
-    const member_id = req.getParameter(1);
-
-    const player_id = std.fmt.allocPrint(globals.allocator, "{s}:{s}", .{ server_id, member_id }) catch {
-        return utils.handleFailedAllocation(res);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
     };
-    defer globals.allocator.free(player_id);
 
-    var player = Player.getProfile(globals.allocator, player_id) catch {
+    const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
+        res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    var player = Player.getProfile(globals.allocator, server_id, member_id) catch {
         return utils.handleFailedAllocation(res);
     } orelse {
         res.writeStatusCode(.NotFound);

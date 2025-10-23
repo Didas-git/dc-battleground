@@ -14,7 +14,12 @@ pub fn spawn(res: *Response, req: *Request) void {
     const BoardLayer = globals.BoardLayer;
     const allocator = globals.allocator;
 
-    const server_id = req.getParameter(0);
+    const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
+        res.writeStatus("400 Malformed server_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
     const layer = std.fmt.parseInt(u8, req.getParameter(1), 10) catch {
         res.writeStatus("400 Malformed layer");
         res.endWithoutBody(true);
@@ -59,7 +64,7 @@ pub fn spawn(res: *Response, req: *Request) void {
 
             // TODO: Make this faster/better
             for (0..amount) |_| {
-                const coordinates = shared.getCoordinates(allocator, layer_info, server_id) catch {
+                const coordinates = shared.getCoordinates(layer_info, server_id) catch {
                     return utils.handleFailedAllocation(res);
                 };
                 Board.generateEntity(entity, server_id, layer, coordinates.x, coordinates.y, null) catch {
