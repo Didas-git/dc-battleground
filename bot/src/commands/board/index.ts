@@ -8,7 +8,7 @@ import { $applicationCommand } from "../../handler.js";
 // import { DIRECTION_MAP } from "#utils/board.js";
 import { boardReset } from "./admin/refresh.js";
 // import { boardSpawn } from "./admin/spawn.js";
-// import { handleMoving } from "./move.js";
+import { handleMoving } from "./move.js";
 import { viewBoard } from "./view.js";
 import { scanBoard } from "./scan.js";
 
@@ -19,12 +19,12 @@ $applicationCommand({
     name: "board",
     description: "Board actions",
     components: [
-        // {
-        //     type: ComponentType.Button,
-        //     id: "arrows",
-        //     customMatcher: "custom_id.split(\"-\",2)[0] === \"arrow\"",
-        //     handle: handleMoving
-        // },
+        {
+            type: ComponentType.Button,
+            id: "arrows",
+            customMatcher: "custom_id.split(\"-\",2)[0] === \"arrow\"",
+            handle: handleMoving
+        }
         // {
         //     type: ComponentType.Button,
         //     id: "chest-open",

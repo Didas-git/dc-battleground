@@ -7,10 +7,12 @@ import type { ApplicationCommandData, Interaction } from "@lilybird/transformers
 
 export async function viewBoard(interaction: Interaction<ApplicationCommandData>): Promise<void> {
     if (!interaction.inGuild()) return;
+    await interaction.deferReply();
 
-    const res = await Battleground.viewBoard(interaction.guildId, interaction.member.user.id);
+    const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
+    const res = await Battleground.viewBoard(interaction.guildId, interaction.member.user.id, message.id);
     if (res[0] !== Battleground.ViewBoardStatus.Success) {
-        await interaction.reply({ content: "You don't have a profile yet.", ephemeral: true });
+        await interaction.followUp({ content: "You don't have a profile yet.", ephemeral: true });
         return;
     }
 
@@ -22,14 +24,8 @@ export async function viewBoard(interaction: Interaction<ApplicationCommandData>
     //     return;
     // }
 
-    await interaction.reply({
+    await interaction.followUp({
         embeds: [makeBoardEmbed(<never>res[1])],
         components: [MOVEMENT_ROW]
     });
-
-    // ?? i forgot what this was for
-    // BoardCache.del(memberId);
-    // const message = await interaction.client.rest.getWebhookMessage(interaction.applicationId, interaction.token, "@original", {});
-    // const cacheId = `${interaction.channelId}:${message.id}`;
-    // BoardCache.set(cacheId, memberId);
 }

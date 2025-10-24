@@ -5,16 +5,16 @@ meta {
 }
 
 post {
-  url: http://localhost:3000/api/v1/board/position/:server_id/:member_id/:cache_id/:direction
+  url: http://localhost:3000/api/v1/board/position/:server_id/:member_id/:message_id/:direction
   body: none
   auth: inherit
 }
 
 params:path {
-  server_id: 0
-  member_id: 0
-  cache_id: test_cache
+  message_id: 0
   direction: 0
+  member_id: 0
+  server_id: 0
 }
 
 settings {

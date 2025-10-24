@@ -27,13 +27,6 @@ pub fn main() !void {
 
     try globals.BoardLayer.parseLayerSettings();
 
-    if (comptime builtin.mode == .Debug) {
-        insertTestData() catch |err| switch (err) {
-            Database.ErrorCodes.Constrain => {},
-            else => return err,
-        };
-    }
-
     // Enable later in prod
     // db.exec("PRAGMA journal_mode = WAL");
     // db.exec("PRAGMA synchronous = NORMAL");
@@ -41,9 +34,4 @@ pub fn main() !void {
     app.comptimeGroup(&api);
     app.listen(3000, null);
     app.run();
-}
-
-fn insertTestData() !void {
-    try globals.Board.insertLayerPortal(0x00, 1, 3, 0, .forwards);
-    try globals.BoardCache.set(0x00, 0x00);
 }

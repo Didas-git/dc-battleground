@@ -21,7 +21,8 @@ const NextMoveLayerData = struct {
     layer: u8,
     x: i64,
     y: i64,
-    next_layer: struct {
+    to: struct {
+        layer: u8,
         name: []const u8,
     },
 };
@@ -52,6 +53,12 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     };
 
+    const message_id = std.fmt.parseInt(u64, req.getParameter(2), 10) catch {
+        res.writeStatus("400 Malformed message_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
     const direction_string = req.getParameter(3);
     const direction = std.meta.intToEnum(Direction, std.fmt.parseInt(u8, direction_string, 10) catch {
         res.writeStatus("400 Malformed direction");
@@ -63,11 +70,17 @@ pub fn move(res: *Response, req: *Request) void {
         return;
     };
 
-    const cache_entry = BoardCache.get(server_id, member_id) catch {
+    const cache_entry = BoardCache.getMessage(message_id) catch {
         return utils.handleFailedAllocation(res);
     };
 
-    if (cache_entry == null) {
+    if (cache_entry) |entry| {
+        if (entry.member_id != member_id) {
+            res.writeStatusCode(.Unauthorized);
+            res.endWithoutBody(true);
+            return;
+        }
+    } else {
         res.writeStatus("409 No Cache Entry");
         res.endWithoutBody(true);
         return;
@@ -91,6 +104,7 @@ pub fn move(res: *Response, req: *Request) void {
     };
 
     switch (entity) {
+        // TODO: Handle out of bounds
         .empty => {
             // TODO: Handle possible player missing
             // Tho realistically this race condition should never happen
@@ -106,10 +120,18 @@ pub fn move(res: *Response, req: *Request) void {
                 return;
             };
 
+            var buff: [24]u8 = undefined;
+            const str = std.fmt.bufPrint(&buff, "{d},{d}", .{ x, y }) catch {
+                return utils.handleFailedAllocation(res);
+            };
+
             res.writeStatus("200 Moved");
+            res.end(str, true);
         },
         .player => {
             res.writeStatus("204 Player battle not implemented");
+            res.endWithoutBody(true);
+            return;
         },
         .layer_portal => |portal| {
             const next_layer: u8 = @intCast(@as(i16, position.layer) +| @intFromEnum(portal.to));
@@ -126,7 +148,8 @@ pub fn move(res: *Response, req: *Request) void {
                     .layer = position.layer,
                     .x = x,
                     .y = y,
-                    .next_layer = .{
+                    .to = .{
+                        .layer = new_layer.layer,
                         .name = new_layer.name,
                     },
                 }, .{}) catch {
@@ -141,6 +164,7 @@ pub fn move(res: *Response, req: *Request) void {
             } else {
                 // This should never happen
                 res.writeStatus("503 This portal should not exist");
+                return;
             }
         },
         else => {
@@ -161,13 +185,6 @@ pub fn move(res: *Response, req: *Request) void {
             return;
         },
     }
-
-    var buff: [24]u8 = undefined;
-    const str = std.fmt.bufPrint(&buff, "{d},{d}", .{ x, y }) catch {
-        return utils.handleFailedAllocation(res);
-    };
-
-    res.end(str, true);
 }
 
 fn calculateCoordinates(x: i64, y: i64, direction: Direction) struct { i64, i64 } {

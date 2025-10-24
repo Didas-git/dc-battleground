@@ -5,12 +5,13 @@ meta {
 }
 
 get {
-  url: http://localhost:3000/api/v1/board/position/:server_id/:member_id
+  url: http://localhost:3000/api/v1/board/position/:server_id/:member_id/:message_id
   body: none
   auth: inherit
 }
 
 params:path {
+  message_id: 0
   server_id: 0
   member_id: 0
 }

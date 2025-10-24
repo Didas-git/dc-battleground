@@ -47,7 +47,6 @@ export async function scanBoard(interaction: Interaction<ApplicationCommandData>
 
     const [,str]: [number, string] = <never>res;
     const [chests, mobs] = str.split(",");
-    console.log(str);
 
     const embed: Embed.Structure = {
         title: `Found ${(+chests) + (+mobs)} entities`,

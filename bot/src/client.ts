@@ -17,6 +17,14 @@ async function makeRequest(
     return fetch(`${BASE_URL}${version}/${path}`, opts);
 }
 
+export const enum Entity {
+    Empty,
+    Player,
+    Mob,
+    Chest,
+    LayerPortal
+}
+
 export const enum ProfileStatus {
     Success,
     Error,
@@ -74,9 +82,9 @@ export interface BoardView {
     map: string;
 }
 
-export async function viewBoard(serverId: string, memberId: string, viewSize?: number): Promise<[ViewBoardStatus.Success, BoardView] | [ViewBoardStatus]> {
+export async function viewBoard(serverId: string, memberId: string, messageId: string, viewSize?: number): Promise<[ViewBoardStatus.Success, BoardView] | [ViewBoardStatus]> {
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const res = await makeRequest("GET", `board/position/${serverId}/${memberId}`, typeof viewSize === "undefined" ? {} : { "view-size": viewSize.toString() });
+    const res = await makeRequest("GET", `board/position/${serverId}/${memberId}/${messageId}`, typeof viewSize === "undefined" ? {} : { "view-size": viewSize.toString() });
     switch (res.status) {
         case 200:
             return [ViewBoardStatus.Success, await res.json()];
@@ -126,5 +134,70 @@ export async function refreshBoard(serverId: string, layer: number): Promise<[Re
             return [RefreshStatus.NoLayerInfo];
         default:
             return [RefreshStatus.Failure];
+    }
+}
+
+export const enum Direction {
+    Left,
+    Up,
+    Down,
+    Right
+}
+
+export const enum MoveStatus {
+    Success,
+    Collision,
+    Error,
+    NoCacheEntry,
+    NoPlayer,
+    WrongPlayer,
+    /** Usually failed allocations */
+    Failure
+}
+
+export interface NextMoveData {
+    entity: Entity;
+    direction: number;
+    layer: number;
+    x: number;
+    y: number;
+}
+
+export interface NextMoveLayerData {
+    entity: Entity;
+    direction: number;
+    layer: number;
+    x: number;
+    y: number;
+    to: {
+        layer: number,
+        name: string
+    };
+}
+
+export type NextMove = NextMoveLayerData | NextMoveData;
+
+export async function move(
+    serverId: string,
+    memberId: string,
+    messageId: string,
+    direction: Direction
+): Promise<[MoveStatus.Success, string /* x,y */] | [MoveStatus.Collision, NextMove] | [MoveStatus]> {
+    const res = await makeRequest("POST", `board/position/${serverId}/${memberId}/${messageId}/${direction}`, {});
+    switch (res.status) {
+        case 200:
+            return [MoveStatus.Success, await res.text()];
+        case 308:
+            return [MoveStatus.Collision, await res.json()];
+        case 400:
+            return [MoveStatus.Error];
+        case 401:
+            return [MoveStatus.WrongPlayer];
+        case 404:
+            return [MoveStatus.NoPlayer];
+        case 409:
+            return [MoveStatus.NoCacheEntry];
+        default:
+            return [MoveStatus.Failure];
     }
 }

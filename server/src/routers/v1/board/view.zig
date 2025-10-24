@@ -12,6 +12,7 @@ const Response = zuws.Response;
 
 pub fn view(res: *Response, req: *Request) void {
     const Board = globals.Board;
+    const BoardCache = globals.BoardCache;
 
     const server_id = std.fmt.parseInt(u64, req.getParameter(0), 10) catch {
         res.writeStatus("400 Malformed server_id");
@@ -21,6 +22,12 @@ pub fn view(res: *Response, req: *Request) void {
 
     const member_id = std.fmt.parseInt(u64, req.getParameter(1), 10) catch {
         res.writeStatus("400 Malformed member_id");
+        res.endWithoutBody(true);
+        return;
+    };
+
+    const message_id = std.fmt.parseInt(u64, req.getParameter(2), 10) catch {
+        res.writeStatus("400 Malformed message_id");
         res.endWithoutBody(true);
         return;
     };
@@ -86,6 +93,18 @@ pub fn view(res: *Response, req: *Request) void {
         return utils.handleFailedAllocation(res);
     };
     defer globals.allocator.free(stringified_data);
+
+    BoardCache.delete(server_id, member_id) catch {
+        res.writeStatusCode(.InternalServerError);
+        res.endWithoutBody(true);
+        return;
+    };
+
+    BoardCache.set(server_id, member_id, message_id) catch {
+        res.writeStatusCode(.InternalServerError);
+        res.endWithoutBody(true);
+        return;
+    };
 
     res.writeStatusCode(.OK);
     res.writeHeader("Content-Type", "application/json; charset=utf8");

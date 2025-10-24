@@ -11,8 +11,8 @@ queries: struct {
     set: Statement,
     get: Statement,
     update: Statement,
-    get_member: Statement,
-    // delete: Statement,
+    get_message: Statement,
+    delete: Statement,
 },
 
 pub fn init(db: *Database) !BoardCache {
@@ -20,37 +20,36 @@ pub fn init(db: *Database) !BoardCache {
         \\CREATE TABLE IF NOT EXISTS BoardCache (
         \\server_id INT NOT NULL,
         \\id INT NOT NULL,
-        \\member_id INT NOT NULL,
-        \\added_at INT NOT NULL,
+        \\message_id INT NOT NULL,
+        \\updated_at INT NOT NULL,
         \\PRIMARY KEY (server_id, id)
         \\)
     );
 
     return .{
         .queries = .{
-            .set = try .init(db, "INSERT INTO BoardCache (server_id, id, member_id, added_at) VALUES (:server_id, :id, :m_id, :addedAt)"),
-            .get = try .init(db, "SELECT member_id, added_at FROM BoardCache WHERE server_id = :server_id AND id = :id"),
-            .update = try .init(db, "UPDATE BoardCache SET added_at = :addedAt WHERE server_id = :server_id AND id = :id"),
-            .get_member = try .init(db, "SELECT id, added_at FROM BoardCache WHERE member_id = :memberId"),
-            // .delete = try .init(db, "DELETE FROM BoardCache WHERE member_id = :memberId"),
+            .set = try .init(db, "INSERT INTO BoardCache (server_id, id, message_id, updated_at) VALUES (:server_id, :id, :message_id, :updated_at)"),
+            .get = try .init(db, "SELECT message_id, updated_at FROM BoardCache WHERE server_id = :server_id AND id = :id"),
+            .update = try .init(db, "UPDATE BoardCache SET updated_at = :updated_at WHERE server_id = :server_id AND id = :id"),
+            .get_message = try .init(db, "SELECT id, updated_at FROM BoardCache WHERE message_id = :message_id"),
+            .delete = try .init(db, "DELETE FROM BoardCache WHERE server_id = :server_id AND id = :id"),
         },
     };
 }
 
-pub fn set(self: *const BoardCache, server_id: u64, member_id: u64) !void {
+pub fn set(self: *const BoardCache, server_id: u64, member_id: u64, message_id: u64) !void {
     const query = self.queries.set;
 
     try query.bindUInt(1, server_id);
     try query.bindUInt(2, member_id);
-    try query.bindUInt(3, member_id);
+    try query.bindUInt(3, message_id);
     try query.bindInt(4, std.time.milliTimestamp());
 
     _ = try query.step();
     _ = try query.reset();
 }
 
-/// The caller should free `member_id`
-pub fn get(self: *const BoardCache, server_id: u64, member_id: u64) !?struct { member_id: u64, added_at: i64 } {
+pub fn get(self: *const BoardCache, server_id: u64, member_id: u64) !?struct { message_id: u64, updated_at: i64 } {
     const query = self.queries.get;
     defer _ = query.reset() catch unreachable;
 
@@ -61,8 +60,23 @@ pub fn get(self: *const BoardCache, server_id: u64, member_id: u64) !?struct { m
     if (result != .row) return null;
 
     return .{
+        .message_id = query.uIntColumn(0),
+        .updated_at = query.intColumn(1),
+    };
+}
+
+pub fn getMessage(self: *const BoardCache, message_id: u64) !?struct { member_id: u64, updated_at: i64 } {
+    const query = self.queries.get_message;
+    defer _ = query.reset() catch unreachable;
+
+    try query.bindUInt(1, message_id);
+
+    const result = try query.step();
+    if (result != .row) return null;
+
+    return .{
         .member_id = query.uIntColumn(0),
-        .added_at = query.intColumn(1),
+        .updated_at = query.intColumn(1),
     };
 }
 
@@ -73,6 +87,16 @@ pub fn update(self: *const BoardCache, server_id: u64, member_id: u64) !void {
     try query.bindInt(1, std.time.milliTimestamp());
     try query.bindUInt(2, server_id);
     try query.bindUInt(3, member_id);
+
+    _ = try query.step();
+}
+
+pub fn delete(self: *const BoardCache, server_id: u64, member_id: u64) !void {
+    const query = self.queries.delete;
+    defer _ = query.reset() catch unreachable;
+
+    try query.bindUInt(1, server_id);
+    try query.bindUInt(2, member_id);
 
     _ = try query.step();
 }
